@@ -7,7 +7,7 @@
 
 **Criterio de cierre del bloque:** dibujar a mano el camino de un paquete desde el portátil hasta el VPS, atravesando el NAT del router doméstico, y explicarlo en voz alta sin notas aguantando tres «¿y por qué?» seguidos.
 
-**Estado:** sesiones 1 y 2 hechas. Pendientes las sesiones 3 (puertos y NAT) y 4 (TCP y handshake).
+**Estado:** **bloque cerrado.** Cuatro sesiones completadas y criterio final superado. Siguiente: Bloque 2 — DNS.
 
 ---
 
@@ -669,6 +669,221 @@ ping -c 1 89.58.44.2; ip neigh | grep 44.2
 
 ---
 
+## Sesión 3 · Puertos y NAT
+
+> Kurose y Ross, 3.2 y 4.3.3
+
+### Multiplexación y demultiplexación
+
+- **Multiplexación** — en el emisor: recoger los datos de **varios sockets**, ponerles su cabecera con el puerto de origen, y meterlos todos por el mismo canal hacia la capa de red.
+- **Demultiplexación** — en el receptor: usar esa información para entregar cada segmento al **socket correcto**.
+
+Multiplexar es juntar varios flujos en uno; demultiplexar es separar uno en varios. Y multiplexar **obliga** a etiquetar: sin el remitente escrito en el sobre, al llegar no habría forma de repartir.
+
+> **La analogía:** una oficina con veinte empleados y una sola saca de correo saliente. Echar todas las cartas a la misma saca, cada una con su remitente, es multiplexar. Repartirlas por mesas al llegar es demultiplexar.
+
+### Puerto no es socket
+
+| | Puerto | Socket |
+|---|---|---|
+| Qué es | Un número de 16 bits en la cabecera | Una estructura del sistema operativo |
+| Tiene | Nada: es un dato | Estado, buffers, descriptor de fichero |
+
+El puerto es la **etiqueta** del socket; el socket es **la cosa**.
+
+En el VPS se ve en los dos sentidos: `systemd-resolve` tenía cuatro sockets (`fd` 14–17) en **un solo puerto 53**; y cien clientes en el puerto 22 son **cien sockets** y un solo puerto.
+
+> **La analogía:** el puerto es el número de la extensión telefónica; el socket es la llamada en curso. Cien llamadas pueden entrar por la misma extensión y cada una es una conversación distinta.
+
+### Cómo se identifica cada socket
+
+| | Datos necesarios |
+|---|---|
+| **UDP** | **Dos:** IP y puerto de destino |
+| **TCP** | **Cuatro:** IP y puerto de origen, IP y puerto de destino |
+
+**Por qué TCP necesita cuatro y UDP dos.** TCP mantiene estado **por interlocutor**: números de secuencia, qué se ha confirmado, qué falta por retransmitir. Ese estado solo tiene sentido dentro de una conversación concreta — «va por el byte 4999» no significa nada si no sabes con quién. Por eso necesita un socket por conversación, y por eso tiene que mirar de dónde viene cada segmento.
+
+UDP no guarda nada: cada datagrama es independiente y se basta a sí mismo. Si no hay estado que separar, un socket por interlocutor sería una estructura vacía. Consecuencia: **mil clientes escribiendo al mismo puerto UDP caen en el mismo socket**, mezclados. Si la aplicación quiere distinguirlos, tiene que mirar ella la IP de origen.
+
+La cadena causal, en orden: TCP tiene estado por interlocutor → necesita un socket por interlocutor → necesita los cuatro datos para repartir. UDP no arranca esa cadena porque el primer eslabón no existe.
+
+### Rangos de puerto
+
+16 bits → **0 a 65535**.
+
+| Rango | Qué son |
+|---|---|
+| 0–1023 | **Bien conocidos.** Reservados por IANA para protocolos estándar: 22 SSH, 80 HTTP, 443 HTTPS. |
+| 1024+ | Libres: puertos efímeros de cliente y servicios propios. |
+
+En Linux, **solo root puede abrir un puerto por debajo de 1024**. Por eso nginx arranca como root para coger el 80 y luego baja de privilegios, y por eso Odoo usa el 8069. Es también lo que se hizo sin saberlo al mover el Docker de PostgreSQL al 5433: elegir un puerto libre por encima de 1023.
+
+### Sockets en el mismo puerto: LISTEN y ESTAB
+
+Con tres sesiones abiertas en el puerto 22 hay **cuatro sockets**: uno en `LISTEN` y tres en `ESTAB`. Pero **escuchando solo el primero** — los otros ya tienen interlocutor fijado.
+
+Orden de reparto de lo que llega:
+
+1. Se busca **coincidencia exacta de los cuatro datos** → socket `ESTAB`.
+2. Si no hay, se mira si algún socket a la escucha encaja → ahí caen los intentos de conexión nuevos.
+
+```bash
+sudo ss -tnp | grep :22     # conexiones establecidas (sin -l)
+```
+
+Salida real con dos sesiones abiertas:
+
+```
+ESTAB 0 0    89.58.45.111:22  83.56.140.163:54364  users:(("sshd",pid=75419,fd=4),...)
+ESTAB 0 304  89.58.45.111:22  83.56.140.163:54842  users:(("sshd",pid=75327,fd=4),...)
+```
+
+**Comparten tres de los cuatro datos.** Lo único que las distingue es el puerto de origen: 54364 y 54842. Ahí está, medida, la razón de que TCP necesite los cuatro.
+
+Y `Recv-Q`/`Send-Q` aquí sí son colas de datos reales: los 304 bytes son tráfico en vuelo pendiente de confirmar. En un socket `LISTEN`, `Send-Q` era el backlog — mismo nombre, otra cosa.
+
+### NAT
+
+**Qué resuelve:** varios dispositivos compartiendo una sola IP pública. Las privadas (`192.168.1.x`) **no son enrutables**: ningún router de internet tiene una ruta hacia ellas porque ese rango existe duplicado en millones de casas. No es que sean secretas — es que son inalcanzables.
+
+**Qué reescribe:**
+
+| Sentido | Campos que toca |
+|---|---|
+| **Al salir** | IP de origen (privada → pública) y **puerto de origen** (→ uno propio del router) |
+| **Al entrar** | IP y puerto de **destino**, deshaciendo el cambio |
+
+**Por qué también el puerto, y no solo la IP.** Dos dispositivos pueden elegir por casualidad el mismo puerto efímero. Si el router solo cambiara la IP, las dos filas de su tabla serían idénticas y no sabría repartir las respuestas. Reescribir garantiza unicidad:
+
+| Puerto público | Dispositivo interno | Su puerto |
+|---|---|---|
+| 40001 | `192.168.1.74` | 51234 |
+| 40002 | `192.168.1.30` | 51234 |
+
+**Al volver**, el router mira el **puerto de destino** de la respuesta, busca esa fila y restaura la IP y el puerto originales.
+
+**No es solo memoria, es traducción:** el paquete que sale del router ya no es el que entró. Compárese con un router normal, que mira la IP y decide por dónde sale **sin tocar nada** salvo el TTL.
+
+> **Sobre el nombre:** lo que hace un router doméstico es en rigor **PAT** (*Port Address Translation*). El NAT original traducía direcciones uno a uno, lo que no resolvía compartir una IP entre varios. «NAT» se quedó como nombre genérico. Deuda de vocabulario, como «cluster» en PostgreSQL.
+
+### Por qué el NAT rompe el modelo de capas
+
+Un nodo intermedio debería subir solo hasta la capa de red. El NAT hace dos cosas que no le tocan:
+
+- **Lee y modifica puertos**, que son de la capa de transporte.
+- **Modifica la IP de origen**, que se supone intacta de punta a punta.
+
+Y hay un tercer exceso: para saber cuándo crear y cuándo borrar una fila, el router **sigue los flags TCP** — ve un SYN y abre la entrada, ve un FIN o se agota el tiempo y la cierra. O sea, sigue el estado de una conexión que en teoría es asunto exclusivo de los dos extremos.
+
+### Port forwarding
+
+Con NAT normal, la tabla se llena sola pero **solo hacia fuera**: cada fila nace de una petición interna. Sin fila, un paquete entrante no tiene destinatario y se descarta.
+
+El *port forwarding* añade una fila **permanente, escrita a mano**, que funciona en el sentido contrario: «lo que llegue al puerto X, dáselo a este dispositivo». Es la única forma de recibir conexiones no solicitadas detrás de un NAT.
+
+### Criterio de la sesión
+
+**Por qué el VPS recibe conexiones entrantes y el portátil no:** el VPS tiene IP pública directa, sin NAT delante, así que es alcanzable desde el primer segundo. El portátil tiene una IP privada no enrutable; lo único alcanzable desde fuera es la IP pública del router, que sin una fila en su tabla no sabe a quién entregar lo que llega.
+
+---
+
+## Sesión 4 · TCP, UDP y el handshake
+
+> Kurose y Ross, 3.1, 3.3, 3.5.1 y 3.5.6
+
+### Por qué existe el handshake
+
+**No es cortesía: es acordar los números de secuencia** con los que ambos lados van a contar los bytes. Sin ese punto de partida común, no hay forma de detectar qué falta ni de reordenar lo que llega desordenado.
+
+Los tres pasos:
+
+| Paso | Flag | Qué hace |
+|---|---|---|
+| 1 | `[S]` SYN | El cliente propone su número inicial |
+| 2 | `[S.]` SYN-ACK | El servidor confirma el del cliente (+1) y propone el suyo |
+| 3 | `[.]` ACK | El cliente confirma el del servidor (+1) |
+
+Los números iniciales son **aleatorios a propósito**: si fueran predecibles, alguien podría inyectar paquetes falsos en una conexión ajena.
+
+### La captura
+
+```bash
+sudo tcpdump -n -i any 'tcp port 22 and tcp[tcpflags] & (tcp-syn|tcp-ack) != 0'
+```
+
+- **`sudo`** — leer tráfico crudo es privilegiado: verías paquetes de otros usuarios.
+- **`-n`** — no resolver nombres ni traducir puertos. Más rápido y más legible.
+- **`-i any`** — interfaz a escuchar. `any` captura por todas.
+- **El filtro entre comillas** — sin él saldría todo el tráfico, incluida la propia sesión SSH generando líneas sin parar. Las comillas simples evitan que la shell interprete los paréntesis y el `&`.
+
+Para ver **solo** el handshake y no el ruido de sesiones ya abiertas, quitar `tcp-ack` del filtro:
+
+```bash
+sudo tcpdump -n -i any 'tcp port 22 and tcp[tcpflags] & tcp-syn != 0'
+```
+
+**Cuándo usar tcpdump:** cuando necesitas ver qué pasa de verdad en la red, no lo que crees que pasa. Herramienta de último recurso en diagnóstico, y la que zanja discusiones.
+
+### Lo capturado
+
+```
+In   80.29.31.121.60352 > 89.58.45.111.22: Flags [S],  seq 2648884223
+Out  89.58.45.111.22 > 80.29.31.121.60352: Flags [S.], seq 2481111623, ack 2648884224
+In   80.29.31.121.60352 > 89.58.45.111.22: Flags [.],  ack 1
+```
+
+**El ACK del servidor es 2648884224 y el SYN del cliente traía 2648884223.** Exactamente uno más: «he recibido tu número de partida, el siguiente byte que espero es ese +1».
+
+El tercer ACK dice `1` porque a partir del primer paquete tcpdump muestra números **relativos** al inicio de la conexión. Solo el SYN enseña el absoluto.
+
+**Justo después, TCP termina y empieza SSH:**
+
+```
+length 22: SSH: SSH-2.0-OpenSSH_10.5
+length 43: SSH: SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.19
+```
+
+Ambos extremos se anuncian **en claro antes de cifrar nada**. Esa información de versión viaja legible por la red, y es lo que un atacante usa para buscar vulnerabilidades conocidas.
+
+### Flags de tcpdump
+
+| Flag | Significa |
+|---|---|
+| `[S]` | SYN |
+| `[S.]` | SYN-ACK (el punto es el ACK) |
+| `[.]` | Solo ACK |
+| `[P.]` | PUSH+ACK: datos reales |
+| `[F.]` | FIN: cierre ordenado |
+| `[R]` | RST: cierre abrupto |
+
+El cierre son **cuatro pasos**, no tres: cada lado cierra su mitad por separado, porque una conexión TCP son en realidad dos flujos independientes.
+
+### Qué no entra en el bloque
+
+3.4 y 3.5.2–3.5.5 (fiabilidad, retransmisiones, control de flujo) y 3.6–3.8 (control de congestión). El roadmap lo excluye. Para desplegar y operar, el handshake y el modelo de garantías bastan; el control de congestión importa si diseñas protocolos, no si administras un servidor.
+
+---
+
+## Cierre del bloque · El camino del paquete
+
+Tabla del recorrido, con las columnas que cambian y las que no:
+
+| Parada | IP origen | IP destino | Puerto origen | MAC destino |
+|---|---|---|---|---|
+| **Portátil** | PC (privada) | VPS | PC | Router de casa |
+| **Router de casa** | **Pública del router** | VPS | **Del router (NAT)** | Siguiente router |
+| **Router intermedio** | Pública del router | VPS | Del router | Siguiente salto |
+| **VPS** | Pública del router | VPS | Del router | — (ya llegó) |
+
+Las tres lecturas:
+
+- **La IP de destino no cambia nunca.** Es la dirección final.
+- **La MAC de destino cambia en cada fila.** Es la identidad del dispositivo del siguiente salto; la trama se destruye y se rehace en cada tramo.
+- **La IP y el puerto de origen cambian una sola vez, en el router de casa, y a la vez.** Las dos por el mismo motivo: el VPS tiene que poder contestar, y no puede contestar a una dirección no enrutable.
+
+---
+
 ## Pendientes del bloque
 
 ### Hechos
@@ -676,14 +891,15 @@ ping -c 1 89.58.44.2; ip neigh | grep 44.2
 - [x] Comparar `ip a` / `ip r` entre portátil y VPS
 - [x] Calcular subredes a mano (`/24` y `/22`)
 - [x] Instalar `traceroute` y `tcpdump` en el VPS
+- [x] Capturar el handshake con `tcpdump`
+- [x] Los 10 minutos en voz alta de las cuatro sesiones
 
 ### Abiertos
 
 - [ ] Ejercicio con `/26`, donde el corte cae en el **último** octeto y la subred ya no empieza en `.0`
 - [ ] Verificar con `ipcalc` algún cálculo hecho a mano
-- [ ] Los 10 minutos en voz alta de la sesión 2: por qué la máscara es una frontera
-- [ ] Capturar el handshake con `tcpdump` (sesión 4)
 - [ ] Guardar la salida de `sudo ss -tulpn` como foto del «antes», para comparar tras desplegar Odoo
+- [ ] Dejar `tcpdump` filtrando SYNs unos minutos: aparecen bots probando el puerto 22. Es lo que `fail2ban` bloqueará en el Bloque 4 de Linux.
 
 ### Para bloques posteriores
 
@@ -698,7 +914,7 @@ ping -c 1 89.58.44.2; ip neigh | grep 44.2
 | Sesión | Criterio | Estado |
 |---|---|---|
 | 1 · Capas | Explicar qué hace cada capa con el sobre, sin notas | Hecho |
-| 2 · Subredes | Explicar por qué el VPS llega directo a `89.58.44.2` pero necesita el gateway para `8.8.8.8` | Pendiente |
-| 3 · Puertos y NAT | Por qué el VPS recibe conexiones entrantes y el portátil no | — |
-| 4 · TCP y handshake | Por qué existe el handshake: acordar números de secuencia | — |
-| **Bloque** | **El recorrido completo a mano, atravesando el NAT** | — |
+| 2 · Subredes | Explicar por qué el VPS llega directo a `89.58.44.2` pero necesita el gateway para `8.8.8.8` | Hecho |
+| 3 · Puertos y NAT | Por qué el VPS recibe conexiones entrantes y el portátil no | Hecho |
+| 4 · TCP y handshake | Por qué existe el handshake: acordar números de secuencia | Hecho |
+| **Bloque** | **El recorrido completo a mano, atravesando el NAT** | **Hecho** |
