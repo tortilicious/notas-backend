@@ -2,7 +2,7 @@
 
 Jerarquía y delegación, resolución recursiva e iterativa, cachés, tipos de registro, TTL y propagación. Practicado con `dig` contra dominios reales, y aplicado a elegir resolutor y a entender los bloqueos de la operadora.
 
-**Entorno de referencia:** portátil con CachyOS (`dig` del paquete `bind`, NetworkManager, `systemd-resolved` en modo *foreign*) y VPS `backend-lab` (Ubuntu 24.04, `systemd-resolved` en modo *stub*, `dig` aún sin instalar). Las opciones de `dig` y la salida de `resolvectl` cambian entre versiones: confírmalas con `dig -v`, `man dig` y `man resolvectl` en la máquina donde vayas a ejecutarlos.
+**Entorno de referencia:** portátil con CachyOS (`dig` del paquete `bind`, NetworkManager, `systemd-resolved` en modo *foreign*) y VPS `backend-lab` (Ubuntu 24.04, `systemd-resolved` en modo *stub*, `dig` del paquete `bind9-dnsutils`). Las opciones de `dig` y la salida de `resolvectl` cambian entre versiones: confírmalas con `dig -v`, `man dig` y `man resolvectl` en la máquina donde vayas a ejecutarlos.
 
 ---
 
@@ -190,7 +190,60 @@ Siete valores: autoritativo principal, email del responsable (con punto en vez d
 | `A`, `AAAA`, `CNAME`, `MX`, `TXT` | En el autoritativo | Tú, en el panel del **proveedor de DNS** |
 | `PTR` de la IP del servidor | En la zona inversa del bloque de IPs | El proveedor del servidor (Netcup), desde su panel |
 
+### Raíz del dominio o subdominio
+
+Cada nombre tiene **sus propias fichas**: un `A` en `odoo.mlozano.dev` no crea nada en `mlozano.dev`, y al revés. En el panel de Cloudflare, el campo *Name* se rellena con `@` para la raíz (el *apex*) o con la etiqueta del subdominio (`odoo`), y Cloudflare añade el dominio detrás.
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Raíz (`mlozano.dev`) | Nombre corto | El servicio ocupa la raíz; si después se quiere otra cosa ahí, hay que moverlo |
+| Subdominio (`odoo.mlozano.dev`) | La raíz queda libre; cada servicio, con su nombre | Nombre algo más largo |
+
+### DNS only frente a Proxied (Cloudflare)
+
+El interruptor de la nube de cada registro decide qué IP se publica:
+
+| Modo | Nube | Qué IP publica el autoritativo | Camino del visitante |
+|---|---|---|---|
+| **DNS only** | Gris | La que escribiste (la del VPS) | Directo al servidor |
+| **Proxied** | Naranja | IPs de Cloudflare | A Cloudflare, que hace de proxy hasta el servidor |
+
+- Con **Proxied**, `dig` no devuelve la IP del VPS, el servidor deja de ver al visitante directamente y el TLS lo gestiona Cloudflare. Con nginx y certbot en el VPS, el modo es **DNS only**.
+- El **TTL** solo se puede elegir en DNS only; con Proxied lo gestiona Cloudflare. **Auto** equivale a 300 s.
+- Los registros de tipo **Tunnel** (Cloudflare Tunnel) van siempre en Proxied: por debajo son un `CNAME` hacia la infraestructura de Cloudflare.
+
 ## 5. El mensaje DNS y cómo lo muestra `dig`
+
+### Cómo se construye una consulta
+
+Toda consulta tiene tres partes: **a quién** se pregunta, **por quién** y **qué dato** se quiere.
+
+```
+dig  @SERVIDOR   NOMBRE   TIPO
+     a quién    por quién  qué dato
+```
+
+| Parte | Ejemplo | Si no se pone |
+|---|---|---|
+| A quién (`@SERVIDOR`) | `@autumn.ns.cloudflare.com`, `@1.1.1.1` | Pregunta al resolutor del sistema (`127.0.0.53`), con su caché |
+| Por quién (`NOMBRE`) | `odoo.mlozano.dev` | Obligatorio. Tiene que ser el nombre exacto de la ficha: la raíz y un subdominio son nombres distintos |
+| Qué dato (`TIPO`) | `A`, `AAAA`, `NS`, `MX` | Pide `A` |
+
+- **`dig` es el programa**, no una de las partes.
+- **Lo que empieza por `+` o `-` no cambia la pregunta.** Las opciones `+` cambian la consulta o cómo se muestra (`+short`, `+trace`); las `-`, el programa (`-4`: enviar la pregunta por IPv4). `-4` no es un tipo: `dig -4 mlozano.dev` sigue pidiendo `A`.
+- **El tipo va detrás del nombre**, sin guion.
+- En estos apuntes, las palabras en MAYÚSCULAS (`DOMINIO`, `NOMBRE`, `AUTORITATIVO`) son huecos que se sustituyen por un valor real.
+
+**Preguntar a un autoritativo** son dos pasos:
+
+| Paso | Comando | Qué hace |
+|---|---|---|
+| 1. Saber cómo se llama | `dig +noall +answer DOMINIO NS` | `NS` como *qué dato*: devuelve los nombres de los autoritativos. La pregunta la sigue contestando el resolutor. Se pregunta por el **dominio** (`mlozano.dev`), no por el subdominio: los autoritativos lo son de la zona entera |
+| 2. Preguntarle | `dig @AUTORITATIVO NOMBRE TIPO` | Lo que hace que conteste el autoritativo es la **`@`**. La prueba es el flag `aa` |
+
+Hay dos o más autoritativos por redundancia, con los mismos datos: vale cualquiera. La sección `ADDITIONAL` de la respuesta a `NS` trae sus IPs; no hacen falta, porque `dig` resuelve el nombre que va detrás de `@`.
+
+### Cómo se lee la respuesta
 
 Las secciones de la salida de `dig` (`HEADER`, `QUESTION`, `ANSWER`, `AUTHORITY`, `ADDITIONAL`) son las del formato del mensaje DNS. Solo cuatro líneas importan; `OPT PSEUDOSECTION`, `id`, `global options` y `MSG SIZE` se ignoran.
 
@@ -203,9 +256,47 @@ Las secciones de la salida de `dig` (`HEADER`, `QUESTION`, `ANSWER`, `AUTHORITY`
 
 **Con `NXDOMAIN`:** `ANSWER: 0`, sin sección de respuesta, y una `AUTHORITY SECTION` con el `SOA` de quien afirma que el nombre no existe.
 
+**Con `NOERROR` y `ANSWER: 0`** (*NODATA*): el nombre **existe**, pero no tiene fichas del tipo pedido. También trae el `SOA` en la `AUTHORITY SECTION`. El primer campo del `SOA` es el autoritativo principal de la zona.
+
 **Preguntando directamente a un autoritativo:** aparece `aa`, falta `ra` y sale `WARNING: recursion requested but not available`. `dig` pide recursión por defecto y el autoritativo no la ofrece.
 
-**`dig +trace`** recorre la jerarquía él mismo, de forma iterativa, y muestra cada salto. Cada bloque termina en `;; Received … from …` y se lee **de abajo arriba**: primero quién contesta, luego qué dijo. El primer bloque es la única vez que usa el resolutor local (para saber dónde están las raíces). **El paso de `NS` a `A` marca el final del recorrido.**
+### Cómo se lee `dig +trace`
+
+`dig +trace` no pregunta al resolutor: recorre la jerarquía él mismo, de forma iterativa, y muestra la respuesta de cada salto. Es pedir indicaciones sin GPS: cada oficina solo sabe a cuál mandarte después.
+
+**Nomenclatura.**
+
+| Término | Qué es |
+|---|---|
+| **Bloque** | Cada grupo de líneas separado por una línea en blanco. Se numeran por orden de aparición, empezando por el **bloque 0** |
+| **Línea Received** | La última línea de cada bloque, la que empieza por `;; Received` |
+| **Servidor que contesta** | El nombre entre paréntesis en la línea Received. Lo anterior es su IP y el puerto (`216.239.34.105#53`) |
+| **Columnas de un registro** | Las cinco de cada línea de registro (abajo). Solo se cuentan en las líneas de registro, nunca en la línea Received |
+| **Líneas que se ignoran** | Las que tienen `DS`, `RRSIG` o `NSEC3` en la columna 4: firmas DNSSEC |
+
+```
+mlozano.dev.   10800   IN   NS   gannon.ns.cloudflare.com.
+ columna 1    col. 2  col.3 col.4      columna 5
+ (nombre)     (TTL)  (clase)(tipo)     (valor)
+```
+
+**Método para leer un bloque**, siempre en este orden:
+
+1. **Servidor que contesta**: en la línea Received, al final del bloque.
+2. **Columna 1**: de qué nombre habla.
+3. **Columna 4**: el tipo. `NS` significa «pregunta a estos servidores»; `A` o `AAAA`, «esta es la dirección».
+4. **Columna 5**: el valor.
+
+**Reglas de la cadena.**
+
+| Regla | Consecuencia |
+|---|---|
+| El servidor que contesta un bloque es uno de los que aparecen en la columna 5 del bloque anterior | Así se encadenan. `dig` elige **uno cualquiera** de la lista, porque todos tienen los mismos datos; en otra ejecución puede tocar otro |
+| La columna 1 va de lo general a lo concreto | `.` → `dev.` → `mlozano.dev.` → `odoo.mlozano.dev.` |
+| El bloque 0 lo contesta el resolutor local | Habla **de** la raíz (columna 1 = `.`), pero no lo dice la raíz: es la única pregunta que `dig` hace al resolutor, para saber dónde empezar. No hay ningún bloque final del resolutor |
+| El paso de `NS` a `A` en la columna 4 marca el final | Mientras sea `NS`, cada servidor remite al siguiente; con `A`, ya está la respuesta, que da el autoritativo |
+
+Los cuatro bloques típicos: 0 resolutor local (lista de raíces) → 1 raíz (servidores del TLD) → 2 TLD (servidores autoritativos: **la delegación**) → 3 autoritativo (la dirección).
 
 ## 6. TTL y propagación
 
@@ -245,7 +336,7 @@ Bajar el TTL el mismo día no sirve: el valor nuevo solo afecta a las copias que
 
 ### La caché negativa
 
-Un `NXDOMAIN` también se guarda. Su duración es **la menor entre el último número del `SOA` y el TTL del propio `SOA`** (RFC 2308, sección 5).
+Un `NXDOMAIN` también se guarda, y un *NODATA* (`NOERROR` con `ANSWER: 0`) también. Su duración es **la menor entre el último número del `SOA` y el TTL del propio `SOA`** (RFC 2308, sección 5).
 
 **La trampa:** preguntar por un nombre antes de crearlo. El resolutor guarda «no existe» y lo sigue contestando aunque el registro ya esté creado.
 
@@ -379,6 +470,36 @@ En el portátil: `dig -4 +trace mediavida.com`.
 - Consultas seguidas a `mediavida.com` devolvían IPs distintas (`.115`, `.117`, `.119`, `.120`): reparto de carga con varios `A`.
 - La primera resolución tardó 55 ms; la segunda, 8 ms: la caché.
 
+## La delegación de `odoo.mlozano.dev` con `dig +trace`
+
+En el portátil: `dig -4 +trace odoo.mlozano.dev`. Sin las líneas `DS`, `RRSIG` y `NSEC3`:
+
+```
+.                 NS   a.root-servers.net.                  (y 12 más)
+;; Received 1097 bytes from 127.0.0.53#53(127.0.0.53) in 12 ms
+
+dev.              NS   ns-tld5.charlestonroadregistry.com.  (y 4 más)
+;; Received 764 bytes from 192.5.5.241#53(f.root-servers.net) in 4 ms
+
+mlozano.dev.      NS   gannon.ns.cloudflare.com.
+mlozano.dev.      NS   autumn.ns.cloudflare.com.
+;; Received 382 bytes from 216.239.34.105#53(ns-tld2.charlestonroadregistry.com) in 30 ms
+
+odoo.mlozano.dev. A    89.58.45.111
+;; Received 61 bytes from 162.159.44.59#53(gannon.ns.cloudflare.com) in 5 ms
+```
+
+| Bloque | Servidor que contesta | Columna 1 | Columna 4 | Columna 5 |
+|---|---|---|---|---|
+| 0 | `127.0.0.53` (resolutor local) | `.` | `NS` | 13 raíces |
+| 1 | `f.root-servers.net` (raíz) | `dev.` | `NS` | 5 servidores del TLD `.dev` |
+| 2 | `ns-tld2.charlestonroadregistry.com` (TLD) | `mlozano.dev.` | `NS` | `gannon`, `autumn` |
+| 3 | `gannon.ns.cloudflare.com` (autoritativo) | `odoo.mlozano.dev.` | **`A`** | `89.58.45.111` |
+
+- *Charleston Road Registry* es la empresa de Google que gestiona el TLD `.dev`.
+- El bloque 2 es la prueba de que el registrador (Cloudflare) dio de alta los autoritativos en el TLD al comprar el dominio.
+- `ns-tld2` es uno de los cinco que nombró la raíz en el bloque 1, y `gannon`, uno de los dos que nombró el TLD en el bloque 2.
+
 ## Respuesta del autoritativo frente a la de un resolutor
 
 | Consulta | `aa` | TTL de `mediavida.com` |
@@ -391,6 +512,10 @@ Los TTL de `1.1.1.1` saltan porque detrás de esa IP hay cientos de servidores, 
 ## Un nombre que no existe
 
 `dig estedominionoexiste12345.com` devuelve `status: NXDOMAIN`, `ANSWER: 0` y una `AUTHORITY SECTION` con el `SOA` de `com.`: quien afirma que no existe es el TLD, que sabe qué dominios `.com` están delegados.
+
+## Un nombre que existe sin fichas de ese tipo
+
+`dig mlozano.dev` (sin tipo, así que pide `A`) devuelve `status: NOERROR`, `ANSWER: 0` y una `AUTHORITY SECTION` con el `SOA` de `mlozano.dev.`, cuyo primer campo es `autumn.ns.cloudflare.com.`. El dominio existe, pero en la raíz no hay ningún `A`: las fichas están en `odoo.mlozano.dev`. Repetida 90 s después, el TTL del `SOA` había bajado de `600` a `510` y `Query time` era `0 msec`: la respuesta negativa salía de la caché de `systemd-resolved`.
 
 ## Un alias: `www.wikipedia.org`
 
@@ -427,19 +552,31 @@ $ dig +noall +answer -x 89.58.45.111
 
 El nombre genérico de Netcup. Si el VPS llega a enviar correo (alertas, Odoo), habrá que cambiar el `PTR` desde el panel de Netcup para que encaje con el dominio.
 
-## Registros para apuntar `mlozano.dev` al VPS
+## Registros de `mlozano.dev` para el VPS
+
+Zona de `mlozano.dev` en Cloudflare:
+
+| Name | Type | Content | Proxy status | TTL |
+|---|---|---|---|---|
+| `actual` | Tunnel | `finances` (servicio en el portátil) | Proxied | Auto |
+| `odoo` | `A` | `89.58.45.111` | DNS only | Auto (300 s) |
+| `odoo` | `AAAA` | `2a03:4000:67:5e2:c456:77ff:fe3a:fc4c` | DNS only | Auto (300 s) |
 
 ```
-mlozano.dev.       IN  NS     (los autoritativos de Cloudflare)  ← en el TLD .dev, lo da de alta el registrador
-mlozano.dev.       IN  A      89.58.45.111                       ← en Cloudflare
-www.mlozano.dev.   IN  CNAME  mlozano.dev.                       ← en Cloudflare
+raíz ──NS──▶ TLD .dev ──NS──▶ Cloudflare ──A/AAAA──▶ VPS
 ```
 
-```
-raíz ──NS──▶ TLD .dev ──NS──▶ Cloudflare ──A──▶ 89.58.45.111
-```
+- Odoo va en el subdominio `odoo`; la raíz queda libre. El registro `Tunnel` de `actual` no interfiere: es otro nombre.
+- Las IPs salen del VPS: `ip -4 address show dev eth0` y `ip -6 address show dev eth0 scope global` (sin la máscara).
+- Al crear el `A`, el formulario traía el proxy activado y la frase *«has its traffic proxied through Cloudflare»*: había que apagarlo. Sin proxy, el TTL pasa a ser editable.
 
-Los registros van en «DNS only» (nube gris): con el proxy de Cloudflare activado, el `A` público sería una IP de Cloudflare, no la del VPS. Antes de crearlos, no consultar los nombres (caché negativa).
+Comprobación, en el portátil:
+
+| Consulta | Resultado |
+|---|---|
+| `dig @autumn.ns.cloudflare.com odoo.mlozano.dev A` | `odoo.mlozano.dev. 300 IN A 89.58.45.111`, con `aa` |
+| `dig @autumn.ns.cloudflare.com odoo.mlozano.dev AAAA` | `… 300 IN AAAA 2a03:4000:67:5e2:c456:77ff:fe3a:fc4c` |
+| `dig @1.1.1.1 odoo.mlozano.dev A` | `… 300 IN A 89.58.45.111`, sin `aa`: esa máquina de `1.1.1.1` acababa de ir a la fuente |
 
 ## Migración con un TTL de un día
 
@@ -518,6 +655,14 @@ Cambiar de resolutor no sirvió porque el bloqueo no está en DNS: es sobre el t
 | Cambiar el DNS en el router lo cambia en todos los dispositivos | Solo en los que aceptan el del router (sin DNS manual e `ignore-auto-dns: no`) |
 | El `451` de pixeldrain es un bloqueo por DNS | DNS daba las IPs correctas en dos resolutores; un código HTTP no viene de DNS |
 | Cambiar de resolutor esquiva cualquier bloqueo | Solo el de DNS |
+| `dig` es una de las tres partes de la consulta | Es el programa. Las partes son a quién (`@`), por quién (nombre) y qué dato (tipo) |
+| `dig -4 NOMBRE` pide la IPv4 | `-4` es una opción del programa (enviar por IPv4). Sin tipo, `dig` pide `A` igualmente |
+| Preguntar por `mlozano.dev` para ver las fichas de `odoo.mlozano.dev` | Cada nombre tiene sus fichas. En la raíz no hay `A`: `NOERROR` con `ANSWER: 0` |
+| Añadir `NS` al final hace que conteste el autoritativo | `NS` solo da los nombres de los autoritativos. Lo que hace que conteste uno es la `@` |
+| El bloque 0 de `+trace` lo contesta la raíz | Lo contesta el resolutor local; habla **de** la raíz |
+| El último bloque de `+trace` es el resolutor devolviendo la dirección | El resolutor solo interviene en el bloque 0. La dirección la da el autoritativo |
+| El servidor que contesta el bloque de los `NS` de `mlozano.dev` es `gannon` | Es el TLD (`ns-tld2…`). `gannon` contesta el bloque siguiente. La línea Received va **debajo** de los registros de su bloque |
+| Contar las columnas en la línea Received (`59#53`) | Las columnas solo existen en las líneas de registro |
 
 ## Preguntas frecuentes y cómo responderlas
 
@@ -535,7 +680,9 @@ Cambiar de resolutor no sirvió porque el bloqueo no está en DNS: es sobre el t
 | ¿Por qué el portátil usa este DNS? | `nmcli -f ipv4.dns,ipv4.ignore-auto-dns connection show "Wired connection 1"` |
 | ¿Qué resolutor es más rápido desde aquí? | `dig @RESOLUTOR example.org \| grep "Query time"`, varias rondas |
 | ¿Un sitio bloqueado lo está por DNS? | `dig` contra dos resolutores públicos: si dan las mismas IPs, el bloqueo está en otra capa |
-| Antes del certificado TLS del VPS, ¿el dominio apunta a él? | `dig +short mlozano.dev` debe dar `89.58.45.111` |
+| Antes del certificado TLS del VPS, ¿el dominio apunta a él? | `dig +short odoo.mlozano.dev` debe dar `89.58.45.111` |
+| ¿El nombre existe aunque no tenga ese tipo de ficha? | `dig NOMBRE TIPO`: `NOERROR` con `ANSWER: 0` (existe) frente a `NXDOMAIN` (no existe) |
+| ¿Está bien hecha la delegación de un dominio recién comprado? | `dig -4 +trace NOMBRE`: el bloque del TLD debe listar los autoritativos del proveedor de DNS |
 
 ---
 
@@ -558,7 +705,7 @@ Cambiar de resolutor no sirvió porque el bloqueo no está en DNS: es sobre el t
 | `dig +short NOMBRE` | `+short`: solo el valor | Scripts, o sacar la IP para `curl -H "Host: …"` |
 | `dig +noall +answer NOMBRE` | `+noall` apaga todas las secciones; `+answer` enciende solo la respuesta | La combinación del día a día. Las opciones `+` son de consulta; las `-`, del programa |
 
-**Trampas comunes:** un `NXDOMAIN` puede venir de la caché negativa aunque el registro ya exista; lo que devuelve un resolutor es su copia, con el TTL restante.
+**Trampas comunes:** un `NXDOMAIN` puede venir de la caché negativa aunque el registro ya exista; lo que devuelve un resolutor es su copia, con el TTL restante. Sin tipo, `dig` pide `A`; `-4` no es un tipo. Preguntar por la raíz cuando la ficha es de un subdominio da `ANSWER: 0`.
 
 ## `dig`: elegir a quién preguntar
 
@@ -571,7 +718,7 @@ Cambiar de resolutor no sirvió porque el bloqueo no está en DNS: es sobre el t
 
 | Sintaxis | Para qué | Cuándo / trampas |
 |---|---|---|
-| `dig -4 +trace NOMBRE` | `+trace`: recorre la jerarquía desde la raíz, salto a salto; `-4`: solo IPv4 | Diagnosticar dónde se rompe una resolución; tras comprar un dominio, ver que el TLD apunta a tus autoritativos. Leer cada bloque de abajo arriba. Sin `-4`, en una red sin IPv6 salen errores `network unreachable` inofensivos. Ignorar `RRSIG`, `DS`, `NSEC3` |
+| `dig -4 +trace NOMBRE` | `+trace`: recorre la jerarquía desde la raíz, salto a salto; `-4`: solo IPv4 | Diagnosticar dónde se rompe una resolución; tras comprar un dominio, ver que el TLD apunta a tus autoritativos. Leer cada bloque con el método de §5: servidor que contesta (línea Received), columnas 1, 4 y 5. Sin `-4`, en una red sin IPv6 salen errores `network unreachable` inofensivos. Ignorar `RRSIG`, `DS`, `NSEC3` |
 | `dig +noall +answer -x IP` | `-x`: consulta inversa (`PTR`), construye sola el nombre `.in-addr.arpa` | Identificar IPs de `/var/log/auth.log` o de los logs de nginx; comprobar el `PTR` antes de enviar correo desde el VPS. Lo controla el dueño del bloque de IPs |
 
 ## El resolutor del sistema
@@ -587,6 +734,7 @@ Cambiar de resolutor no sirvió porque el bloqueo no está en DNS: es sobre el t
 | Sintaxis | Para qué | Cuándo / trampas |
 |---|---|---|
 | `ip a` | Interfaces y direcciones | IP pública del VPS: `eth0`, `inet`, `scope global`. `lo` es loopback (`127.0.0.1/8`) |
+| `ip -4 address show dev eth0` / `ip -6 address show dev eth0 scope global` | Solo la IPv4 / solo la IPv6 pública de `eth0`; `scope global` descarta la `fe80::` de enlace local | Copiar la dirección para un registro `A` o `AAAA`, sin lo que va detrás de la `/` |
 | `sudo ss -tulpn \| grep 127.0.0.53` | Quién escucha en esa dirección: `-t` TCP, `-u` UDP, `-l` escuchando, `-p` proceso, `-n` números | Confirmar que en el 53 está `systemd-resolved`. Sin `sudo`, no sale el proceso |
 
 ## NetworkManager (portátil)

@@ -1,6 +1,6 @@
 # Linux/VPS · Bloque 3 — Odoo 18 desplegado a mano
 
-La red del VPS, paquetes del sistema, bibliotecas y compilación, PostgreSQL preparado para un servicio, el entorno Python de Odoo, su primer arranque con `odoo.conf` y Odoo como servicio de systemd, con sus informes PDF, y nginx como proxy inverso. Sin Docker.
+La red del VPS, paquetes del sistema, bibliotecas y compilación, PostgreSQL preparado para un servicio, el entorno Python de Odoo, su primer arranque con `odoo.conf` y Odoo como servicio de systemd, con sus informes PDF, y nginx como proxy inverso, con Odoo publicado en `odoo.mlozano.dev`. Sin Docker.
 
 **Entorno de referencia:** Ubuntu 24.04 · kernel 6.8 · PostgreSQL 16.15 (repositorios de Ubuntu) · Python 3.12.3 · git 2.43 · uv 0.12.24 · Odoo 18.0 · nginx 1.24.0 (repositorios de Ubuntu). Con otras versiones, confirma opciones y rutas en la documentación de la versión instalada.
 
@@ -685,6 +685,17 @@ Un **enlace simbólico** es un fichero que apunta a otra ruta, como un acceso di
 
 **`127.0.0.1` y no `localhost` en `proxy_pass`.** `localhost` es un nombre y en Ubuntu resuelve a `127.0.0.1` y a `::1` (`/etc/hosts`). Si el servicio solo escucha en `127.0.0.1`, nginx puede probar antes `::1`, fallar y dejar errores en el log. Regla: en `proxy_pass`, la misma dirección en la que escucha el servicio según `ss`.
 
+### Varios sitios en el mismo puerto
+
+Con dos sitios en el 80, nginx mira la cabecera `Host` de cada petición y la entrega al bloque cuyo `server_name` coincide. Si no coincide ninguno, la recibe el **sitio por defecto**: el que lleve `default_server` en su `listen` o, si ninguno lo lleva, el primero que carga nginx. `sites-enabled/` se carga por orden alfabético.
+
+| Petición | Sitio que la atiende en el VPS |
+|---|---|
+| `http://odoo.mlozano.dev` | `odoo` (`server_name odoo.mlozano.dev`) |
+| `http://89.58.45.111` o cualquier otro nombre | `labweb`: sin `server_name`, y carga antes que `odoo` |
+
+**Una directiva sin `;` puede dar otra configuración válida.** nginx lee hasta el siguiente `;`. `server_name odoo.mlozano.dev` sin `;`, seguido de `listen 80;`, se lee como `server_name odoo.mlozano.dev listen 80;`: un `server_name` con tres nombres y ningún `listen` IPv4. `nginx -t` no lo detecta.
+
 ### El recorrido de una petición
 
 1. El cliente pide `http://89.58.45.111`. Sin puerto en la URL, `http://` implica el 80; lo decide el cliente.
@@ -731,6 +742,78 @@ El 502 dice *dónde* mirar; la causa está en `/var/log/nginx/error.log`. Las pe
 | `server: ` | El `server_name` del sitio; vacío si no tiene |
 
 Orden de diagnóstico de un 502: `curl` (confirma el 502) → `error.log` (causa y `upstream`) → `systemctl status` del servicio (parado o caído) → `ss` (si alguien escucha en su puerto) → `journalctl -u` del servicio (por qué se cayó).
+
+## 19. Odoo publicado detrás de nginx
+
+### El nombre
+
+Odoo se publica en el subdominio `odoo.mlozano.dev`, con registros `A` y `AAAA` hacia el VPS en modo **DNS only**, para que el único proxy sea nginx. La raíz `mlozano.dev` queda libre. Teoría de los registros y su comprobación con `dig`: Redes · Bloque 2, §4 y §5.
+
+### Cerrar el gestor de bases antes de exponer
+
+En cuanto nginx apunta a Odoo, `/web/database/manager` es alcanzable desde internet. Se cierra antes, en `odoo.conf`:
+
+| Opción | Valor por defecto (`config.py`) | Valor en el VPS | Efecto |
+|---|---|---|---|
+| `list_db` | `True` | `False` | Desactiva el gestor: no muestra la lista de bases y bloquea crear, duplicar, descargar, restaurar y borrar. La página **sigue respondiendo `200`**, solo con el aviso «The database manager has been disabled by the administrator» |
+| `dbfilter` | `''` (sin filtro) | `^test-db$` | Expresión regular que limita qué bases puede usar Odoo. Si solo encaja una, la usa directamente, sin selector. `^` y `$` obligan a que el nombre sea exactamente ese |
+| `admin_passwd` | `admin` | Aleatoria, en texto plano | Segunda barrera: con el gestor bloqueado, ya no es la única |
+
+Con `list_db = False`, el código HTTP no prueba nada: hay que mirar el contenido de la página.
+
+### Qué pierde Odoo detrás de un proxy
+
+nginx abre una conexión nueva hacia `127.0.0.1:8069` (§18). Lo que Odoo sabe de la petición es lo que nginx pone en ella:
+
+| Dato del visitante | Por qué se pierde | Lo que ve Odoo sin corregir | Dónde importa |
+|---|---|---|---|
+| Nombre pedido | `proxy_pass` pone en `Host` su destino | `127.0.0.1:8069` | `web.base.url` y los enlaces completos (correos, compartir, portal) |
+| IP del visitante | Es de la conexión TCP, y esa conexión la abre nginx | `127.0.0.1` | Logs y registro de inicios de sesión |
+| Esquema | El tramo nginx → Odoo siempre va por `http` | `http` | Enlaces `https://` cuando haya certificado |
+
+La corrección tiene dos piezas y hacen falta las dos:
+
+| Pieza | Dónde | Qué hace |
+|---|---|---|
+| `proxy_set_header` | `location /` del sitio de nginx | nginx añade una cabecera con cada dato: `X-Forwarded-Host`, `X-Forwarded-For`, `X-Forwarded-Proto` |
+| `proxy_mode = True` | `odoo.conf` | Odoo sustituye lo que ve en la conexión por lo que dicen esas cabeceras. Sin esta opción, las ignora |
+
+Es la recepcionista que, al pasar una llamada interna, añade una nota con quién llama y a qué número marcó; y el empleado al que se le dice que se fíe de esas notas.
+
+**Por qué Odoo no se fía por defecto.** Cualquiera puede escribir esas cabeceras. `proxy_mode` es seguro solo porque Odoo escucha en `127.0.0.1` (`http_interface`): únicamente un proceso del propio VPS, nginx, puede hablarle. Odoo no comprueba quién le habla; la seguridad la da quién puede llegar hasta él. Además, nginx neutraliza las notas falsas del visitante: `proxy_set_header` **sustituye** `X-Forwarded-Host` y `X-Forwarded-Proto`, y `$proxy_add_x_forwarded_for` **añade** la IP real al final de la lista, que es el valor que lee Odoo.
+
+**Variables de nginx.** Las que empiezan por `$` las rellena nginx para cada petición; no se definen. Cada módulo documenta las suyas en su apartado *Embedded Variables* (índice: https://nginx.org/en/docs/varindex.html).
+
+| Variable | Contiene |
+|---|---|
+| `$http_host` | La cabecera `Host` tal cual llega, con puerto si lo lleva. En general, `$http_` + nombre de la cabecera en minúsculas con `_` |
+| `$host` | El nombre de `Host`, sin puerto y en minúsculas; si falta, el `server_name` |
+| `$remote_addr` | La IP de quien abrió la conexión con nginx |
+| `$scheme` | `http` o `https`, según el `listen` por el que llegó |
+| `$proxy_add_x_forwarded_for` | El `X-Forwarded-For` recibido, con `$remote_addr` añadida al final |
+
+### Redirecciones relativas y `web.base.url`
+
+Odoo 18 redirige con cabeceras `Location` **relativas** (`/web/login?redirect=…`), y el navegador las completa con el nombre que ya usa. Por eso la navegación funciona aunque falten las cabeceras: el fallo clásico de saltar a `127.0.0.1:8069` no aparece. El problema queda en las URL completas.
+
+`web.base.url` se reescribe **cada vez que el administrador inicia sesión**, con el nombre y el esquema que le llegan en esa petición. Valía `http://localhost:10000` por el último inicio de sesión por el túnel; con las cabeceras y `proxy_mode`, pasará a `odoo.mlozano.dev`. `report.url` sigue en `http://127.0.0.1:8069`, porque los PDF se generan en el VPS (§17).
+
+### El ejemplo de nginx de la documentación
+
+*Deploying Odoo* → «HTTPS» da la configuración final con certificado. Sin HTTPS, solo sirve una parte:
+
+| Línea | Ahora | Por qué |
+|---|---|---|
+| Las tres `proxy_set_header X-Forwarded-*` | Sí | Pasan los tres datos |
+| `proxy_set_header X-Real-IP $remote_addr;` | Opcional | Odoo lee `X-Forwarded-For`, no esta |
+| `proxy_redirect off;` | Opcional | Con redirecciones relativas, no cambia nada |
+| `proxy_pass http://odoo;` | No | `odoo` es un bloque `upstream` que el ejemplo define aparte |
+| `add_header Strict-Transport-Security …` | Con HTTPS | Obliga al navegador a usar solo HTTPS |
+| `proxy_cookie_flags session_id samesite=lax secure;` | Con HTTPS | `secure` impide enviar la cookie de sesión por `http`: sin certificado, rompe el inicio de sesión |
+
+### `.dev` y la precarga HSTS
+
+Todo el TLD `.dev` está en la **lista de precarga HSTS** que traen los navegadores: para cualquier nombre que acabe en `.dev`, el navegador cambia `http://` por `https://` antes de conectar. Sin nada escuchando en el 443, no carga. La lista va por nombre: `http://localhost:10000` (el túnel) sí funciona. `curl` no usa la lista, así que conecta por `http`. Hasta tener certificado, Odoo por su nombre solo se comprueba con `curl`.
 
 ---
 
@@ -912,6 +995,9 @@ http_interface=127.0.0.1
 addons_path=/opt/odoo/src/addons,/opt/odoo/src/odoo/addons
 data_dir=/var/lib/odoo
 admin_passwd=CONTRASEÑA_MAESTRA
+list_db = False
+dbfilter = ^test-db$
+proxy_mode = True
 ```
 
 | Línea | Opción de la CLI | Sin ella |
@@ -920,6 +1006,9 @@ admin_passwd=CONTRASEÑA_MAESTRA
 | `addons_path=...` | `--addons-path` | Las mismas dos rutas, detectadas solas |
 | `data_dir=/var/lib/odoo` | `--data-dir` | `/var/lib/odoo/.local/share/Odoo` |
 | `admin_passwd=...` | no existe | `admin` |
+| `list_db = False` | `--no-database-list` | Gestor de bases activo y lista visible |
+| `dbfilter = ^test-db$` | `--db-filter` | Odoo puede usar cualquier base del rol `odoo` y muestra el selector |
+| `proxy_mode = True` | `--proxy-mode` | Odoo ignora las cabeceras `X-Forwarded-*` de nginx |
 
 No lleva `db_host`, `db_user` ni `db_password`: Odoo entra en PostgreSQL por el socket como `odoo`, con `peer`. La contraseña maestra se generó con `openssl rand -base64 24` y está guardada en el gestor de contraseñas.
 
@@ -1295,6 +1384,56 @@ LISTEN 0 511      [::]:80      [::]:*  users:(("nginx",pid=15506,...),("nginx",p
 
 El PID 5914 (maestro) es el mismo que tras la instalación; los *workers* son nuevos. `labweb` tiene otro PID porque se rearrancó.
 
+## Sitio de nginx para Odoo
+
+```nginx
+# /etc/nginx/sites-available/odoo (enlazado desde sites-enabled/odoo)
+server {
+        server_name odoo.mlozano.dev;
+        listen 80;
+        listen [::]:80;
+        location / {
+                proxy_pass http://127.0.0.1:8069;
+                proxy_set_header X-Forwarded-Host $http_host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+        }
+}
+```
+
+Es el de `labweb` con dos cambios: `server_name` y el puerto de `proxy_pass`, más las tres cabeceras. El orden de las directivas dentro de un bloque da igual. `curl -4 -sI http://odoo.mlozano.dev/web` devuelve `303` con `Location: /web/login?redirect=%2Fweb%3F`: relativa, y por IPv4 llega a Odoo y no a `labweb` (prueba de que el `;` de `server_name` está).
+
+## Gestor de bases cerrado
+
+En el VPS, contra Odoo directamente:
+
+| Comprobación | Antes | Después |
+|---|---|---|
+| `curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8069/web/database/manager` | `200` | `200`: el código no cambia |
+| `curl -s http://127.0.0.1:8069/web/database/manager \| grep -i "disabled"` | Sin salida | `<div class="alert alert-danger text-center">The database manager has been disabled by the administrator</div>` |
+| `curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8069/web/login` | — | `200`: Odoo eligió `test-db` solo. Sin filtro, `303` al selector |
+
+## Qué ve Odoo antes y después de las cabeceras
+
+Petición desde el portátil (`curl -4 -sI http://odoo.mlozano.dev/web`) y journal en el VPS:
+
+```
+# sudo journalctl -u odoo -n 5 --no-pager   (antes: sin cabeceras ni proxy_mode)
+… INFO test-db werkzeug: 127.0.0.1 - - […] "HEAD /web HTTP/1.0" 303 - …
+
+# después
+… INFO test-db werkzeug: 80.29.79.154 - - [11/Oct/2026 17:21:41] "HEAD /web HTTP/1.0" 303 - 23 0.014 1.803
+```
+
+| Trozo | Significado |
+|---|---|
+| `test-db` | La base que atendió la petición: el `dbfilter` funciona |
+| `80.29.79.154` | La IP pública del portátil (coincide con `curl -4 -s https://ifconfig.me`), sacada de `X-Forwarded-For` |
+| `HEAD` | `curl -I` pide solo cabeceras con el método `HEAD` |
+| `HTTP/1.0` | El protocolo de nginx hacia Odoo |
+
+`web.base.url` en `test-db`, consultado con `psql`: `http://localhost:10000`, del último inicio de sesión del administrador por el túnel.
+
 ## Otros fallos y cómo se ven
 
 | Situación | Lo que aparece | Causa |
@@ -1348,6 +1487,13 @@ El PID 5914 (maestro) es el mismo que tras la instalación; los *workers* son nu
 | Buscar los sitios en `modules-enabled/` | Directorio vacío | Ese `include` carga módulos; los sitios están en `sites-enabled/` |
 | `curl` al 8080 desde el portátil con nginx activo | `Connection refused` | `labweb` escucha solo en `127.0.0.1`; desde fuera solo se llega por el 80 |
 | `sudo cat error.log \| tail` | Funciona, con un programa de más | `tail` lee el fichero directamente |
+| `server_name odoo.mlozano.dev` sin `;` | `nginx -t` correcto; el sitio no escucha por IPv4 | nginx lee `listen 80` como dos nombres más del `server_name` |
+| `nginx -t` sin `sudo` | `[warn] the "user" directive makes sense only if the master process runs with super-user privileges` y `[emerg] open() "/run/nginx.pid" failed (13: Permission denied)` | Permisos, no configuración. Siempre `sudo nginx -t` |
+| `sudo nginx -t` con el sitio solo en `sites-available/` | `test is successful` | nginx no lee ese fichero: falta el enlace en `sites-enabled/`. Comprobar con `ls -l` |
+| Esperar un código distinto de `200` con `list_db = False` | `200` | Odoo sirve la página con el aviso. Mirar el contenido con `grep` |
+| `dbfilter` escrito solo como `^test-db$` | Línea inválida | Toda línea de `odoo.conf` es `nombre = valor` |
+| Copiar entero el ejemplo de nginx de la documentación | `proxy_pass http://odoo` no resuelve; el inicio de sesión falla por `http` | `odoo` es un `upstream` que no existe; `proxy_cookie_flags … secure` exige HTTPS |
+| Abrir `http://odoo.mlozano.dev` en el navegador | La barra muestra `https://` y no conecta | Precarga HSTS de `.dev`; nada escucha en el 443. `curl` sí conecta |
 
 ## Preguntas frecuentes
 
@@ -1407,6 +1553,15 @@ El PID 5914 (maestro) es el mismo que tras la instalación; los *workers* son nu
 | Escuchan nginx y `labweb` donde deben | `sudo ss -tlnp 'sport = :80 or sport = :8080'` |
 | Desde qué IP le llegan las peticiones a `labweb` | `journalctl -u labweb -S '5 min ago'` |
 | A qué direcciones resuelve `localhost` | `cat /etc/hosts` |
+| Qué IPv4 / IPv6 pública tiene el VPS | `ip -4 address show dev eth0` / `ip -6 address show dev eth0 scope global` |
+| Apunta el nombre al VPS en la fuente | `dig @autumn.ns.cloudflare.com odoo.mlozano.dev A` (y `AAAA`), con `aa` |
+| Está cerrado el gestor de bases | En el VPS, `curl -s http://127.0.0.1:8069/web/database/manager \| grep -i "disabled"` |
+| Elige Odoo la base sin selector | `curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8069/web/login` → `200` |
+| Qué valor por defecto tiene una opción de Odoo | `grep -n "list_db" /opt/odoo/src/odoo/tools/config.py` (valor de `default=`) |
+| Qué `web.base.url` tiene una base | `sudo -u odoo psql -d test-db -c "SELECT value FROM ir_config_parameter WHERE key = 'web.base.url';"` |
+| Qué IP ve Odoo en las peticiones | `sudo journalctl -u odoo -n 5 --no-pager`, detrás de `werkzeug:` |
+| Qué IP pública tengo en casa | En el portátil, `curl -4 -s https://ifconfig.me` |
+| A dónde redirige una URL | `curl -4 -sI URL`, cabecera `Location` |
 
 ---
 
@@ -1427,6 +1582,9 @@ El PID 5914 (maestro) es el mismo que tras la instalación; los *workers* son nu
 | `ss -lx` | Sockets Unix que escuchan; `-x` = Unix | Localizar el socket de PostgreSQL |
 | `traceroute IP` / `tracepath -n IP` | Saltos hasta un destino; `-n` sin resolver nombres | `tracepath` está en `iputils-tracepath`, que no viene en Ubuntu minimal |
 | `curl http://127.0.0.1:8080` | Petición HTTP | Comparar el mismo puerto desde dentro y desde fuera |
+| `ip -4 address show dev eth0` | Solo las IPv4 (`-4`) de la interfaz `eth0` (`dev`) | La IP para un registro `A`: lo que va antes de la `/` en la línea `inet`. Sin `dev eth0` sale también `lo` |
+| `ip -6 address show dev eth0 scope global` | Solo las IPv6 públicas; `scope global` descarta la `fe80::` de enlace local | La IP para un registro `AAAA` |
+| `curl -4 -s https://ifconfig.me` | IP pública desde la que sale el portátil; `-4` por IPv4, `-s` sin progreso | Compararla con la que registra un log del VPS. Sale sin salto de línea |
 
 ## Configuración de red
 
@@ -1525,6 +1683,10 @@ El PID 5914 (maestro) es el mismo que tras la instalación; los *workers* son nu
 | `sudo -u odoo /opt/odoo/venv/bin/python /opt/odoo/src/odoo-bin -c /etc/odoo/odoo.conf` | Arrancar con el fichero; `-c` = `--config` | Buscar `Using configuration file at` en el log. Muere al cerrar la terminal |
 | `grep -n '"--OPCION"' /opt/odoo/src/odoo/tools/config.py` | Nombre de una opción en el fichero (`dest=`); `-n` numera las líneas | Cuando la regla `--` → `_` no cuadra |
 | `grep -n "passwd" /opt/odoo/src/odoo/tools/config.py` | Localizar opciones que solo existen en el fichero | `admin_passwd`, por defecto `admin` |
+| `grep -n "list_db" /opt/odoo/src/odoo/tools/config.py` | Valor por defecto de una opción (detrás de `default=`) | Se lee, nunca se edita: es código y lo sobrescribe la siguiente actualización. Lo que cambia va en `odoo.conf` |
+| `sudoedit /etc/odoo/odoo.conf` | Editar un fichero protegido: copia, se edita como usuario normal y se coloca de vuelta con sus permisos | Mejor que `sudo nano`: el editor no corre como root y no altera `root:odoo 640` |
+| `sudo grep -nE "list_db\|dbfilter" /etc/odoo/odoo.conf` | Confirmar líneas del fichero; `-E` permite `\|` como «o» | Con `sudo`: el fichero es `640` y `miguel` no está en el grupo `odoo` |
+| `sudo -u odoo psql -d test-db -c "SELECT value FROM ir_config_parameter WHERE key = 'web.base.url';"` | Leer un parámetro del sistema de Odoo desde PostgreSQL | El aviso `could not change directory` es inofensivo. `web.base.url` se reescribe en cada inicio de sesión del administrador |
 
 ## Servicio de Odoo (systemd)
 
@@ -1607,3 +1769,9 @@ El PID 5914 (maestro) es el mismo que tras la instalación; los *workers* son nu
 | `journalctl -u labweb -S '5 min ago'` | Peticiones que ha recibido `labweb`; `-u` unit, `-S` desde | Muestra `127.0.0.1` como origen cuando hay proxy delante |
 | `sudo ss -tlnp 'sport = :80 or sport = :8080'` | Sockets en escucha de esos puertos, con cabecera; `sport` = puerto local | El filtro de `ss` conserva la cabecera, que `grep` elimina. Comillas simples para fish. Sin `sudo`, la columna `Process` sale vacía |
 | `cat /etc/hosts` | Nombres locales y sus direcciones | Comprobar que `localhost` resuelve a `127.0.0.1` y a `::1` |
+| `sudoedit /etc/nginx/sites-available/odoo` | Crear o editar el sitio de Odoo | Revisar el `;` de cada directiva: `nginx -t` no detecta todos los olvidos |
+| `sudo ln -s /etc/nginx/sites-available/odoo /etc/nginx/sites-enabled/odoo` | Activar el sitio de Odoo | Sin el enlace, `nginx -t` da `successful` sin haber leído el fichero |
+| `curl -4 -sI http://odoo.mlozano.dev/web` | Solo las cabeceras de la respuesta (`-I`, método `HEAD`); `-4` por IPv4; `-s` sin progreso | Desde el portátil: ver a dónde redirige (`Location`) y que el nombre llega a Odoo y no a `labweb` |
+| `curl -s -o /dev/null -w "%{http_code}\n" URL` | Solo el código HTTP; `-o /dev/null` descarta el cuerpo, `-w` escribe el dato pedido al terminar | Comprobar con un número si una URL responde y cómo. Con `list_db = False`, el gestor sigue dando `200` |
+| `curl -s URL \| grep -i "TEXTO"` | Buscar un texto en la página; `-i` sin distinguir mayúsculas | Cuando el código es `200` en todos los casos y la diferencia está en el contenido |
+| `sudo journalctl -u odoo -n 5 --no-pager` | Últimas 5 líneas de Odoo; `--no-pager` sin abrir `less` | La IP del visitante va detrás de `werkzeug:`. `127.0.0.1` = faltan las cabeceras o `proxy_mode` |
