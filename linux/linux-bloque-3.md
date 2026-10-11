@@ -1,8 +1,8 @@
 # Linux/VPS · Bloque 3 — Odoo 18 desplegado a mano
 
-La red del VPS, paquetes del sistema, bibliotecas y compilación, PostgreSQL preparado para un servicio, el entorno Python de Odoo, su primer arranque con `odoo.conf` y Odoo como servicio de systemd, con sus informes PDF, y nginx como proxy inverso, con Odoo publicado en `odoo.mlozano.dev`. Sin Docker.
+La red del VPS, paquetes del sistema, bibliotecas y compilación, PostgreSQL preparado para un servicio, el entorno Python de Odoo, su primer arranque con `odoo.conf` y Odoo como servicio de systemd, con sus informes PDF, nginx como proxy inverso, con Odoo publicado en `odoo.mlozano.dev`, y HTTPS con certbot, renovación automática y el websocket de Odoo. Sin Docker.
 
-**Entorno de referencia:** Ubuntu 24.04 · kernel 6.8 · PostgreSQL 16.15 (repositorios de Ubuntu) · Python 3.12.3 · git 2.43 · uv 0.12.24 · Odoo 18.0 · nginx 1.24.0 (repositorios de Ubuntu). Con otras versiones, confirma opciones y rutas en la documentación de la versión instalada.
+**Entorno de referencia:** Ubuntu 24.04 · kernel 6.8 · PostgreSQL 16.15 (repositorios de Ubuntu) · Python 3.12.3 · git 2.43 · uv 0.12.24 · Odoo 18.0 · nginx 1.24.0 y certbot 2.9.0 (repositorios de Ubuntu). Con otras versiones, confirma opciones y rutas en la documentación de la versión instalada.
 
 ---
 
@@ -815,6 +815,198 @@ Odoo 18 redirige con cabeceras `Location` **relativas** (`/web/login?redirect=�
 
 Todo el TLD `.dev` está en la **lista de precarga HSTS** que traen los navegadores: para cualquier nombre que acabe en `.dev`, el navegador cambia `http://` por `https://` antes de conectar. Sin nada escuchando en el 443, no carga. La lista va por nombre: `http://localhost:10000` (el túnel) sí funciona. `curl` no usa la lista, así que conecta por `http`. Hasta tener certificado, Odoo por su nombre solo se comprueba con `curl`.
 
+Con el certificado de §20, el navegador ya carga `https://odoo.mlozano.dev`.
+
+## 20. HTTPS con certbot
+
+### Las piezas
+
+| Pieza | Qué es |
+|---|---|
+| Certificado | Fichero público que dice «este servidor es `odoo.mlozano.dev`», firmado por una autoridad (Let's Encrypt). El servidor lo enseña a cada navegador que se conecta |
+| Clave privada | Fichero secreto que demuestra que el certificado es de quien lo enseña. Quien la tenga puede hacerse pasar por el dominio: solo debe leerla root |
+| Let's Encrypt | Autoridad que firma certificados gratis, con validez de **90 días** |
+| certbot | Programa que pide el certificado, lo guarda en `/etc/letsencrypt` y lo renueva |
+| Plugin de nginx de certbot | Parte de certbot que edita el sitio de nginx para usar el certificado |
+
+El certificado es el DNI que se enseña; la clave privada, la firma que solo sabe hacer su dueño.
+
+### Instalar certbot sin snap
+
+La documentación de certbot recomienda instalarlo con snap. En el VPS, `snapd` está purgado desde el Bloque 1, así que se instala desde los repositorios de Ubuntu:
+
+| Vía | A favor | En contra |
+|---|---|---|
+| snap | Versión más reciente, se actualiza sola | Exige reinstalar `snapd` |
+| `apt` (repositorios de Ubuntu) | Recibe los parches de seguridad de Ubuntu; la misma herramienta de siempre | Versión más antigua (2.9.0 en Ubuntu 24.04) |
+
+Hacen falta dos paquetes: `certbot` (el programa) y `python3-certbot-nginx` (el plugin). Como con `dig`, el nombre del paquete no coincide con lo que se busca: el plugin es una biblioteca de Python, y en Ubuntu esas bibliotecas llevan el prefijo `python3-`. La documentación de certbot cambia entre versiones: se lee la de la versión instalada (`certbot --version`).
+
+### Qué hace `certbot --nginx`
+
+| Fase | Qué pasa |
+|---|---|
+| 1. Pedir | Solicita a Let's Encrypt un certificado para el dominio de `-d` |
+| 2. Validar | Let's Encrypt comprueba que el solicitante controla el dominio conectándose al VPS por el **puerto 80**. Requisitos: el DNS apunta al VPS y nginx escucha en el 80 hacia fuera. El mecanismo (reto HTTP-01) es de Redes · Bloque 4 |
+| 3. Instalar | Edita el sitio de nginx cuyo `server_name` coincide y recarga nginx |
+
+`--nginx` elige el plugin para obtener e instalar. `-d` indica el dominio; sin él, certbot lista los `server_name` de los sitios y pregunta. Con `-d`, el comando dice exactamente qué se pidió y es repetible en otra máquina. La primera vez crea una cuenta en Let's Encrypt: pide un correo y aceptar los términos.
+
+### Qué cambia certbot en el sitio
+
+Antes había **un** bloque `server` en el 80 que pasaba todo a Odoo. Después hay **dos**:
+
+| Bloque | Puerto | Qué hace |
+|---|---|---|
+| A (el original) | 443, con TLS | Pasa las peticiones a Odoo, como antes |
+| B (nuevo) | 80 | No pasa nada a Odoo: redirige a `https://` |
+
+La entrada antigua (80) queda con un cartel de «entrada por la otra puerta»; Odoo está detrás de la puerta nueva (443).
+
+**Líneas añadidas al bloque A:**
+
+| Línea | Qué hace |
+|---|---|
+| `listen 443 ssl;` | Escucha en el 443 por IPv4 hablando TLS. Sustituye a `listen 80;` |
+| `listen [::]:443 ssl ipv6only=on;` | Lo mismo por IPv6; `ipv6only=on` deja el IPv4 al otro `listen` |
+| `ssl_certificate …/fullchain.pem;` | El certificado que se enseña al navegador |
+| `ssl_certificate_key …/privkey.pem;` | La clave privada |
+| `include /etc/letsencrypt/options-ssl-nginx.conf;` | Ajustes de TLS de certbot: versiones del protocolo y cifrados aceptados |
+| `ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;` | Parámetros para un método de intercambio de claves al abrir la conexión cifrada |
+
+**El bloque B:**
+
+| Línea | Qué hace |
+|---|---|
+| `server_name odoo.mlozano.dev;` | Mismo nombre que el bloque A |
+| `listen 80;` y `listen [::]:80;` | Los `listen` que había en el bloque A |
+| `if ($host = odoo.mlozano.dev) { return 301 https://$host$request_uri; }` | Redirección permanente a la misma dirección con `https://` |
+| `return 404;` | Lo que llegue con otro nombre. En la práctica no se usa: `server_name` ya filtra. certbot lo pone en todos los sitios |
+
+`$request_uri` es la ruta con lo que va detrás, tal como llegó: `http://odoo.mlozano.dev/web/login` → `https://odoo.mlozano.dev/web/login`.
+
+`# managed by Certbot` es un comentario: nginx ignora lo que va detrás de `#`. Marca qué escribió certbot. La línea `proxy_set_header X-Forwarded-Proto $scheme;` no la toca, pero ahora vive en el bloque del 443: `$scheme` vale `https`.
+
+**Nivel de detalle.** Cada línea se entiende a nivel de «qué hace». Qué pasa al abrir una conexión TLS, qué hay en `fullchain.pem`, qué elige `options-ssl-nginx.conf` y para qué sirve `ssl_dhparam` son de Redes · Bloque 4; `ipv6only=on`, de Redes · Bloque 5.
+
+### Los ficheros de `/etc/letsencrypt`
+
+| Ruta | Contenido |
+|---|---|
+| `live/DOMINIO/` | Enlaces simbólicos a la versión vigente: `cert.pem`, `chain.pem`, `fullchain.pem`, `privkey.pem`. **Lo que usa nginx** |
+| `archive/DOMINIO/` | Los ficheros reales, numerados: `privkey1.pem`, `fullchain1.pem`… |
+| `renewal/DOMINIO.conf` | Ficha de renovación: cómo se pidió (plugin, dominio). Por eso `renew` no necesita `--nginx -d` |
+| `options-ssl-nginx.conf`, `ssl-dhparams.pem` | Los dos ficheros que incluye el bloque A |
+
+**Por qué enlaces.** Al renovar, certbot escribe `privkey2.pem`, `fullchain2.pem`… en `archive` y mueve los enlaces de `live`. El sitio de nginx siempre dice `live/…` y no se edita nunca: como un buzón con nombre fijo en el que cambia la carta.
+
+**Permisos.** `live` y `archive` son `rwx------` de root: `miguel` no puede ni listarlas. En un enlace, los permisos `lrwxrwxrwx` no significan nada; cuentan los del fichero al que apunta. De los cuatro `.pem`, nginx usa `fullchain.pem` y `privkey.pem`; la diferencia entre `cert`, `chain` y `fullchain` es de Redes · Bloque 4.
+
+### Renovación
+
+El paquete de Ubuntu deja preparadas dos unidades de systemd en `/usr/lib/systemd/system` (donde dejan sus unidades los paquetes; las propias van en `/etc/systemd/system`):
+
+| Unidad | Directiva clave | Qué hace |
+|---|---|---|
+| `certbot.timer` | `OnCalendar=*-*-* 00,12:00:00` | Dos veces al día: a las 00:00 y a las 12:00 |
+| | `RandomizedDelaySec=43200` | Cada vez, espera un tiempo al azar de 0 a 12 h antes de lanzar el servicio |
+| `certbot.service` | `Type=oneshot` | Ejecuta un comando y termina |
+| | `ExecStart=/usr/bin/certbot -q renew --no-random-sleep-on-renew` | Revisa todos los certificados y renueva los que están cerca de caducar |
+
+| Parte de `ExecStart` | Significado |
+|---|---|
+| `renew` | Renueva solo lo que lo necesita (por defecto, a menos de 30 días de caducar). Si no toca, no hace nada: por eso se puede lanzar a menudo |
+| `-q` | Sin salida salvo errores |
+| `--no-random-sleep-on-renew` | Sin espera al azar propia: ya la pone el timer. Sin ella habría dos esperas sumadas |
+
+El retraso al azar existe porque millones de servidores tienen el mismo timer: sin él, todos llamarían a Let's Encrypt a la vez. Con 90 días de validez y renovación desde los 30 restantes, hay unas 120 oportunidades antes de caducar.
+
+`renew --dry-run` repite el proceso completo contra el servidor de **pruebas** de Let's Encrypt, sin guardar nada. Crea una cuenta propia en ese servidor, independiente de la real. certbot no escribe en el journal sino en `/var/log/letsencrypt/letsencrypt.log`: ahí se mira un fallo de renovación.
+
+### Odoo con HTTPS
+
+| Parámetro (en la base) | Valor | Por qué |
+|---|---|---|
+| `web.base.url` | `https://odoo.mlozano.dev` | Se reescribe cuando el administrador inicia sesión. El esquema sale de `X-Forwarded-Proto`, que ahora vale `https`, y `proxy_mode` hace que Odoo lo crea. Sin `proxy_mode`, guardaría `http://127.0.0.1:8069` |
+| `report.url` | `http://127.0.0.1:8069` | Sin cambios: `wkhtmltopdf` pide los recursos del informe desde el propio VPS, sin pasar por nginx ni por TLS (§17) |
+
+En la base, `ir_config_parameter` es una tabla de dos columnas, `key` y `value`. El usuario y la contraseña del administrador viven en otra tabla, `res_users`, con la contraseña como hash; no tienen nada que ver con `admin_passwd` de `odoo.conf`, que es la contraseña maestra del gestor de bases. En Odoo, el modelo se escribe con punto (`res.users`) y su tabla con guion bajo (`res_users`).
+
+### Navegador
+
+Los navegadores recientes marcan lo inseguro y no lo seguro. En Zen (derivado de Firefox), la conexión segura no aparece como candado en la barra, sino como **🔒 Secure** en el panel inferior de información del sitio. Sus detalles muestran el nombre del certificado, quién lo firmó (`Verified by: Let's Encrypt`) y la versión de TLS. Si el certificado no fuera válido, el navegador mostraría una página completa de aviso antes de cargar nada.
+
+## 21. Websocket de Odoo detrás de nginx
+
+### Qué es
+
+Una petición HTTP es una carta con su respuesta. Un **websocket** es una llamada telefónica: el navegador la abre una vez y queda abierta, y el servidor puede hablar cuando quiera. Odoo la usa para las notificaciones en vivo (mensajes de Discuss sin recargar), en la ruta `/websocket`.
+
+La llamada empieza como una petición HTTP/1.1 normal con dos cabeceras, `Upgrade: websocket` y `Connection: Upgrade`, que piden convertir la conexión. Si el servidor acepta, responde **`101 Switching Protocols`** y a partir de ahí la conexión ya no es HTTP.
+
+Odoo no abre el websocket desde la página, sino desde un *SharedWorker*: un proceso del navegador en segundo plano compartido por todas las pestañas de Odoo (una sola llamada aunque haya cinco pestañas). Sus peticiones no aparecen en la pestaña Network de la página. Su código se descarga de `/bus/websocket_worker_bundle`.
+
+### Por qué falla sin configuración
+
+`Upgrade` y `Connection` son cabeceras *hop-by-hop*: valen para un salto y nginx no las reenvía al servidor de detrás. `location /` atrapa `/websocket` (es prefijo), así que la petición llega a Odoo, pero sin esas dos cabeceras: Odoo recibe un `GET` normal en una ruta que solo acepta websockets y responde **`400 Bad Request`**. Una centralita que pasa la llamada pero cuelga antes de conectar.
+
+Además, nginx habla por defecto **HTTP/1.0** con el servidor de detrás (§18), y la conversión solo existe en HTTP/1.1.
+
+### `location /websocket` aparte
+
+Un bloque `server` puede tener varios `location`. Para cada petición, nginx usa el del **prefijo más largo** que coincida; el orden en el fichero no importa:
+
+| Ruta pedida | `location` que la atiende |
+|---|---|
+| `/web/login` | `/` |
+| `/websocket?version=18.0-7` | `/websocket` (coinciden los dos; gana el más largo) |
+
+Por qué un bloque aparte y no añadir las cabeceras a `location /`:
+
+- El trato especial queda solo en la ruta que lo necesita; el resto del tráfico (páginas, imágenes, PDF) sigue igual. Una ventanilla de paquetes urgentes no cambia el proceso de la ventanilla general.
+- Con *workers*, Odoo atiende los websockets en otro puerto (8072). Ese día solo cambia el `proxy_pass` de este bloque.
+
+| Directiva | Por qué |
+|---|---|
+| `proxy_pass http://127.0.0.1:8069;` | Con `workers = 0`, el mismo puerto que el resto |
+| `proxy_http_version 1.1;` | La conversión exige HTTP/1.1. Necesaria en nginx anterior a 1.29.7 (el VPS tiene 1.24.0). Solo en este bloque: `location /` funciona con HTTP/1.0 |
+| `proxy_set_header Upgrade $http_upgrade;` | Reenvía la petición de conversión del navegador |
+| `proxy_set_header Connection $connection_upgrade;` | La acompaña: `upgrade` si el navegador pidió conversión, `close` si no |
+| Las mismas `X-Forwarded-*` que `location /` | Los `proxy_set_header` de un `location` no se suman a los de otro: sin repetirlas, Odoo no conocería en esta ruta la IP ni el esquema reales |
+
+El ejemplo de *Deploying Odoo* no lleva `proxy_http_version 1.1`; la documentación de nginx (*WebSocket proxying*) sí, para versiones anteriores a 1.29.7. Se confirma en la documentación de la versión instalada (`nginx -v`). Las líneas `add_header Strict-Transport-Security` y `proxy_cookie_flags` del ejemplo son otra cosa (endurecimiento con HTTPS) y se añaden aparte.
+
+### `map`: definir `$connection_upgrade`
+
+`$http_upgrade` la rellena nginx (cabecera `Upgrade` recibida). `$connection_upgrade` **no existe**: hay que definirla, y sin ella `nginx -t` falla con `unknown "connection_upgrade" variable`.
+
+`map` es una tabla de traducción: según el valor de una variable, da valor a otra.
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+```
+
+| Si `$http_upgrade` es… | `$connection_upgrade` vale… |
+|---|---|
+| Cualquier valor (`websocket`) | `upgrade` |
+| Vacío (`''`) | `close` |
+
+**Dónde va.** `map` solo vale en el contexto `http`, fuera de todo `server`. `include` funciona como copiar y pegar: nginx sustituye la línea por el contenido de los ficheros indicados. El fichero de sitio entra en `http` por `include /etc/nginx/sites-enabled/*;`, que está dentro del bloque `http { }` de `nginx.conf`. Por eso el `map` se escribe al principio del fichero de sitio, antes del primer `server {`, y **sin** envolverlo en `http {`: quedaría un `http` dentro de otro, y nginx no lo admite. Los ejemplos que empiezan por `http {` muestran un `nginx.conf` completo, no un fichero de sitio.
+
+### Comprobarlo en el log
+
+nginx escribe la línea de `access.log` cuando la petición **termina**. Una petición normal termina en milisegundos; un websocket que funciona queda abierto y su línea aparece al cerrarse (al cerrar todas las pestañas de Odoo).
+
+| Código en `access.log` para `GET /websocket` | Significado |
+|---|---|
+| `400` | Odoo rechazó la petición: faltan las cabeceras o HTTP/1.1 |
+| `101` | Conversión aceptada: websocket funcionando |
+
+`grep websocket` también encuentra `/bus/websocket_worker_bundle` (el código del worker, normalmente `304`); `grep 'GET /websocket'` separa las dos.
+
 ---
 
 # Parte 2 · Ejemplos
@@ -1384,7 +1576,7 @@ LISTEN 0 511      [::]:80      [::]:*  users:(("nginx",pid=15506,...),("nginx",p
 
 El PID 5914 (maestro) es el mismo que tras la instalación; los *workers* son nuevos. `labweb` tiene otro PID porque se rearrancó.
 
-## Sitio de nginx para Odoo
+## Sitio de nginx para Odoo (solo HTTP, antes de certbot)
 
 ```nginx
 # /etc/nginx/sites-available/odoo (enlazado desde sites-enabled/odoo)
@@ -1433,6 +1625,214 @@ Petición desde el portátil (`curl -4 -sI http://odoo.mlozano.dev/web`) y journ
 | `HTTP/1.0` | El protocolo de nginx hacia Odoo |
 
 `web.base.url` en `test-db`, consultado con `psql`: `http://localhost:10000`, del último inicio de sesión del administrador por el túnel.
+
+## Qué cambia certbot en el sitio de Odoo
+
+Copia antes de ejecutar certbot (`cp /etc/nginx/sites-available/odoo ~/odoo.nginx.antes-certbot`) y comparación después:
+
+```diff
+# diff -u ~/odoo.nginx.antes-certbot /etc/nginx/sites-available/odoo
+--- /home/miguel/odoo.nginx.antes-certbot       2026-10-11 23:14:54.873973284 +0200
++++ /etc/nginx/sites-available/odoo     2026-10-11 23:55:15.909270809 +0200
+@@ -1,8 +1,6 @@
+ server {
+
+        server_name odoo.mlozano.dev;
+-        listen 80;
+-        listen [::]:80;
+         location / {
+                 proxy_pass http://127.0.0.1:8069;
+                proxy_set_header X-Forwarded-Host $http_host;
+@@ -10,4 +8,26 @@
+                proxy_set_header X-Forwarded-Proto $scheme;
+
+        }
++
++    listen [::]:443 ssl ipv6only=on; # managed by Certbot
++    listen 443 ssl; # managed by Certbot
++    ssl_certificate /etc/letsencrypt/live/odoo.mlozano.dev/fullchain.pem; # managed by Certbot
++    ssl_certificate_key /etc/letsencrypt/live/odoo.mlozano.dev/privkey.pem; # managed by Certbot
++    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
++    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
++
+ }
++server {
++    if ($host = odoo.mlozano.dev) {
++        return 301 https://$host$request_uri;
++    } # managed by Certbot
++
++
++
++       server_name odoo.mlozano.dev;
++        listen 80;
++        listen [::]:80;
++    return 404; # managed by Certbot
++
++
++}
+```
+
+| Elemento | Significado |
+|---|---|
+| Líneas `---` y `+++` | Cabecera: el antes y el después. El orden de los argumentos de `diff` decide el signo |
+| `@@ -1,8 +1,6 @@` | Inicio de un trozo: desde la línea 1, 8 líneas antes y 6 después |
+| `-` | Línea quitada |
+| `+` | Línea añadida |
+| Espacio | Contexto sin cambios |
+
+Trozo 1: saca los dos `listen 80` del bloque A. Trozo 2: añade al bloque A las seis líneas de TLS y crea el bloque B con los `listen 80` y la redirección. Explicación de cada línea: §20.
+
+## Sitio de nginx para Odoo con HTTPS y websocket
+
+```nginx
+# /etc/nginx/sites-available/odoo (enlazado desde sites-enabled/odoo)
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+        server_name odoo.mlozano.dev;
+
+        location / {
+                proxy_pass http://127.0.0.1:8069;
+                proxy_set_header X-Forwarded-Host $http_host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location /websocket {
+                proxy_pass http://127.0.0.1:8069;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection $connection_upgrade;
+                proxy_set_header X-Forwarded-Host $http_host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/odoo.mlozano.dev/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/odoo.mlozano.dev/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = odoo.mlozano.dev) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+        server_name odoo.mlozano.dev;
+        listen 80;
+        listen [::]:80;
+    return 404; # managed by Certbot
+}
+```
+
+Tres partes: el `map` (contexto `http`, por el `include` de `nginx.conf`), el bloque A en el 443 con sus dos `location`, y el bloque B en el 80. Pendiente de añadir: `Strict-Transport-Security` y `proxy_cookie_flags session_id samesite=lax secure`.
+
+## La redirección vista desde fuera
+
+```
+# Portátil: curl -I http://odoo.mlozano.dev/web/login   (cabeceras relevantes)
+HTTP/1.1 301 Moved Permanently
+Location: https://odoo.mlozano.dev/web/login
+```
+
+La ruta se conserva y solo cambia el esquema. Con la IP en lugar del nombre (`curl -I http://89.58.45.111`), la petición no llega al bloque B: el `Host` no coincide con ningún `server_name` y la atiende `labweb`, el sitio por defecto.
+
+## Unidades de renovación
+
+```ini
+# systemctl cat certbot.service
+# /usr/lib/systemd/system/certbot.service
+[Unit]
+Description=Certbot
+Documentation=file:///usr/share/doc/python-certbot-doc/html/index.html
+Documentation=https://certbot.eff.org/docs
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/certbot -q renew --no-random-sleep-on-renew
+PrivateTmp=true
+```
+
+En `systemctl cat certbot.timer`: `OnCalendar=*-*-* 00,12:00:00` y `RandomizedDelaySec=43200`. En `systemctl list-timers`, la línea con `UNIT` = `certbot.timer` y `ACTIVATES` = `certbot.service`.
+
+## Renovación de prueba
+
+```
+# sudo certbot renew --dry-run
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+
+Processing /etc/letsencrypt/renewal/odoo.mlozano.dev.conf
+Account registered.
+Simulating renewal of an existing certificate for odoo.mlozano.dev
+
+Congratulations, all simulated renewals succeeded:
+  /etc/letsencrypt/live/odoo.mlozano.dev/fullchain.pem (success)
+```
+
+| Línea | Qué dice |
+|---|---|
+| `Saving debug log to …` | Dónde mirar si falla |
+| `Processing …/renewal/odoo.mlozano.dev.conf` | La ficha de renovación del certificado |
+| `Account registered.` | Cuenta nueva en el servidor de pruebas, independiente de la real |
+| `all simulated renewals succeeded` | La renovación funcionará |
+
+## Ficheros del certificado
+
+```
+# ls -l /etc/letsencrypt/live/odoo.mlozano.dev/   (como miguel)
+→ error de permisos
+
+# ls -ld /etc/letsencrypt/live /etc/letsencrypt/archive
+→ rwx------, dueño root
+
+# sudo ls -l /etc/letsencrypt/live/odoo.mlozano.dev/
+lrwxrwxrwx 1 root root  40 Oct 11 23:55 cert.pem -> ../../archive/odoo.mlozano.dev/cert1.pem
+lrwxrwxrwx 1 root root  41 Oct 11 23:55 chain.pem -> ../../archive/odoo.mlozano.dev/chain1.pem
+lrwxrwxrwx 1 root root  45 Oct 11 23:55 fullchain.pem -> ../../archive/odoo.mlozano.dev/fullchain1.pem
+lrwxrwxrwx 1 root root  43 Oct 11 23:55 privkey.pem -> ../../archive/odoo.mlozano.dev/privkey1.pem
+-rw-r--r-- 1 root root 692 Oct 11 23:55 README
+```
+
+`../../archive/…` es relativa: desde `live/odoo.mlozano.dev/` sube a `/etc/letsencrypt` y entra en `archive`. El `1` es la primera emisión; la próxima renovación creará los `2`.
+
+## Websocket: `400` y `101`
+
+```
+# sudo grep websocket /var/log/nginx/access.log | tail -n 5   (antes del location /websocket)
+80.29.79.154 - - [12/Oct/2026:00:28:16 +0200] "GET /websocket?version=18.0-7 HTTP/1.1" 400 167 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0"
+
+# después del location /websocket, el map, nginx -t y reload, cerrando las pestañas de Odoo
+80.29.79.154 - - [12/Oct/2026:00:49:58 +0200] "GET /bus/websocket_worker_bundle?v=18.0-7 HTTP/1.1" 304 0 "https://odoo.mlozano.dev/odoo" "Mozilla/5.0 …"
+80.29.79.154 - - [12/Oct/2026:00:50:09 +0200] "GET /websocket?version=18.0-7 HTTP/1.1" 101 141 "-" "Mozilla/5.0 …"
+```
+
+| Trozo de una línea de `access.log` | Qué es |
+|---|---|
+| Primer campo | IP del cliente |
+| Entre `[` `]` | Fecha y hora (de **fin** de la petición) |
+| Primer texto entre comillas | La petición: método, ruta, versión |
+| Primer número después | Código de estado |
+| Siguiente número | Bytes enviados |
+| Últimos dos textos entre comillas | Página de origen (`Referer`) y navegador (`User-Agent`) |
+
+El `400` se repite cada pocos segundos: el worker reintenta la conexión.
+
+## `web.base.url` con HTTPS
+
+Tras iniciar sesión como administrador en `https://odoo.mlozano.dev`:
+
+```
+# sudo -u odoo psql -d test-db   y dentro:
+SELECT key, value FROM ir_config_parameter WHERE key = 'web.base.url';
+web.base.url | https://odoo.mlozano.dev
+```
+
+Antes valía `http://localhost:10000` (el túnel). Un presupuesto impreso después sale con logo, cabecera, estilos y pie «Página 1 / 1»: `report.url` sigue en `http://127.0.0.1:8069`.
 
 ## Otros fallos y cómo se ven
 
@@ -1494,6 +1894,19 @@ Petición desde el portátil (`curl -4 -sI http://odoo.mlozano.dev/web`) y journ
 | `dbfilter` escrito solo como `^test-db$` | Línea inválida | Toda línea de `odoo.conf` es `nombre = valor` |
 | Copiar entero el ejemplo de nginx de la documentación | `proxy_pass http://odoo` no resuelve; el inicio de sesión falla por `http` | `odoo` es un `upstream` que no existe; `proxy_cookie_flags … secure` exige HTTPS |
 | Abrir `http://odoo.mlozano.dev` en el navegador | La barra muestra `https://` y no conecta | Precarga HSTS de `.dev`; nada escucha en el 443. `curl` sí conecta |
+| `sudo apt certbot …` | `apt` no hace nada útil | Falta el subcomando: `apt install` |
+| `sudo apt install nginx-plugin` | `Unable to locate package` | El paquete es `python3-certbot-nginx`; buscarlo con `apt search certbot` |
+| `certbot nginx` o `certbot -nginx` | Subcomando desconocido u opciones cortas mezcladas | El plugin es una opción larga: `--nginx`. Un guion + una letra (`-d`); dos guiones + una palabra |
+| `curl -I http://89.58.45.111` para ver la redirección | Responde `labweb` | El bloque B solo atiende `Host: odoo.mlozano.dev`; usar el nombre |
+| Zen sin candado en la barra con HTTPS válido | Ningún icono junto a la dirección | El indicador es **🔒 Secure** en el panel inferior de información del sitio |
+| Pestaña WS del navegador vacía | No aparece la petición `/websocket` | Odoo abre el websocket desde un *SharedWorker*; mirar `access.log` de nginx |
+| `/websocket` con solo `location /` | `400` en `access.log`, cada pocos segundos | `Upgrade` y `Connection` no se reenvían; falta `location /websocket` |
+| `location /websocket` sin `proxy_http_version 1.1` (nginx < 1.29.7) | La conversión no ocurre | nginx habla HTTP/1.0 con Odoo. El ejemplo de *Deploying Odoo* no la lleva |
+| `Connection $connection_upgrade` sin `map` | `[emerg] unknown "connection_upgrade" variable`, `test failed` | La variable no existe en nginx; definirla con `map` |
+| `map` envuelto en `http { … }` dentro del sitio | `nginx -t` lo rechazaría: directiva `http` no permitida ahí (no reproducido) | El sitio ya está dentro de `http` por el `include`. `map` al principio del fichero, sin `http` |
+| `grep websocket access.log` tras el arreglo | Líneas `/bus/websocket_worker_bundle` con `304` | Es el código del worker; buscar `'GET /websocket'` |
+| Buscar el `101` con Odoo abierto | La línea no aparece | nginx la escribe al terminar la conexión; cerrar todas las pestañas de Odoo |
+| Buscar el login del administrador en `odoo.conf` | Solo está `admin_passwd` | Es la contraseña maestra; el usuario y su hash están en `res_users` |
 
 ## Preguntas frecuentes
 
@@ -1562,6 +1975,21 @@ Petición desde el portátil (`curl -4 -sI http://odoo.mlozano.dev/web`) y journ
 | Qué IP ve Odoo en las peticiones | `sudo journalctl -u odoo -n 5 --no-pager`, detrás de `werkzeug:` |
 | Qué IP pública tengo en casa | En el portátil, `curl -4 -s https://ifconfig.me` |
 | A dónde redirige una URL | `curl -4 -sI URL`, cabecera `Location` |
+| Escucha alguien en el 443 | `sudo ss -tlnp`, columna `Local Address:Port` |
+| Qué versión de certbot hay (para leer su documentación) | `certbot --version` |
+| Qué paquetes de certbot hay en los repositorios | `apt search certbot` |
+| Qué cambió certbot en mi sitio | `diff -u ~/odoo.nginx.antes-certbot /etc/nginx/sites-available/odoo` |
+| Redirige `http` a `https` | En el portátil, `curl -I http://odoo.mlozano.dev/web/login`: `301` y `Location: https://…` |
+| Quién renueva el certificado y cuándo | `systemctl list-timers` (línea `certbot.timer`) y `systemctl cat certbot.timer` |
+| Qué comando lanza la renovación | `systemctl cat certbot.service` (línea `ExecStart=`) |
+| Funcionará la próxima renovación | `sudo certbot renew --dry-run` |
+| Por qué falló una renovación | `sudo tail /var/log/letsencrypt/letsencrypt.log` |
+| Dónde están el certificado y la clave | `sudo ls -l /etc/letsencrypt/live/odoo.mlozano.dev/` |
+| Puede `miguel` leer la clave | `ls -l /etc/letsencrypt/live/odoo.mlozano.dev/` sin `sudo` → error; `ls -ld /etc/letsencrypt/live` → `rwx------` |
+| Necesito `proxy_http_version 1.1` para el websocket | `nginx -v`: anterior a 1.29.7, sí |
+| Funciona el websocket | `sudo grep 'GET /websocket' /var/log/nginx/access.log \| tail -n 3` → `101` (tras cerrar las pestañas) |
+| Dónde se incluyen los sitios en nginx | `grep -n -E 'http \{\|sites-enabled' /etc/nginx/nginx.conf`: `sites-enabled` va después de `http {` |
+| Qué columnas tiene una tabla de Odoo | En `psql`, `\d res_users` |
 
 ---
 
@@ -1775,3 +2203,34 @@ Petición desde el portátil (`curl -4 -sI http://odoo.mlozano.dev/web`) y journ
 | `curl -s -o /dev/null -w "%{http_code}\n" URL` | Solo el código HTTP; `-o /dev/null` descarta el cuerpo, `-w` escribe el dato pedido al terminar | Comprobar con un número si una URL responde y cómo. Con `list_db = False`, el gestor sigue dando `200` |
 | `curl -s URL \| grep -i "TEXTO"` | Buscar un texto en la página; `-i` sin distinguir mayúsculas | Cuando el código es `200` en todos los casos y la diferencia está en el contenido |
 | `sudo journalctl -u odoo -n 5 --no-pager` | Últimas 5 líneas de Odoo; `--no-pager` sin abrir `less` | La IP del visitante va detrás de `werkzeug:`. `127.0.0.1` = faltan las cabeceras o `proxy_mode` |
+
+## HTTPS y certbot
+
+| Sintaxis | Para qué | Cuándo / trampas |
+|---|---|---|
+| `apt search certbot` | Paquetes del catálogo cuyo nombre o descripción contiene la palabra | Tras `sudo apt update`. Responde a «qué paquetes se llaman así»; `apt-file search` responde a «qué paquete trae este fichero». Ignorar los `python3-certbot-dns-…` |
+| `sudo apt install certbot python3-certbot-nginx` | Instalar certbot y su plugin de nginx desde Ubuntu | Sin snap (`snapd` purgado). El orden da igual; 9 paquetes en total. Sin `install`, `apt` no hace nada; `nginx-plugin` no existe |
+| `certbot --version` | Versión instalada | Antes de abrir la documentación: leer la de esa versión (2.9.0) |
+| `cp /etc/nginx/sites-available/odoo ~/odoo.nginx.antes-certbot` | Copia del sitio antes de que lo toque una herramienta | Fuera de `/etc/nginx`: en `sites-enabled` o `conf.d` se cargaría como otro sitio. Repetirlo antes de cada edición |
+| `sudo certbot --nginx -d odoo.mlozano.dev` | Pedir el certificado y configurarlo en nginx; `--nginx` = plugin para obtener e instalar; `-d` = dominio | `sudo`: escribe en `/etc/letsencrypt` y `/etc/nginx`. Requisitos: DNS al VPS y nginx en el 80. Sin `-d`, pregunta con una lista. `-nginx` con un guion no es la opción |
+| `diff -u ANTES DESPUÉS` | Diferencias línea a línea; `-u` = formato unificado (`+`, `-`, `@@`), el de `git diff` | Primero el antes: así `+` es «añadido». Sin salida = ficheros iguales |
+| `curl -I http://odoo.mlozano.dev/web/login` | Solo cabeceras (`-I`, método `HEAD`) | Desde el portátil. Ver `301` y `Location`. Con la IP, responde el sitio por defecto. `-v` también sirve, con más ruido |
+| `systemctl list-timers` | Timers con próxima (`NEXT`) y última (`LAST`) ejecución, y el servicio que lanzan (`ACTIVATES`) | Confirmar que existe la renovación automática |
+| `systemctl cat certbot.timer` / `certbot.service` | Contenido de la unit con su ruta | `OnCalendar` y `RandomizedDelaySec` en el timer; `ExecStart` en el servicio |
+| `sudo certbot renew --dry-run` | Renovación simulada contra el servidor de pruebas | Tras obtener el certificado y tras tocar nginx. No sustituye el certificado real |
+| `ls -ld /etc/letsencrypt/live /etc/letsencrypt/archive` | Permisos de las carpetas en sí (`-d`) | Sin `sudo` funciona, porque `/etc/letsencrypt` es legible; sin `-d` listaría el contenido |
+| `sudo ls -l /etc/letsencrypt/live/odoo.mlozano.dev/` | Los enlaces del certificado vigente y a dónde apuntan (`->`) | Sin `sudo`, error de permisos: es la prueba de que `miguel` no lee la clave |
+
+## Websocket
+
+| Sintaxis | Para qué | Cuándo / trampas |
+|---|---|---|
+| `sudo grep websocket /var/log/nginx/access.log \| tail -n 5` | Últimas peticiones con «websocket» | Ver el `400` antes del arreglo. Mezcla `/websocket` con `/bus/websocket_worker_bundle` |
+| `sudo grep 'GET /websocket' /var/log/nginx/access.log \| tail -n 3` | Solo la conexión del websocket | Comillas simples: el espacio forma parte del patrón. `101` = funciona. La línea aparece al cerrar la conexión |
+| `nginx -v` | Versión de nginx; `-V` añade las opciones de compilación | Decidir si hace falta `proxy_http_version 1.1` (anterior a 1.29.7) |
+| `sudo nginx -t` | Validar la configuración | `[emerg] unknown "connection_upgrade" variable` = falta el `map`. Con `test failed`, el nginx en marcha sigue con la configuración anterior |
+| `sudo systemctl reload nginx` | Aplicar la configuración | Solo tras `test is successful` |
+| `grep -n -E 'http \{\|sites-enabled' /etc/nginx/nginx.conf` | Números de línea (`-n`) de `http {` y del `include` de los sitios; `-E` permite `\|` | Comprobar que los sitios se incluyen dentro de `http`. `\{` porque `{` es especial en el patrón |
+| `sudo -u odoo psql -d test-db` | Entrar en la base como el rol `odoo` por `peer` | Indicador `test-db=>`. Salir con `\q` |
+| `SELECT key, value FROM ir_config_parameter WHERE key = 'web.base.url';` | Valor de un parámetro del sistema de Odoo | Texto entre comillas simples. Tras entrar como administrador por HTTPS: `https://odoo.mlozano.dev` |
+| `\d res_users` | Columnas de una tabla (metacomando de `psql`, sin `;`) | El modelo `res.users` es la tabla `res_users`; el login está ahí, no en `res_partner` |
