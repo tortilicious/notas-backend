@@ -1,0 +1,5314 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redes: apuntes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@100..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F7FA; --ink:#1C2533; --muted:#5B6678; --rule:#D5DCE6;
+  --accent:#1F5F8B; --accent-soft:#E2ECF4; --code-bg:#E9EDF3; --side:#ECF0F5;
+  --serif:"Google Sans Flex",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sans:"Google Sans Flex",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"DejaVu Sans Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{--paper:#141A23; --ink:#DCE3EC; --muted:#93A0B2; --rule:#2B3542;
+  --accent:#7DB4DD; --accent-soft:#1E2C3B; --code-bg:#1C2430; --side:#10151D;}
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:1.5rem;font-size:17px}
+body{margin:0;background:var(--paper);color:var(--ink);font:17.5px/1.65 var(--serif);
+  display:grid;grid-template-columns:320px minmax(0,1fr);min-height:100vh}
+/* Índice lateral */
+nav#toc{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--side);
+  border-right:1px solid var(--rule);padding:1.25rem 1rem 3rem;font:15px/1.45 var(--sans)}
+nav#toc .brand{font-weight:700;font-size:1.05rem;margin:0 0 .75rem;color:var(--ink)}
+#filtro{width:100%;padding:.45rem .6rem;margin-bottom:1rem;border:1px solid var(--rule);
+  border-radius:6px;background:var(--paper);color:var(--ink);font:inherit}
+nav#toc ul{list-style:none;margin:0;padding:0}
+nav#toc ul ul{padding-left:.85rem;border-left:1px solid var(--rule);margin:.15rem 0 .4rem .3rem}
+nav#toc a{color:var(--muted);text-decoration:none;display:block;padding:.18rem .4rem;border-radius:4px}
+nav#toc a:hover{color:var(--ink);background:var(--accent-soft)}
+nav#toc a.activo{color:var(--accent);font-weight:600}
+nav#toc > ul > li > a{color:var(--ink);font-weight:700;margin-top:.6rem}
+nav#toc > ul > li > ul > li > a{font-weight:600;color:var(--ink)}
+nav#toc li.oculto{display:none}
+/* Contenido */
+main{padding:2.5rem clamp(1.25rem,4vw,4rem) 6rem;max-width:62rem}
+main p,main li{max-width:72ch}
+h1,h2,h3,h4,h5{font-family:var(--sans);line-height:1.25;color:var(--ink)}
+h1{font-size:2.1rem;font-weight:700;letter-spacing:-.01em;margin:4.5rem 0 1rem;padding:1.2rem 0 1.2rem 1.1rem;border-left:6px solid var(--accent);
+  background:linear-gradient(90deg,var(--accent-soft),transparent 70%)}
+main > h1:first-child{margin-top:0}
+h2{font-size:1.55rem;font-weight:650;margin:3rem 0 1rem;padding-bottom:.4rem;border-bottom:2px solid var(--rule)}
+h3{font-size:1.2rem;font-weight:650;margin:2.2rem 0 .6rem}
+h4{font-size:1rem;font-weight:600;margin:1.6rem 0 .4rem;color:var(--muted)}
+a{color:var(--accent)}
+hr{border:0;border-top:1px solid var(--rule);margin:2rem 0}
+strong{font-weight:600}
+code{font-family:var(--mono);font-size:.86em;color:var(--accent);background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{background:var(--code-bg);border-left:3px solid var(--accent);padding:1rem 1.1rem;overflow-x:auto;
+  border-radius:0 6px 6px 0;line-height:1.5;font-size:.95rem}
+pre code{background:none;padding:0;font-size:.95em;color:var(--ink)}
+table{display:block;overflow-x:auto;border-collapse:collapse;margin:1.2rem 0;font-size:.93rem;line-height:1.5;max-width:100%}
+th,td{border:1px solid var(--rule);padding:.5rem .7rem;text-align:left;vertical-align:top}
+th{background:var(--accent-soft);font-family:var(--sans);font-weight:600}
+td code{white-space:nowrap}
+blockquote{margin:1.2rem 0;padding:.6rem 1rem;border-left:3px solid var(--muted);color:var(--muted)}
+a:focus-visible,#filtro:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Móvil */
+#abrir{display:none}
+@media (max-width:900px){
+  body{display:block}
+  nav#toc{position:fixed;inset:0 25% 0 0;z-index:10;transform:translateX(-100%);transition:transform .2s}
+  body.menu nav#toc{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.35)}
+  #abrir{display:block;position:fixed;right:1rem;bottom:1rem;z-index:11;padding:.6rem 1rem;
+    border:0;border-radius:6px;background:var(--accent);color:var(--paper);font:600 16px var(--sans)}
+  h1{font-size:1.7rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{nav#toc,#abrir{display:none} body{display:block}}
+</style>
+</head>
+<body>
+<nav id="toc">
+<p class="brand">Redes: apuntes</p>
+<input id="filtro" type="search" placeholder="Filtrar el índice…" aria-label="Filtrar el índice">
+<ul>
+<li><a href="#redes--bloque-1--el-modelo-y-las-capas"
+id="toc-redes--bloque-1--el-modelo-y-las-capas">Redes · Bloque 1 — El
+modelo y las capas</a>
+<ul>
+<li><a href="#parte-1--teoría" id="toc-parte-1--teoría">Parte 1 ·
+Teoría</a>
+<ul>
+<li><a href="#1-el-modelo-de-capas" id="toc-1-el-modelo-de-capas">1. El
+modelo de capas</a></li>
+<li><a href="#2-el-recorrido-de-un-paquete"
+id="toc-2-el-recorrido-de-un-paquete">2. El recorrido de un
+paquete</a></li>
+<li><a href="#3-mac-ip-y-arp" id="toc-3-mac-ip-y-arp">3. MAC, IP y
+ARP</a></li>
+<li><a href="#4-direccionamiento-ipv4-y-subredes"
+id="toc-4-direccionamiento-ipv4-y-subredes">4. Direccionamiento IPv4 y
+subredes</a></li>
+<li><a href="#5-broadcast-red-local-y-dhcp"
+id="toc-5-broadcast-red-local-y-dhcp">5. Broadcast, red local y
+DHCP</a></li>
+<li><a href="#6-puertos-y-sockets" id="toc-6-puertos-y-sockets">6.
+Puertos y sockets</a></li>
+<li><a href="#7-nat" id="toc-7-nat">7. NAT</a></li>
+<li><a href="#8-tcp-y-udp" id="toc-8-tcp-y-udp">8. TCP y UDP</a></li>
+<li><a href="#9-retardos-y-ping" id="toc-9-retardos-y-ping">9. Retardos
+y <code>ping</code></a></li>
+<li><a href="#10-conmutación-de-circuitos-y-de-paquetes"
+id="toc-10-conmutación-de-circuitos-y-de-paquetes">10. Conmutación de
+circuitos y de paquetes</a></li>
+<li><a href="#11-estructura-de-internet"
+id="toc-11-estructura-de-internet">11. Estructura de internet</a></li>
+<li><a href="#12-ataques-y-colas" id="toc-12-ataques-y-colas">12.
+Ataques y colas</a></li>
+<li><a href="#13-analogías-de-referencia"
+id="toc-13-analogías-de-referencia">13. Analogías de referencia</a></li>
+</ul></li>
+<li><a href="#parte-2--ejemplos" id="toc-parte-2--ejemplos">Parte 2 ·
+Ejemplos</a>
+<ul>
+<li><a href="#las-tablas-del-vps-anotadas"
+id="toc-las-tablas-del-vps-anotadas">Las tablas del VPS,
+anotadas</a></li>
+<li><a href="#portátil-frente-a-vps"
+id="toc-portátil-frente-a-vps">Portátil frente a VPS</a></li>
+<li><a href="#dos-subredes-calculadas"
+id="toc-dos-subredes-calculadas">Dos subredes calculadas</a></li>
+<li><a href="#ping-a-broadcast-en-el-vps"
+id="toc-ping-a-broadcast-en-el-vps">Ping a broadcast en el VPS</a></li>
+<li><a href="#ping-del-portátil-al-vps"
+id="toc-ping-del-portátil-al-vps"><code>ping</code> del portátil al
+VPS</a></li>
+<li><a href="#dos-sesiones-ssh-en-el-mismo-puerto"
+id="toc-dos-sesiones-ssh-en-el-mismo-puerto">Dos sesiones SSH en el
+mismo puerto</a></li>
+<li><a href="#la-salida-de-ss-columna-a-columna"
+id="toc-la-salida-de-ss-columna-a-columna">La salida de <code>ss</code>,
+columna a columna</a></li>
+<li><a href="#la-tabla-del-nat-de-casa"
+id="toc-la-tabla-del-nat-de-casa">La tabla del NAT de casa</a></li>
+<li><a href="#el-handshake-capturado-en-el-vps"
+id="toc-el-handshake-capturado-en-el-vps">El handshake capturado en el
+VPS</a></li>
+<li><a href="#el-camino-de-un-paquete-del-portátil-al-vps"
+id="toc-el-camino-de-un-paquete-del-portátil-al-vps">El camino de un
+paquete del portátil al VPS</a></li>
+<li><a href="#errores-vistos" id="toc-errores-vistos">Errores
+vistos</a></li>
+<li><a href="#confusiones-vistas"
+id="toc-confusiones-vistas">Confusiones vistas</a></li>
+<li><a href="#preguntas-frecuentes-y-cómo-responderlas"
+id="toc-preguntas-frecuentes-y-cómo-responderlas">Preguntas frecuentes y
+cómo responderlas</a></li>
+</ul></li>
+<li><a href="#parte-3--comandos-útiles-del-bloque"
+id="toc-parte-3--comandos-útiles-del-bloque">Parte 3 · Comandos útiles
+del bloque</a>
+<ul>
+<li><a href="#interfaces-rutas-y-vecinos"
+id="toc-interfaces-rutas-y-vecinos">Interfaces, rutas y vecinos</a></li>
+<li><a href="#puertos-y-sockets" id="toc-puertos-y-sockets">Puertos y
+sockets</a></li>
+<li><a href="#conectividad" id="toc-conectividad">Conectividad</a></li>
+<li><a href="#captura-de-tráfico" id="toc-captura-de-tráfico">Captura de
+tráfico</a></li>
+<li><a href="#instalación-y-comprobación"
+id="toc-instalación-y-comprobación">Instalación y comprobación</a></li>
+<li><a href="#ssh" id="toc-ssh">SSH</a></li>
+<li><a href="#documentación"
+id="toc-documentación">Documentación</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#redes--bloque-2--dns" id="toc-redes--bloque-2--dns">Redes
+· Bloque 2 — DNS</a>
+<ul>
+<li><a href="#parte-1--teoría-1" id="toc-parte-1--teoría-1">Parte 1 ·
+Teoría</a>
+<ul>
+<li><a href="#1-qué-es-dns-y-por-qué-está-repartido"
+id="toc-1-qué-es-dns-y-por-qué-está-repartido">1. Qué es DNS y por qué
+está repartido</a></li>
+<li><a href="#2-resolutores-frente-a-jerarquía"
+id="toc-2-resolutores-frente-a-jerarquía">2. Resolutores frente a
+jerarquía</a></li>
+<li><a href="#3-direcciones-especiales-loopback-y-rangos-privados"
+id="toc-3-direcciones-especiales-loopback-y-rangos-privados">3.
+Direcciones especiales: loopback y rangos privados</a></li>
+<li><a href="#4-registros-de-recursos"
+id="toc-4-registros-de-recursos">4. Registros de recursos</a></li>
+<li><a href="#5-el-mensaje-dns-y-cómo-lo-muestra-dig"
+id="toc-5-el-mensaje-dns-y-cómo-lo-muestra-dig">5. El mensaje DNS y cómo
+lo muestra <code>dig</code></a></li>
+<li><a href="#6-ttl-y-propagación" id="toc-6-ttl-y-propagación">6. TTL y
+propagación</a></li>
+<li><a href="#7-elegir-y-configurar-el-resolutor"
+id="toc-7-elegir-y-configurar-el-resolutor">7. Elegir y configurar el
+resolutor</a></li>
+<li><a href="#8-cómo-bloquea-la-operadora"
+id="toc-8-cómo-bloquea-la-operadora">8. Cómo bloquea la
+operadora</a></li>
+<li><a href="#9-analogías-de-referencia"
+id="toc-9-analogías-de-referencia">9. Analogías de referencia</a></li>
+</ul></li>
+<li><a href="#parte-2--ejemplos-1" id="toc-parte-2--ejemplos-1">Parte 2
+· Ejemplos</a>
+<ul>
+<li><a href="#el-recorrido-de-mediavidacom-con-dig-trace"
+id="toc-el-recorrido-de-mediavidacom-con-dig-trace">El recorrido de
+<code>mediavida.com</code> con <code>dig +trace</code></a></li>
+<li><a href="#respuesta-del-autoritativo-frente-a-la-de-un-resolutor"
+id="toc-respuesta-del-autoritativo-frente-a-la-de-un-resolutor">Respuesta
+del autoritativo frente a la de un resolutor</a></li>
+<li><a href="#un-nombre-que-no-existe"
+id="toc-un-nombre-que-no-existe">Un nombre que no existe</a></li>
+<li><a href="#un-alias-wwwwikipediaorg"
+id="toc-un-alias-wwwwikipediaorg">Un alias:
+<code>www.wikipedia.org</code></a></li>
+<li><a href="#el-correo-de-kogniateches"
+id="toc-el-correo-de-kogniateches">El correo de
+<code>kogniatech.es</code></a></li>
+<li><a href="#el-ptr-del-vps" id="toc-el-ptr-del-vps">El
+<code>PTR</code> del VPS</a></li>
+<li><a href="#registros-para-apuntar-mlozanodev-al-vps"
+id="toc-registros-para-apuntar-mlozanodev-al-vps">Registros para apuntar
+<code>mlozano.dev</code> al VPS</a></li>
+<li><a href="#migración-con-un-ttl-de-un-día"
+id="toc-migración-con-un-ttl-de-un-día">Migración con un TTL de un
+día</a></li>
+<li><a href="#la-trampa-de-la-caché-negativa"
+id="toc-la-trampa-de-la-caché-negativa">La trampa de la caché
+negativa</a></li>
+<li><a href="#medir-resolutores-desde-casa"
+id="toc-medir-resolutores-desde-casa">Medir resolutores desde
+casa</a></li>
+<li><a href="#de-dónde-venía-el-dns-del-portátil"
+id="toc-de-dónde-venía-el-dns-del-portátil">De dónde venía el DNS del
+portátil</a></li>
+<li><a href="#el-resolutor-del-vps" id="toc-el-resolutor-del-vps">El
+resolutor del VPS</a></li>
+<li><a href="#pixeldraincom-capa-por-capa"
+id="toc-pixeldraincom-capa-por-capa">pixeldrain.com, capa por
+capa</a></li>
+<li><a href="#confusiones-vistas-1"
+id="toc-confusiones-vistas-1">Confusiones vistas</a></li>
+<li><a href="#preguntas-frecuentes-y-cómo-responderlas-1"
+id="toc-preguntas-frecuentes-y-cómo-responderlas-1">Preguntas frecuentes
+y cómo responderlas</a></li>
+</ul></li>
+<li><a href="#parte-3--comandos-útiles-del-bloque-1"
+id="toc-parte-3--comandos-útiles-del-bloque-1">Parte 3 · Comandos útiles
+del bloque</a>
+<ul>
+<li><a href="#instalación" id="toc-instalación">Instalación</a></li>
+<li><a href="#dig-consultas" id="toc-dig-consultas"><code>dig</code>:
+consultas</a></li>
+<li><a href="#dig-elegir-a-quién-preguntar"
+id="toc-dig-elegir-a-quién-preguntar"><code>dig</code>: elegir a quién
+preguntar</a></li>
+<li><a href="#dig-recorrido-e-inversa"
+id="toc-dig-recorrido-e-inversa"><code>dig</code>: recorrido e
+inversa</a></li>
+<li><a href="#el-resolutor-del-sistema"
+id="toc-el-resolutor-del-sistema">El resolutor del sistema</a></li>
+<li><a href="#interfaces-y-sockets"
+id="toc-interfaces-y-sockets">Interfaces y sockets</a></li>
+<li><a href="#networkmanager-portátil"
+id="toc-networkmanager-portátil">NetworkManager (portátil)</a></li>
+<li><a href="#documentación-1"
+id="toc-documentación-1">Documentación</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#redes--bloque-3--http"
+id="toc-redes--bloque-3--http">Redes · Bloque 3 — HTTP</a>
+<ul>
+<li><a href="#parte-1--teoría-2" id="toc-parte-1--teoría-2">Parte 1 ·
+Teoría</a>
+<ul>
+<li><a href="#1-dónde-está-http-la-llamada-y-la-conversación"
+id="toc-1-dónde-está-http-la-llamada-y-la-conversación">1. Dónde está
+HTTP: la llamada y la conversación</a></li>
+<li><a href="#2-servidor-web" id="toc-2-servidor-web">2. Servidor
+web</a></li>
+<li><a href="#3-el-mensaje-http" id="toc-3-el-mensaje-http">3. El
+mensaje HTTP</a></li>
+<li><a href="#4-métodos" id="toc-4-métodos">4. Métodos</a></li>
+<li><a href="#5-códigos-de-estado" id="toc-5-códigos-de-estado">5.
+Códigos de estado</a></li>
+<li><a href="#6-cabeceras" id="toc-6-cabeceras">6. Cabeceras</a></li>
+<li><a href="#7-cookies-y-sesiones" id="toc-7-cookies-y-sesiones">7.
+Cookies y sesiones</a></li>
+<li><a href="#8-conexiones-persistentes-keep-alive"
+id="toc-8-conexiones-persistentes-keep-alive">8. Conexiones persistentes
+(keep-alive)</a></li>
+<li><a href="#9-los-límites-de-http11"
+id="toc-9-los-límites-de-http11">9. Los límites de HTTP/1.1</a></li>
+<li><a href="#10-http2" id="toc-10-http2">10. HTTP/2</a></li>
+<li><a href="#11-código-http-frente-a-código-de-salida"
+id="toc-11-código-http-frente-a-código-de-salida">11. Código HTTP frente
+a código de salida</a></li>
+<li><a href="#12-analogías-de-referencia"
+id="toc-12-analogías-de-referencia">12. Analogías de referencia</a></li>
+</ul></li>
+<li><a href="#parte-2--ejemplos-2" id="toc-parte-2--ejemplos-2">Parte 2
+· Ejemplos</a>
+<ul>
+<li><a href="#una-petición-completa-a-labweb-anotada"
+id="toc-una-petición-completa-a-labweb-anotada">Una petición completa a
+<code>labweb</code>, anotada</a></li>
+<li><a href="#cómo-responde-labweb-y-por-qué"
+id="toc-cómo-responde-labweb-y-por-qué">Cómo responde
+<code>labweb</code> y por qué</a></li>
+<li><a href="#el-healthcheck-y--f" id="toc-el-healthcheck-y--f">El
+healthcheck y <code>-f</code></a></li>
+<li><a href="#una-ip-varios-sitios-cloudflare"
+id="toc-una-ip-varios-sitios-cloudflare">Una IP, varios sitios:
+Cloudflare</a></li>
+<li><a href="#la-cookie-de-sesión-de-odoo"
+id="toc-la-cookie-de-sesión-de-odoo">La cookie de sesión de
+Odoo</a></li>
+<li><a href="#keep-alive-labweb-frente-a-mediavida"
+id="toc-keep-alive-labweb-frente-a-mediavida">Keep-alive:
+<code>labweb</code> frente a mediavida</a></li>
+<li><a href="#http11-frente-a-http2-en-paralelo"
+id="toc-http11-frente-a-http2-en-paralelo">HTTP/1.1 frente a HTTP/2, en
+paralelo</a></li>
+<li><a href="#una-página-real-en-el-navegador"
+id="toc-una-página-real-en-el-navegador">Una página real en el
+navegador</a></li>
+<li><a href="#inyección-de-la-operadora-pixeldrain"
+id="toc-inyección-de-la-operadora-pixeldrain">Inyección de la operadora:
+pixeldrain</a></li>
+<li><a href="#errores-de-curl-y-de-la-shell-vistos"
+id="toc-errores-de-curl-y-de-la-shell-vistos">Errores de
+<code>curl</code> y de la shell vistos</a></li>
+<li><a href="#confusiones-vistas-2"
+id="toc-confusiones-vistas-2">Confusiones vistas</a></li>
+<li><a href="#preguntas-frecuentes-y-cómo-responderlas-2"
+id="toc-preguntas-frecuentes-y-cómo-responderlas-2">Preguntas frecuentes
+y cómo responderlas</a></li>
+</ul></li>
+<li><a href="#parte-3--comandos-útiles-del-bloque-2"
+id="toc-parte-3--comandos-útiles-del-bloque-2">Parte 3 · Comandos útiles
+del bloque</a>
+<ul>
+<li><a href="#curl-peticiones-y-lectura-de-la-respuesta"
+id="toc-curl-peticiones-y-lectura-de-la-respuesta"><code>curl</code>:
+peticiones y lectura de la respuesta</a></li>
+<li><a href="#curl-códigos-de-salida-y-scripts"
+id="toc-curl-códigos-de-salida-y-scripts"><code>curl</code>: códigos de
+salida y scripts</a></li>
+<li><a href="#curl-conexiones-y-versiones"
+id="toc-curl-conexiones-y-versiones"><code>curl</code>: conexiones y
+versiones</a></li>
+<li><a href="#shell-filtrar-salidas"
+id="toc-shell-filtrar-salidas">Shell: filtrar salidas</a></li>
+<li><a href="#dns" id="toc-dns">DNS</a></li>
+<li><a href="#documentación-y-navegador"
+id="toc-documentación-y-navegador">Documentación y navegador</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<button id="abrir" aria-label="Abrir índice">Índice</button>
+<main>
+<h1 id="redes--bloque-1--el-modelo-y-las-capas">Redes · Bloque 1 — El
+modelo y las capas</h1>
+<p>El modelo de capas de internet, direccionamiento IPv4 y subredes,
+puertos y sockets, NAT, y TCP frente a UDP con el handshake. Todo
+observado en el VPS y en el portátil con <code>ip</code>,
+<code>ss</code>, <code>ping</code>, <code>traceroute</code> y
+<code>tcpdump</code>.</p>
+<p><strong>Entorno de referencia:</strong> VPS <code>backend-lab</code>
+(Ubuntu 24.04 en Netcup, Núremberg; interfaz <code>eth0</code>, IP
+<code>89.58.45.111/22</code>, gateway <code>89.58.44.1</code>; shell
+fish) y portátil con CachyOS (Arch; interfaz de cable
+<code>enp5s0</code> en la red de casa <code>192.168.1.0/24</code>,
+detrás del router de O2). Las opciones de <code>ip</code>,
+<code>ss</code> y <code>tcpdump</code> pueden variar entre versiones:
+confírmalas con <code>man</code> en la máquina donde vayas a
+ejecutarlas.</p>
+<hr />
+<h2 id="parte-1--teoría">Parte 1 · Teoría</h2>
+<h3 id="1-el-modelo-de-capas">1. El modelo de capas</h3>
+<p>Para dar estructura al diseño de los protocolos de red, se organizan
+<strong>por capas</strong>: cada una resuelve un problema y se apoya en
+la de debajo sin saber cómo funciona por dentro. En internet la pila
+tiene <strong>cinco</strong>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Capa</th>
+<th>Qué hace</th>
+<th>Unidad</th>
+<th>Dirección</th>
+<th>Alcance</th>
+<th>Ejemplos</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Aplicación</strong></td>
+<td>Produce y consume los datos</td>
+<td>mensaje</td>
+<td>nombres (URL)</td>
+<td>extremo a extremo</td>
+<td>HTTP, SSH, DNS, SMTP</td>
+</tr>
+<tr class="even">
+<td><strong>Transporte</strong></td>
+<td>Lleva datos entre <strong>procesos</strong>; opcionalmente añade
+fiabilidad</td>
+<td>segmento (TCP) / datagrama (UDP)</td>
+<td><strong>puerto</strong></td>
+<td>extremo a extremo</td>
+<td>TCP, UDP</td>
+</tr>
+<tr class="odd">
+<td><strong>Red</strong></td>
+<td>Lleva paquetes entre <strong>máquinas</strong>, decidiendo el
+siguiente salto</td>
+<td>datagrama</td>
+<td><strong>IP</strong></td>
+<td>extremo a extremo</td>
+<td>IP</td>
+</tr>
+<tr class="even">
+<td><strong>Enlace</strong></td>
+<td>Mueve la trama al <strong>siguiente salto</strong></td>
+<td>trama</td>
+<td><strong>MAC</strong></td>
+<td><strong>un salto</strong></td>
+<td>Ethernet, wifi</td>
+</tr>
+<tr class="odd">
+<td><strong>Física</strong></td>
+<td>Mueve <strong>bits</strong> por el medio</td>
+<td>bit</td>
+<td>—</td>
+<td>un salto</td>
+<td>cobre, fibra, radio</td>
+</tr>
+</tbody>
+</table>
+<p>«Datagrama» aparece en dos capas: el de red (IP) y el de usuario
+(UDP). UDP se llama así porque apenas añade nada a la filosofía de IP:
+es casi IP con puertos. TCP habla de <strong>segmentos</strong> porque
+trocea un flujo continuo de bytes. En la práctica casi todo el mundo
+dice «paquete» para todo.</p>
+<h4 id="las-ideas-que-sostienen-el-modelo">Las ideas que sostienen el
+modelo</h4>
+<p><strong>Encapsulación.</strong> Al bajar, cada capa envuelve lo que
+le da la de arriba con su propia cabecera. Al subir, se desenvuelve en
+orden inverso. Muñecas rusas.</p>
+<p><strong>Cada capa solo abre su propio sobre.</strong> Red entiende
+IPs y nunca toca MACs; enlace entiende MACs y nunca lee IPs. Esa
+ignorancia deliberada es lo que permite cambiar wifi por fibra sin tocar
+SSH.</p>
+<p><strong>Cada capa habla con su homóloga del otro lado.</strong>
+Transporte con transporte, red con red, enlace con enlace. Lo que cambia
+es el alcance de esa conversación: las tres de arriba, de punta a punta;
+enlace y física, solo hasta el vecino.</p>
+<p><strong>No todos suben las cinco capas.</strong> Los extremos sí. Los
+<strong>routers intermedios suben solo hasta red</strong> y vuelven a
+bajar: nunca ven la conexión TCP, que es un acuerdo privado entre los
+dos extremos.</p>
+<p><strong>El reloj de arena.</strong> En aplicación hay cientos de
+protocolos; en transporte, dos; en red, <strong>uno solo</strong>: IP.
+Debajo vuelve la variedad. Todo el mundo se pone de acuerdo en una sola
+cosa, y por encima y por debajo cada uno hace lo que quiere.</p>
+<h3 id="2-el-recorrido-de-un-paquete">2. El recorrido de un paquete</h3>
+<p><strong>En el origen</strong></p>
+<ol type="1">
+<li>La aplicación quiere enviar algo a una IP.</li>
+<li>Transporte prepara el segmento y lo entrega a red con esa IP. No le
+pasa el puerto: red no lo mira.</li>
+<li>Red escribe la IP de destino, consulta la <strong>tabla de
+rutas</strong> y decide el vecino al que dárselo.</li>
+<li>Enlace averigua la MAC de ese vecino y construye la trama.</li>
+<li>Sale por el medio físico.</li>
+</ol>
+<p><strong>En cada router</strong></p>
+<ol type="1">
+<li>Enlace compara la MAC de destino con la suya, verifica el
+<em>checksum</em> y quita la envoltura. La trama muere aquí.</li>
+<li>Red compara la IP de destino: no es suya. Decrementa el
+<strong>TTL</strong>, consulta su tabla y decide su siguiente
+vecino.</li>
+<li>Enlace construye una <strong>trama nueva</strong>, con MACs
+distintas, para el siguiente tramo.</li>
+</ol>
+<p><strong>En el destino</strong></p>
+<ol type="1">
+<li>Enlace compara la MAC y sube el datagrama.</li>
+<li>Red compara la IP: <strong>es suya</strong>. Sube a transporte.</li>
+<li>Transporte lee el puerto, reordena si hace falta y entrega al
+proceso.</li>
+</ol>
+<p>Con diez routers en medio, red actúa once veces con el mismo dato;
+enlace, diez veces con datos nuevos cada vez.</p>
+<h4 id="lo-que-cambia-y-lo-que-no">Lo que cambia y lo que no</h4>
+<ul>
+<li><strong>La IP viaja intacta de punta a punta.</strong> De la
+cabecera IP solo cambia el TTL, que baja de uno en uno (y la IP de
+origen si hay NAT, §7).</li>
+<li><strong>La trama se destruye y se rehace en cada
+salto.</strong></li>
+<li><strong>Nadie conoce el camino completo.</strong> Ni el origen ni
+ningún router. Cada nodo decide solo el siguiente salto, cuando el
+paquete ya está en sus manos. La ruta emerge de muchas decisiones
+locales encadenadas.</li>
+</ul>
+<h4 id="dos-tablas-dos-preguntas">Dos tablas, dos preguntas</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Tabla</th>
+<th>Comando</th>
+<th>Pregunta que responde</th>
+<th>Responde con</th>
+<th>Capa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tabla de rutas</td>
+<td><code>ip r</code></td>
+<td>¿A quién le paso el paquete?</td>
+<td>Una <strong>IP</strong> (la del siguiente salto)</td>
+<td>Red</td>
+</tr>
+<tr class="even">
+<td>Tabla de vecinos (ARP)</td>
+<td><code>ip neigh</code></td>
+<td>¿Qué MAC tiene ese vecino?</td>
+<td>Una <strong>MAC</strong></td>
+<td>Enlace</td>
+</tr>
+</tbody>
+</table>
+<p>En la tabla de rutas <strong>no hay MACs ni caminos
+completos</strong>: solo «si el destino está en mi subred, directo; si
+no, al gateway». Enlace no decide nada: entrega a la MAC que le indica
+red. Es un ejecutor.</p>
+<p><strong>Forwarding frente a routing.</strong> <em>Forwarding</em> es
+consultar la tabla y sacar el paquete por la interfaz que toca:
+microsegundos, por cada paquete. <em>Routing</em> es el proceso de fondo
+que <strong>construye</strong> esa tabla mediante protocolos de
+enrutado: lento, continuo, ocurre aunque no circule nada.</p>
+<h3 id="3-mac-ip-y-arp">3. MAC, IP y ARP</h3>
+<p><strong>La MAC va con la máquina; la IP va con el sitio donde
+está.</strong></p>
+<ul>
+<li><strong>MAC:</strong> 48 bits grabados de fábrica en la tarjeta. Los
+primeros 24 identifican al fabricante (registro del IEEE); los otros 24
+los asigna él.</li>
+<li><strong>IP:</strong> la da la red donde te conectas, y cambia si te
+mueves.</li>
+</ul>
+<p><strong>La MAC no es enrutable.</strong> Es un número de serie, no
+una dirección postal: no hay forma de deducir un camino a partir de
+ella. La IP sí lo es porque está agrupada en bloques
+(<code>89.58.44.0/22</code> son mil direcciones en una sola línea de
+tabla). Si internet funcionara por MAC, cada router necesitaría una
+tabla con todos los dispositivos del planeta. <strong>MAC para el último
+metro, IP para todo lo demás.</strong></p>
+<h4 id="arp-de-ip-a-mac">ARP: de IP a MAC</h4>
+<p>Se resuelve <strong>después</strong> de que red decida el siguiente
+salto y <strong>antes</strong> de construir la trama.</p>
+<ol type="1">
+<li>¿Está la MAC en la caché de vecinos? → se usa al instante.</li>
+<li>¿No está? → se emite una petición ARP a
+<code>ff:ff:ff:ff:ff:ff</code> (broadcast de enlace) preguntando quién
+tiene esa IP. Todos la reciben; solo el interesado contesta con su MAC.
+El paquete <strong>espera</strong> mientras tanto.</li>
+</ol>
+<p>Solo se resuelve la MAC del <strong>siguiente salto</strong>, nunca
+la del destino final.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Estado en <code>ip neigh</code></th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>REACHABLE</code></td>
+<td>Confirmado hace poco (unos 30 s). Se usa sin preguntar</td>
+</tr>
+<tr class="even">
+<td><code>STALE</code></td>
+<td>Caducó el plazo pero sigue en caché. Se revalida al usarlo</td>
+</tr>
+<tr class="odd">
+<td><code>FAILED</code></td>
+<td>Se preguntó y nadie respondió</td>
+</tr>
+</tbody>
+</table>
+<p>La caché caduca a propósito: si cambia una tarjeta o se reasigna una
+IP, el sistema tiene que enterarse.</p>
+<h3 id="4-direccionamiento-ipv4-y-subredes">4. Direccionamiento IPv4 y
+subredes</h3>
+<h4 id="dirección-prefijo-y-máscara">Dirección, prefijo y máscara</h4>
+<p>Una IPv4 son 32 bits, escritos como cuatro números de 0 a 255
+(octetos). El <strong>prefijo</strong> (<code>/24</code>,
+<code>/22</code>) dice cuántos bits, contando desde la izquierda,
+identifican <strong>la red</strong>; el resto identifican <strong>la
+máquina</strong> dentro de ella. La <strong>máscara</strong> es lo mismo
+escrito como dirección: <code>/24</code> = <code>255.255.255.0</code>.
+Esta notación con barra es <strong>CIDR</strong>.</p>
+<p>La máscara es una <strong>frontera</strong>: la máquina la usa para
+decidir en un instante «este destino es vecino, se lo doy directo» o «es
+de fuera, al gateway».</p>
+<h4 id="calcular-una-subred">Calcular una subred</h4>
+<p>Cuatro valores, siempre en este orden:</p>
+<ol type="1">
+<li><strong>Bits de host</strong> = 32 − prefijo.</li>
+<li><strong>Dirección de red:</strong> bits de host todos a
+<strong>cero</strong>. No asignable.</li>
+<li><strong>Broadcast:</strong> bits de host todos a
+<strong>uno</strong>. No asignable.</li>
+<li><strong>Hosts</strong> = 2^(bits de host) − 2, por los dos extremos
+reservados.</li>
+</ol>
+<p>El rango utilizable va de red + 1 a broadcast − 1. Cuando el prefijo
+no es múltiplo de 8, el corte cae <strong>dentro</strong> de un octeto y
+hay que pasar ese octeto a binario (caso del <code>/22</code> del VPS,
+en Ejemplos). El gateway suele ser la primera o la última dirección
+utilizable.</p>
+<h4 id="la-máscara-no-dice-si-tu-ip-cambia">La máscara no dice si tu IP
+cambia</h4>
+<ul>
+<li><strong>La máscara</strong> describe el tamaño del rango.</li>
+<li><strong><code>dynamic</code></strong> en la salida de
+<code>ip a</code> indica que la dirección vino por DHCP y puede
+cambiar.</li>
+</ul>
+<p>El VPS está en un <code>/22</code> y su IP es fija; el portátil está
+en un <code>/24</code> y la suya es dinámica. Lo que sí dice la máscara
+es <strong>dentro de qué margen</strong> puede cambiar.</p>
+<h4 id="quién-reparte-las-direcciones">Quién reparte las
+direcciones</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Nivel</th>
+<th>Quién</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Cima</td>
+<td><strong>IANA</strong></td>
+<td>Administra todo el espacio IPv4 y entrega bloques enormes a los
+RIR</td>
+</tr>
+<tr class="even">
+<td>Regional</td>
+<td><strong>RIR</strong> (cinco; en Europa, <strong>RIPE
+NCC</strong>)</td>
+<td>Trocea sus bloques y los asigna a operadores</td>
+</tr>
+<tr class="odd">
+<td>Operador</td>
+<td>ISP, proveedores como Netcup</td>
+<td>Divide su bloque en segmentos para sus clientes</td>
+</tr>
+<tr class="even">
+<td>Cliente</td>
+<td>Tú</td>
+<td>Recibe una dirección del bloque de su proveedor</td>
+</tr>
+</tbody>
+</table>
+<p>Cada nivel trocea <strong>alargando el prefijo</strong>: <strong>cada
+bit que se añade parte el bloque en dos</strong>. Un <code>/16</code>
+(65.536 direcciones) da 4 bloques <code>/18</code>, o 64
+<code>/22</code>, o 256 <code>/24</code>.</p>
+<h4 id="direcciones-privadas">Direcciones privadas</h4>
+<p>Rangos reservados para redes internas (RFC 1918):
+<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code> y
+<code>192.168.0.0/16</code>. <strong>No son enrutables en
+internet</strong>: ningún router público tiene ruta hacia ellas, porque
+el mismo rango existe repetido en millones de casas. No son secretas:
+son inalcanzables desde fuera. La red de casa
+(<code>192.168.1.0/24</code>) y las redes de Docker
+(<code>172.17.0.0/16</code>) usan estos rangos. Para salir a internet
+necesitan <strong>NAT</strong> (§7).</p>
+<h3 id="5-broadcast-red-local-y-dhcp">5. Broadcast, red local y
+DHCP</h3>
+<h4 id="broadcast">Broadcast</h4>
+<p>La dirección «para todos los de esta subred». Se usa <strong>cuando
+no sabes con quién hablar</strong>; si lo supieras, te dirigirías a él.
+Sus dos usos reales son problemas de arranque:</p>
+<ul>
+<li><strong>ARP:</strong> «¿quién tiene esta IP?».</li>
+<li><strong>DHCP:</strong> la máquina no tiene IP ni sabe quién es el
+router.</li>
+</ul>
+<p><strong>El coste:</strong> un broadcast lo procesan
+<strong>todas</strong> las máquinas de la subred. Con 254 es
+despreciable; con los 65.534 de un <code>/16</code> se convierte en
+problema (<em>broadcast storm</em>). Los routers <strong>no reenvían
+broadcasts nunca</strong>, así que <strong>cada subred es una frontera
+que los acota</strong>: es una razón práctica para dividir en subredes.
+Casi todos los servidores modernos ignoran el ping a broadcast, como
+protección contra ataques de amplificación.</p>
+<h4 id="red-local-no-significa-red-privada">Red local no significa red
+privada</h4>
+<p><strong>Red local = las máquinas a las que llegas directamente, sin
+pasar por un router.</strong> No dice nada de IPs privadas ni de
+NAT.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Casa</th>
+<th>VPS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Red local</td>
+<td><code>192.168.1.0/24</code></td>
+<td><code>89.58.44.0/22</code></td>
+</tr>
+<tr class="even">
+<td>IPs</td>
+<td>Privadas</td>
+<td><strong>Públicas</strong></td>
+</tr>
+<tr class="odd">
+<td>NAT</td>
+<td>Sí</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>En casa las tres cosas vienen juntas, y de ahí sale la idea
+equivocada de que «local» implica «privado y detrás de NAT». Lo raro es
+la casa: todo centro de datos está hecho de segmentos locales con IPs
+públicas.</p>
+<h4 id="switch-y-router">Switch y router</h4>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Switch</th>
+<th>Router</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Conecta</td>
+<td>Dentro de la subred</td>
+<td>Entre subredes</td>
+</tr>
+<tr class="even">
+<td>Mira</td>
+<td><strong>MAC</strong></td>
+<td><strong>IP</strong></td>
+</tr>
+<tr class="odd">
+<td>Capa</td>
+<td>Enlace</td>
+<td>Red</td>
+</tr>
+</tbody>
+</table>
+<p>Cuando el VPS habla con un vecino de su <code>/22</code>, el tráfico
+pasa por los switches y <strong>nunca toca el router</strong>. En un
+centro de datos hay un switch por rack, interconectados en un segmento
+plano. Y el gateway puede no ser un solo aparato: con
+<strong>VRRP</strong>, dos routers físicos comparten una IP y una MAC
+virtuales (prefijo <code>00:00:5e</code>) por redundancia.</p>
+<h4 id="dhcp">DHCP</h4>
+<p>Entrega automáticamente <strong>cuatro cosas</strong> a una máquina
+que se conecta: <strong>IP, máscara, gateway y servidores DNS</strong>,
+con un tiempo de préstamo (<em>lease</em>) que la máquina renueva.</p>
+<p><strong>La paradoja de arranque:</strong> el cliente no tiene IP, no
+sabe la máscara ni quién es el router, y aun así tiene que pedir. Se
+resuelve con dos direcciones especiales: <strong>origen
+<code>0.0.0.0</code></strong> («todavía no tengo dirección») y
+<strong>destino <code>255.255.255.255</code></strong> (broadcast
+total).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Paso</th>
+<th>Qué ocurre</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Discover</strong></td>
+<td>El cliente pregunta por broadcast si hay algún servidor DHCP. UDP,
+del puerto 68 al 67</td>
+</tr>
+<tr class="even">
+<td><strong>Offer</strong></td>
+<td>Un servidor ofrece una IP con su máscara, gateway, DNS y tiempo de
+préstamo</td>
+</tr>
+<tr class="odd">
+<td><strong>Request</strong></td>
+<td>El cliente pide la oferta elegida, también por broadcast, para que
+otros servidores sepan que no se quedó con la suya</td>
+</tr>
+<tr class="even">
+<td><strong>ACK</strong></td>
+<td>El servidor confirma. Desde ahí la máquina usa esa
+configuración</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DHCP necesita enlace primero.</strong> Viaja dentro de una
+trama: antes hace falta conexión física (el cable, o asociarse a la
+wifi, que es radio y no tiene nada de IP). Cambia el medio, cambia cómo
+se conecta, y DHCP sigue siendo idéntico: las capas son
+independientes.</p>
+<h3 id="6-puertos-y-sockets">6. Puertos y sockets</h3>
+<h4 id="multiplexación-y-demultiplexación">Multiplexación y
+demultiplexación</h4>
+<ul>
+<li><strong>Multiplexar</strong> (emisor): recoger los datos de
+<strong>varios sockets</strong>, ponerles su cabecera con el puerto de
+origen y meterlos todos por el mismo canal hacia la capa de red.</li>
+<li><strong>Demultiplexar</strong> (receptor): usar esa información para
+entregar cada segmento al <strong>socket correcto</strong>.</li>
+</ul>
+<p>Multiplexar <strong>obliga</strong> a etiquetar: sin el remitente en
+el sobre, al llegar no habría forma de repartir.</p>
+<h4 id="puerto-no-es-socket">Puerto no es socket</h4>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Puerto</th>
+<th>Socket</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Qué es</td>
+<td>Un número de 16 bits en la cabecera</td>
+<td>Una estructura del sistema operativo</td>
+</tr>
+<tr class="even">
+<td>Tiene</td>
+<td>Nada: es un dato</td>
+<td>Estado, buffers, descriptor de fichero</td>
+</tr>
+</tbody>
+</table>
+<p>El puerto es la <strong>etiqueta</strong>; el socket, <strong>la
+cosa</strong>. Un proceso puede tener varios sockets en el mismo puerto
+(<code>systemd-resolved</code> tenía cuatro en el 53), y cien clientes
+en el 22 son cien sockets y un solo puerto.</p>
+<h4 id="cómo-se-identifica-cada-socket">Cómo se identifica cada
+socket</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Protocolo</th>
+<th>Datos necesarios para repartir</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>UDP</strong></td>
+<td><strong>Dos:</strong> IP y puerto de destino</td>
+</tr>
+<tr class="even">
+<td><strong>TCP</strong></td>
+<td><strong>Cuatro:</strong> IP y puerto de origen, IP y puerto de
+destino</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Por qué.</strong> TCP mantiene estado <strong>por
+interlocutor</strong> (números de secuencia, qué se ha confirmado, qué
+falta), y ese estado solo tiene sentido dentro de una conversación
+concreta. Necesita un socket por conversación y, para repartir, mirar de
+dónde viene cada segmento. UDP no guarda nada: cada datagrama se basta a
+sí mismo, así que mil clientes escribiendo al mismo puerto UDP caen en
+<strong>el mismo socket</strong>; si la aplicación quiere distinguirlos,
+mira ella la IP de origen.</p>
+<h4 id="servidor-y-cliente-no-son-simétricos">Servidor y cliente no son
+simétricos</h4>
+<ul>
+<li><strong>Servidor:</strong> puerto fijo y conocido de antemano (22
+SSH, 80 HTTP, 443 HTTPS, 5432 PostgreSQL, 8069 Odoo).</li>
+<li><strong>Cliente:</strong> puerto <strong>efímero</strong>, asignado
+al vuelo y liberado al cerrar.</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Rango</th>
+<th>Qué son</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0–1023</td>
+<td><strong>Bien conocidos</strong>, reservados por IANA. En Linux,
+<strong>solo root puede escuchar en ellos</strong></td>
+</tr>
+<tr class="even">
+<td>1024–65535</td>
+<td>Libres: puertos efímeros y servicios propios</td>
+</tr>
+</tbody>
+</table>
+<p>Por eso nginx arranca como root para coger el 80 y luego baja de
+privilegios, y Odoo usa el 8069. Mover el PostgreSQL de Docker al 5433
+fue elegir un puerto libre por encima de 1023.</p>
+<h4 id="listen-y-estab"><code>LISTEN</code> y <code>ESTAB</code></h4>
+<p>El socket que escucha <strong>no se convierte en la
+conexión</strong>: por cada cliente el kernel crea uno nuevo en estado
+<code>ESTAB</code>, y el original sigue en <code>LISTEN</code>. Con tres
+sesiones SSH hay cuatro sockets en el 22. Por eso caben cien clientes en
+un puerto, y por eso reiniciar <code>sshd</code> no corta las sesiones
+abiertas.</p>
+<p>Reparto de lo que llega:</p>
+<ol type="1">
+<li>Se busca coincidencia exacta de los cuatro datos → socket
+<code>ESTAB</code>.</li>
+<li>Si no hay, se mira si algún socket en <code>LISTEN</code> encaja →
+ahí caen las conexiones nuevas.</li>
+</ol>
+<p>Que el socket en <code>LISTEN</code> acepte de cualquier IP es
+decisión del servicio (<code>sshd</code>), no del kernel. Es lo que
+permite que los bots prueben el 22 desde el primer día.</p>
+<p>Un servicio solo necesita puerto si habla por TCP o UDP:
+<code>cron</code> o <code>systemd-logind</code> no tienen. La
+comunicación local también puede ir por <strong>sockets Unix</strong>,
+ficheros en disco sin puerto ni red.</p>
+<h3 id="7-nat">7. NAT</h3>
+<p><strong>Qué resuelve:</strong> varios dispositivos con IP privada
+compartiendo <strong>una sola IP pública</strong>, la del router.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Sentido</th>
+<th>Campos que reescribe el router</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Al salir</strong></td>
+<td>IP de origen (privada → pública) y <strong>puerto de origen</strong>
+(→ uno elegido por el router)</td>
+</tr>
+<tr class="even">
+<td><strong>Al entrar</strong></td>
+<td>IP y puerto de <strong>destino</strong>, deshaciendo el cambio</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Por qué también el puerto.</strong> Dos dispositivos pueden
+elegir el mismo puerto efímero. Si el router solo cambiara la IP, dos
+filas de su tabla serían idénticas y no sabría a quién devolver cada
+respuesta. Reescribir el puerto garantiza que cada fila es única. Al
+volver, el router mira el <strong>puerto de destino</strong>, busca la
+fila y restaura IP y puerto originales.</p>
+<p>No es solo memoria: es <strong>traducción</strong>. El paquete que
+sale del router ya no es el que entró. Un router normal mira la IP y
+decide por dónde sale sin tocar nada salvo el TTL.</p>
+<p><strong>Sobre el nombre:</strong> lo que hace un router doméstico es,
+en rigor, <strong>PAT</strong> (<em>Port Address Translation</em>). El
+NAT original traducía direcciones una a una; «NAT» se quedó como nombre
+genérico.</p>
+<h4 id="por-qué-el-nat-rompe-el-modelo-de-capas">Por qué el NAT rompe el
+modelo de capas</h4>
+<p>Un nodo intermedio debería subir solo hasta red. El NAT:</p>
+<ul>
+<li><strong>Lee y modifica puertos</strong>, que son de transporte.</li>
+<li><strong>Modifica la IP de origen</strong>, que se supone intacta de
+punta a punta.</li>
+<li><strong>Sigue los flags TCP</strong> para saber cuándo crear una
+fila (ve un <code>SYN</code>) y cuándo borrarla (ve un <code>FIN</code>
+o se agota el tiempo): sigue el estado de una conexión que en teoría
+solo es asunto de los extremos.</li>
+</ul>
+<h4 id="port-forwarding">Port forwarding</h4>
+<p>Con NAT normal la tabla se llena sola, pero <strong>solo hacia
+fuera</strong>: cada fila nace de una petición interna. Un paquete
+entrante sin fila no tiene destinatario y se descarta. El <em>port
+forwarding</em> añade una fila <strong>permanente, escrita a
+mano</strong>, en sentido contrario: «lo que llegue al puerto X, dáselo
+a este dispositivo». Es la única forma de recibir conexiones no
+solicitadas detrás de un NAT.</p>
+<h4 id="por-qué-el-vps-recibe-conexiones-y-el-portátil-no">Por qué el
+VPS recibe conexiones y el portátil no</h4>
+<p>El VPS tiene IP pública directa, sin NAT delante: es alcanzable desde
+el primer segundo. El portátil tiene una IP privada no enrutable; desde
+fuera solo se alcanza la IP pública del router, que sin una fila en su
+tabla no sabe a quién entregar lo que llega.</p>
+<h3 id="8-tcp-y-udp">8. TCP y UDP</h3>
+<h4 id="qué-ofrece-cada-uno">Qué ofrece cada uno</h4>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>UDP</th>
+<th>TCP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Conexión</td>
+<td>No: cada datagrama va suelto</td>
+<td>Sí: se establece con el handshake</td>
+</tr>
+<tr class="even">
+<td>Garantías</td>
+<td>Ninguna: puede perderse, duplicarse o llegar desordenado</td>
+<td>Todo llega, una vez y en orden</td>
+</tr>
+<tr class="odd">
+<td>Estado</td>
+<td>Ninguno</td>
+<td>Por interlocutor: secuencia, confirmaciones, retransmisiones</td>
+</tr>
+<tr class="even">
+<td>Coste</td>
+<td>Rápido: no espera nada</td>
+<td>Más lento <strong>porque</strong> garantiza: espera confirmaciones y
+retransmite</td>
+</tr>
+<tr class="odd">
+<td>Uso típico</td>
+<td>Pregunta y respuesta cortas (DNS), tiempo real</td>
+<td>SSH, HTTP, PostgreSQL</td>
+</tr>
+</tbody>
+</table>
+<p>IP, por debajo de ambos, es <em>best effort</em>: sin conexión ni
+promesas. Toda la fiabilidad de TCP la construyen los extremos encima de
+una red que no garantiza nada.</p>
+<h4 id="por-qué-existe-el-handshake">Por qué existe el handshake</h4>
+<p><strong>No es cortesía: es acordar los números de secuencia</strong>
+con los que cada lado va a contar los bytes que envía. Sin ese punto de
+partida común no hay forma de detectar qué falta ni de reordenar lo que
+llega desordenado.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Paso</th>
+<th>Flag en <code>tcpdump</code></th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><code>[S]</code> SYN</td>
+<td>El cliente propone su número inicial</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><code>[S.]</code> SYN-ACK</td>
+<td>El servidor confirma el del cliente (+1) y propone el suyo</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td><code>[.]</code> ACK</td>
+<td>El cliente confirma el del servidor (+1)</td>
+</tr>
+</tbody>
+</table>
+<p>El ACK significa «he recibido hasta aquí; el siguiente byte que
+espero es este». Los números iniciales son <strong>aleatorios a
+propósito</strong>: si fueran predecibles, alguien podría inyectar
+paquetes falsos en una conexión ajena.</p>
+<h4 id="los-flags-que-se-ven-en-una-captura">Los flags que se ven en una
+captura</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Flag</th>
+<th>Significa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>[S]</code></td>
+<td>SYN: abrir</td>
+</tr>
+<tr class="even">
+<td><code>[S.]</code></td>
+<td>SYN-ACK (el punto es el ACK)</td>
+</tr>
+<tr class="odd">
+<td><code>[.]</code></td>
+<td>Solo ACK</td>
+</tr>
+<tr class="even">
+<td><code>[P.]</code></td>
+<td>PUSH + ACK: datos reales</td>
+</tr>
+<tr class="odd">
+<td><code>[F.]</code></td>
+<td>FIN: cierre ordenado</td>
+</tr>
+<tr class="even">
+<td><code>[R]</code></td>
+<td>RST: cierre abrupto</td>
+</tr>
+</tbody>
+</table>
+<p>El cierre son <strong>cuatro pasos</strong>, no tres: una conexión
+TCP son dos flujos independientes y cada lado cierra el suyo por
+separado.</p>
+<p>Quedan fuera del bloque la fiabilidad por dentro (retransmisiones,
+control de flujo) y el control de congestión: importan al diseñar
+protocolos, no al operar un servidor.</p>
+<h3 id="9-retardos-y-ping">9. Retardos y <code>ping</code></h3>
+<p>Cada nodo añade cuatro retardos: <strong>procesamiento, cola,
+transmisión y propagación</strong>. El de cola es el más
+<strong>variable</strong> (no siempre el mayor) y el único que depende
+de lo que hagan los demás.</p>
+<p><code>ping</code> mide el <strong>RTT</strong> (ida y vuelta) y da el
+total, no la descomposición. La vuelta puede ir por otra ruta: RTT ÷ 2
+es una aproximación.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Valor de <code>ping</code></th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>min</strong></td>
+<td>El suelo irreducible: propagación y transmisión. Física</td>
+</tr>
+<tr class="even">
+<td><strong>avg − min</strong></td>
+<td>Retardo de cola medio. Pocos ms → ruta descargada</td>
+</tr>
+<tr class="odd">
+<td><strong>max</strong></td>
+<td>Un pico. Puede ser la wifi propia, no internet</td>
+</tr>
+<tr class="even">
+<td><strong>mdev</strong></td>
+<td>Variación (<em>jitter</em>). Bajo con un max alto = pico aislado, no
+patrón</td>
+</tr>
+</tbody>
+</table>
+<p>Los routers contestan a ICMP con prioridad baja: un salto lento en
+<code>traceroute</code> puede estar perfectamente sano si los siguientes
+van bien.</p>
+<h3 id="10-conmutación-de-circuitos-y-de-paquetes">10. Conmutación de
+circuitos y de paquetes</h3>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Circuitos</th>
+<th>Paquetes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Reserva</td>
+<td>Capacidad fija antes de transmitir</td>
+<td>Ninguna</td>
+</tr>
+<tr class="even">
+<td>Fases</td>
+<td>Establecimiento (puede <strong>bloquearse</strong>), transferencia,
+liberación</td>
+<td>Se envía sin más</td>
+</tr>
+<tr class="odd">
+<td>Reparto del enlace</td>
+<td>FDM (bandas de frecuencia) o TDM (turnos de tiempo)</td>
+<td>Bajo demanda</td>
+</tr>
+<tr class="even">
+<td>Si no hay tráfico</td>
+<td>La capacidad reservada se desperdicia</td>
+<td>Otros la usan</td>
+</tr>
+<tr class="odd">
+<td>Cuando hay saturación</td>
+<td>No admite nuevas llamadas</td>
+<td>Admite todo y empeora la calidad (colas)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Circuitos cambia eficiencia por garantía; paquetes cambia
+garantía por eficiencia.</strong> Internet eligió paquetes porque el
+tráfico de datos va a ráfagas y reservar para el pico desperdicia casi
+todo el tiempo. Quedan circuitos en la telefonía clásica (facturación
+por minutos, tono de marcado, señal de ocupado) y en líneas
+dedicadas.</p>
+<h3 id="11-estructura-de-internet">11. Estructura de internet</h3>
+<ul>
+<li>Los ISP de acceso son clientes de ISP regionales, que son clientes
+de los <strong>tier-1</strong>. <strong>El de abajo paga al de arriba
+por el tránsito.</strong> Los tier-1 no pagan a nadie: hacen
+<em>peering</em> entre iguales.</li>
+<li>Los <strong>IXP</strong> son puntos físicos donde muchas redes se
+interconectan directamente.</li>
+<li>Los grandes proveedores de contenido tienen <strong>redes privadas
+globales</strong>, colocan servidores dentro de los IXP y hacen
+<em>peering</em> gratuito con ISP pequeños, saltándose escalones. Les
+interesa por coste y, sobre todo, por <strong>control sobre la
+entrega</strong> (ruta, latencia, cercanía al usuario). La pirámide se
+ha aplanado.</li>
+</ul>
+<h3 id="12-ataques-y-colas">12. Ataques y colas</h3>
+<p>Un DDoS lleva al extremo el retardo de cola, pero la cola es el
+síntoma, no siempre el mecanismo.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Tipo</th>
+<th>Qué agota</th>
+<th>¿Llena la cola de red?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Volumétrico</strong></td>
+<td>El ancho de banda. Suele usar amplificación: consulta pequeña con IP
+de origen falsificada, respuesta enorme hacia la víctima</td>
+<td>Sí</td>
+</tr>
+<tr class="even">
+<td><strong>De protocolo</strong></td>
+<td>Una tabla en memoria. El <em>SYN flood</em> envía miles de SYN sin
+completar el handshake</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><strong>De aplicación</strong></td>
+<td>CPU o base de datos, con peticiones legítimas pero caras</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>Un resolutor DNS abierto a internet es munición para amplificación;
+Ubuntu trae el suyo escuchando solo en loopback.</p>
+<h3 id="13-analogías-de-referencia">13. Analogías de referencia</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Concepto</th>
+<th>Analogía</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Encapsulación</td>
+<td>Muñecas rusas: cada capa envuelve el sobre anterior</td>
+</tr>
+<tr class="even">
+<td>Router intermedio</td>
+<td>El cartero de cada oficina: abre el sobre exterior, lee la dirección
+y lo vuelve a cerrar en otro sobre</td>
+</tr>
+<tr class="odd">
+<td>Red frente a enlace</td>
+<td>Planificar Madrid → Núremberg en el mapa de Europa frente a conducir
+el tramo de la M-30 a la A-2</td>
+</tr>
+<tr class="even">
+<td>IP</td>
+<td>La dirección del edificio</td>
+</tr>
+<tr class="odd">
+<td>MAC</td>
+<td>El número de serie del buzón: identifica, pero no dice dónde
+está</td>
+</tr>
+<tr class="even">
+<td>Máscara</td>
+<td>Qué parte de la dirección es el barrio y qué parte el portal</td>
+</tr>
+<tr class="odd">
+<td>Puerto</td>
+<td>La extensión telefónica</td>
+</tr>
+<tr class="even">
+<td>Socket</td>
+<td>La llamada en curso: muchas llamadas por la misma extensión</td>
+</tr>
+<tr class="odd">
+<td>Multiplexar</td>
+<td>Una oficina con una sola saca de correo saliente; cada carta lleva
+su remitente</td>
+</tr>
+<tr class="even">
+<td>NAT</td>
+<td>El conserje de un bloque con una sola dirección: apunta en una
+libreta qué vecino pidió qué paquete</td>
+</tr>
+<tr class="odd">
+<td>Port forwarding</td>
+<td>Una nota fija en la libreta: «lo que llegue para el buzón 8069, al
+2.º B»</td>
+</tr>
+<tr class="even">
+<td>UDP</td>
+<td>Una postal: va suelta y sin acuse</td>
+</tr>
+<tr class="odd">
+<td>TCP</td>
+<td>Correo certificado con acuse de recibo</td>
+</tr>
+<tr class="even">
+<td>Handshake</td>
+<td>La llamada previa para confirmar que hay alguien y acordar cómo
+numerar las cartas</td>
+</tr>
+<tr class="odd">
+<td>Conmutación de circuitos</td>
+<td>Una llamada telefónica clásica: la línea es tuya aunque calles</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-2--ejemplos">Parte 2 · Ejemplos</h2>
+<h3 id="las-tablas-del-vps-anotadas">Las tablas del VPS, anotadas</h3>
+<p>En el VPS:</p>
+<pre><code>$ ip r
+default via 89.58.44.1 dev eth0 proto static
+89.58.44.0/22 dev eth0 proto kernel scope link src 89.58.45.111</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Fragmento</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>default via 89.58.44.1</code></td>
+<td>Todo lo que no encaje en otra línea va al gateway de Netcup</td>
+</tr>
+<tr class="even">
+<td><code>proto static</code></td>
+<td>Configurada a mano (netplan), no aprendida</td>
+</tr>
+<tr class="odd">
+<td><code>89.58.44.0/22 … scope link</code></td>
+<td>A los vecinos de la subred se llega <strong>directamente</strong>,
+sin gateway</td>
+</tr>
+<tr class="even">
+<td><code>proto kernel</code></td>
+<td>La dedujo el kernel al configurar la interfaz</td>
+</tr>
+<tr class="odd">
+<td><code>src 89.58.45.111</code></td>
+<td>La IP propia que se pone como origen</td>
+</tr>
+</tbody>
+</table>
+<pre><code>$ ip neigh
+89.58.44.2 dev eth0 lladdr bc:0f:fe:37:fb:a2 STALE
+89.58.44.3 dev eth0 lladdr bc:0f:fe:33:fc:e2 STALE
+89.58.44.1 dev eth0 lladdr 00:00:5e:00:01:01 REACHABLE
+2a03:4000:67::3 dev eth0 FAILED
+fe80::be0f:fe00:c437:fba2 dev eth0 lladdr bc:0f:fe:37:fb:a2 router STALE</code></pre>
+<ul>
+<li>El gateway está <code>REACHABLE</code>: se usa constantemente. Su
+MAC <code>00:00:5e:00:01:01</code> es la virtual de
+<strong>VRRP</strong>: dos routers físicos detrás de una sola
+dirección.</li>
+<li><code>.2</code> y <code>.3</code> son vecinos de la subred; sus MACs
+coinciden con las entradas IPv6 marcadas <code>router</code>: son
+routers de Netcup.</li>
+<li>Las entradas IPv6 <code>FAILED</code> encajan con que
+<code>ip -6 r</code> no tenga ruta por defecto: IPv6 está sin configurar
+en el VPS.</li>
+<li>La tabla solo conoce un puñado de máquinas: enlace no sabe nada más
+allá del vecino.</li>
+</ul>
+<h3 id="portátil-frente-a-vps">Portátil frente a VPS</h3>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Portátil</th>
+<th>VPS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Interfaz</td>
+<td><code>enp5s0</code> (cable)</td>
+<td><code>eth0</code></td>
+</tr>
+<tr class="even">
+<td>Dirección</td>
+<td><code>192.168.1.74/24</code>, privada, <code>dynamic</code></td>
+<td><code>89.58.45.111/22</code>, pública, fija</td>
+</tr>
+<tr class="odd">
+<td>Ruta por defecto</td>
+<td>Al router de casa</td>
+<td>A <code>89.58.44.1</code></td>
+</tr>
+<tr class="even">
+<td>Alcanzable desde internet</td>
+<td>No (NAT)</td>
+<td>Sí</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dos-subredes-calculadas">Dos subredes calculadas</h3>
+<p><strong><code>192.168.1.74/24</code> (portátil):</strong> 8 bits de
+host, 2⁸ = 256 direcciones.</p>
+<pre><code>192.168.1.0     ← red, no asignable
+192.168.1.1     ← primera utilizable
+   ...             254 hosts
+192.168.1.254   ← última utilizable
+192.168.1.255   ← broadcast, no asignable</code></pre>
+<p><strong><code>89.58.45.111/22</code> (VPS):</strong> el corte cae
+dentro del tercer octeto. <code>45</code> en binario es
+<code>00101101</code>; los 6 primeros bits (22 − 16) son de red:
+<code>001011</code>, que con los dos últimos a cero da <code>44</code> y
+a uno da <code>47</code>.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td>Bits de host</td>
+<td>32 − 22 = <strong>10</strong></td>
+</tr>
+<tr class="even">
+<td>Red</td>
+<td><code>89.58.44.0</code></td>
+</tr>
+<tr class="odd">
+<td>Broadcast</td>
+<td><code>89.58.47.255</code></td>
+</tr>
+<tr class="even">
+<td>Rango utilizable</td>
+<td><code>89.58.44.1</code> – <code>89.58.47.254</code></td>
+</tr>
+<tr class="odd">
+<td>Hosts</td>
+<td>2¹⁰ − 2 = <strong>1022</strong></td>
+</tr>
+<tr class="even">
+<td>¿<code>89.58.48.1</code> está dentro?</td>
+<td>No: el tercer octeto solo abarca 44–47</td>
+</tr>
+</tbody>
+</table>
+<p><strong>La decisión que toma el VPS:</strong> <code>89.58.44.2</code>
+está dentro de <code>89.58.44.0/22</code> → entrega directa por enlace,
+sin router. <code>8.8.8.8</code> no lo está → al gateway.</p>
+<h3 id="ping-a-broadcast-en-el-vps">Ping a broadcast en el VPS</h3>
+<pre><code>$ ping -c 3 -b 89.58.47.255
+64 bytes from 89.58.44.2: icmp_seq=1 ttl=64 time=0.506 ms
+64 bytes from 89.58.44.3: icmp_seq=1 ttl=64 time=0.530 ms
+3 packets transmitted, 3 received, +2 duplicates, 0% packet loss</code></pre>
+<ul>
+<li><strong><code>+2 duplicates</code>:</strong> <code>ping</code>
+espera un interlocutor y recibe varios. Es la prueba de que el broadcast
+llegó a toda la subred.</li>
+<li><strong>Solo contestan dos de 1022:</strong> los routers de Netcup.
+Los servidores modernos ignoran el ping a broadcast.</li>
+<li><strong><code>ttl=64</code> sin decrementar y 0,5 ms:</strong> cero
+saltos, entrega directa por enlace. Compárese con los casi 40 ms hasta
+el portátil.</li>
+</ul>
+<h3 id="ping-del-portátil-al-vps"><code>ping</code> del portátil al
+VPS</h3>
+<pre><code>rtt min/avg/max/mdev = 37.979/40.409/64.933/5.128 ms</code></pre>
+<p>El suelo es de 38 ms (Madrid → Núremberg, física). La media solo está
+2,4 ms por encima: ruta descargada. El máximo de 65 ms con
+<code>mdev</code> bajo es un pico aislado. Antes de culpar a la red,
+repetir por cable.</p>
+<h3 id="dos-sesiones-ssh-en-el-mismo-puerto">Dos sesiones SSH en el
+mismo puerto</h3>
+<p>En el VPS, con dos sesiones abiertas desde el portátil:</p>
+<pre><code>$ sudo ss -tnp | grep :22
+ESTAB 0 0    89.58.45.111:22  83.56.140.163:54364  users:((&quot;sshd&quot;,pid=75419,fd=4),...)
+ESTAB 0 304  89.58.45.111:22  83.56.140.163:54842  users:((&quot;sshd&quot;,pid=75327,fd=4),...)</code></pre>
+<p>Comparten tres de los cuatro datos. Solo los distingue el
+<strong>puerto de origen</strong> (54364 y 54842): ahí está, medida, la
+razón de que TCP necesite los cuatro. Los 304 bytes de
+<code>Send-Q</code> son datos en vuelo pendientes de confirmar. La IP de
+origen es la <strong>pública del router de casa</strong>, no la del
+portátil: el NAT ya actuó.</p>
+<h3 id="la-salida-de-ss-columna-a-columna">La salida de <code>ss</code>,
+columna a columna</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Lo que ves</th>
+<th>Qué significa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>0.0.0.0</code> en <em>Local</em></td>
+<td>Escucha por <strong>todas</strong> las interfaces: expuesto a
+internet</td>
+</tr>
+<tr class="even">
+<td><code>127.0.0.x</code> en <em>Local</em></td>
+<td>Solo loopback: inalcanzable desde fuera</td>
+</tr>
+<tr class="odd">
+<td><code>[::]</code> en <em>Local</em></td>
+<td>Lo mismo que <code>0.0.0.0</code>, en IPv6</td>
+</tr>
+<tr class="even">
+<td><code>0.0.0.0:*</code> en <em>Peer</em></td>
+<td>Acepta de cualquier IP y puerto</td>
+</tr>
+<tr class="odd">
+<td><code>LISTEN</code></td>
+<td>Esperando conexiones</td>
+</tr>
+<tr class="even">
+<td><code>UNCONN</code></td>
+<td>Normal en UDP: no hay conexión</td>
+</tr>
+<tr class="odd">
+<td><code>Send-Q</code> en <code>LISTEN</code></td>
+<td>El <strong>backlog</strong> máximo de conexiones pendientes, no una
+cola de envío. Es lo que agota un <em>SYN flood</em></td>
+</tr>
+<tr class="even">
+<td><code>Send-Q</code> en <code>ESTAB</code></td>
+<td>Bytes enviados aún sin confirmar</td>
+</tr>
+<tr class="odd">
+<td>Mismo PID, <code>fd</code> distintos</td>
+<td>Un proceso con varios sockets (<code>systemd-resolved</code> con
+cuatro en el 53)</td>
+</tr>
+</tbody>
+</table>
+<p><em>Local</em> siempre es la máquina donde ejecutas el comando: en el
+portátil, <em>Local</em> y <em>Peer</em> salen al revés. Cuando se
+despliegue Odoo, la misma salida debe mostrar
+<code>127.0.0.1:8069</code> (solo nginx habla con él) y
+<code>0.0.0.0:80</code> y <code>:443</code> para nginx.</p>
+<h3 id="la-tabla-del-nat-de-casa">La tabla del NAT de casa</h3>
+<p>Dos dispositivos que eligen por casualidad el mismo puerto
+efímero:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Puerto público</th>
+<th>Dispositivo interno</th>
+<th>Su puerto</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>40001</td>
+<td><code>192.168.1.74</code></td>
+<td>51234</td>
+</tr>
+<tr class="even">
+<td>40002</td>
+<td><code>192.168.1.30</code></td>
+<td>51234</td>
+</tr>
+</tbody>
+</table>
+<p>Sin reescribir el puerto, las dos filas serían idénticas. La
+respuesta que llega al 40002 vuelve al <code>.30</code>.</p>
+<h3 id="el-handshake-capturado-en-el-vps">El handshake capturado en el
+VPS</h3>
+<p>Terminal 1, en el VPS, deja la captura corriendo. Terminal 2, en el
+portátil, abre una sesión nueva con <code>ssh vps</code>.</p>
+<pre><code>In   80.29.31.121.60352 &gt; 89.58.45.111.22: Flags [S],  seq 2648884223
+Out  89.58.45.111.22 &gt; 80.29.31.121.60352: Flags [S.], seq 2481111623, ack 2648884224
+In   80.29.31.121.60352 &gt; 89.58.45.111.22: Flags [.],  ack 1</code></pre>
+<ul>
+<li>El ACK del servidor (<code>2648884224</code>) es el SYN del cliente
+<strong>más uno</strong>.</li>
+<li>El tercer paquete dice <code>ack 1</code> porque, tras el primero,
+<code>tcpdump</code> muestra números <strong>relativos</strong> al
+inicio de la conexión.</li>
+<li>El origen <code>80.29.31.121</code> es la IP pública del router de
+casa (otra conexión, otra IP pública distinta a la de <code>ss</code>
+arriba: la que asigna la operadora no es fija).</li>
+</ul>
+<p>Justo después, TCP ha terminado y empieza SSH:</p>
+<pre><code>length 22: SSH: SSH-2.0-OpenSSH_10.5
+length 43: SSH: SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.19</code></pre>
+<p>Ambos extremos anuncian su versión <strong>en claro, antes de cifrar
+nada</strong>. Es lo que un atacante usa para buscar vulnerabilidades
+conocidas.</p>
+<h3 id="el-camino-de-un-paquete-del-portátil-al-vps">El camino de un
+paquete del portátil al VPS</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Parada</th>
+<th>IP origen</th>
+<th>IP destino</th>
+<th>Puerto origen</th>
+<th>MAC destino</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Portátil</strong></td>
+<td>Privada del portátil</td>
+<td>VPS</td>
+<td>Efímero del portátil</td>
+<td>Router de casa</td>
+</tr>
+<tr class="even">
+<td><strong>Router de casa</strong></td>
+<td><strong>Pública del router</strong></td>
+<td>VPS</td>
+<td><strong>Del router (NAT)</strong></td>
+<td>Siguiente router</td>
+</tr>
+<tr class="odd">
+<td><strong>Router intermedio</strong></td>
+<td>Pública del router</td>
+<td>VPS</td>
+<td>Del router</td>
+<td>Siguiente salto</td>
+</tr>
+<tr class="even">
+<td><strong>VPS</strong></td>
+<td>Pública del router</td>
+<td>VPS</td>
+<td>Del router</td>
+<td>— (ya llegó)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>La IP de destino no cambia nunca:</strong> es la dirección
+final.</li>
+<li><strong>La MAC de destino cambia en cada fila:</strong> es la del
+dispositivo del siguiente salto; la trama se rehace en cada tramo.</li>
+<li><strong>La IP y el puerto de origen cambian una sola vez, en el
+router de casa, y a la vez:</strong> el VPS tiene que poder contestar, y
+no puede contestar a una dirección no enrutable.</li>
+</ul>
+<h3 id="errores-vistos">Errores vistos</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Lo que se ve</th>
+<th>Causa</th>
+<th>Arreglo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo: tcpdump: command not found</code> con el prompt sin
+<code>@backend-lab</code></td>
+<td>Se estaba en el portátil, no en el VPS</td>
+<td>Mirar el prompt antes de ejecutar; entrar con
+<code>ssh vps</code></td>
+</tr>
+<tr class="even">
+<td><code>sudo: tcpdump: command not found</code> ya en el VPS</td>
+<td>La imagen de Netcup es mínima y no lo trae</td>
+<td><code>sudo apt install tcpdump</code>; comprobar con
+<code>which tcpdump</code></td>
+</tr>
+<tr class="odd">
+<td><code>ping vps</code> no encuentra el nombre</td>
+<td>El alias de <code>~/.ssh/config</code> solo lo leen
+<code>ssh</code>, <code>scp</code>, <code>rsync</code> y
+<code>git</code></td>
+<td>Usar la IP</td>
+</tr>
+<tr class="even">
+<td>Columna <em>Process</em> vacía en <code>ss -tulpn</code></td>
+<td>Sin <code>sudo</code> no se ven procesos de otros usuarios</td>
+<td><code>sudo ss -tulpn</code></td>
+</tr>
+<tr class="odd">
+<td>La captura se llena de líneas sin parar</td>
+<td>El filtro incluye los ACK de la propia sesión SSH</td>
+<td>Filtrar solo SYN (ver Comandos)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="confusiones-vistas">Confusiones vistas</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Confusión</th>
+<th>Corrección</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Enlace decide a qué nodo mandar el paquete</td>
+<td>Lo decide red con la tabla de rutas; enlace entrega a la MAC que le
+dicen</td>
+</tr>
+<tr class="even">
+<td>La tabla de rutas guarda las MACs hasta el destino</td>
+<td>No hay MACs ni caminos: solo el siguiente salto, como IP</td>
+</tr>
+<tr class="odd">
+<td>ARP averigua la MAC del destino final</td>
+<td>Solo la del siguiente salto</td>
+</tr>
+<tr class="even">
+<td>Red local implica IPs privadas y NAT</td>
+<td>Red local es lo alcanzable sin router; el VPS tiene red local
+pública y sin NAT</td>
+</tr>
+<tr class="odd">
+<td>Una máscara amplia significa que la IP cambia</td>
+<td>Que cambie lo indica <code>dynamic</code> (DHCP); la máscara solo da
+el margen</td>
+</tr>
+<tr class="even">
+<td>TCP se distingue de UDP en que trocea</td>
+<td>Los dos se trocean; TCP es más lento porque
+<strong>garantiza</strong></td>
+</tr>
+<tr class="odd">
+<td>El socket en <code>LISTEN</code> pasa a ser la conexión</td>
+<td>El kernel crea uno nuevo por conexión; el original sigue
+escuchando</td>
+</tr>
+<tr class="even">
+<td>El NAT solo cambia la IP</td>
+<td>Cambia también el puerto de origen, para que cada fila sea
+única</td>
+</tr>
+<tr class="odd">
+<td>El handshake es cortesía</td>
+<td>Es acordar los números de secuencia</td>
+</tr>
+<tr class="even">
+<td>RTT ÷ 2 es el tiempo de ida</td>
+<td>Aproximación: la vuelta puede ir por otra ruta</td>
+</tr>
+</tbody>
+</table>
+<h3 id="preguntas-frecuentes-y-cómo-responderlas">Preguntas frecuentes y
+cómo responderlas</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Pregunta</th>
+<th>Comando (dónde)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>¿Qué IP tiene esta máquina y es fija?</td>
+<td><code>ip a</code>: línea <code>inet</code> de la interfaz de salida;
+<code>dynamic</code> = DHCP (portátil o VPS)</td>
+</tr>
+<tr class="even">
+<td>¿Por dónde sale lo que no es para mi subred?</td>
+<td><code>ip r</code>, línea <code>default</code></td>
+</tr>
+<tr class="odd">
+<td>¿Este destino está en mi subred o va al gateway?</td>
+<td><code>ip r</code> y calcular la subred; para confirmar,
+<code>traceroute -n IP</code>: un solo salto = vecino</td>
+</tr>
+<tr class="even">
+<td>¿Qué MAC tiene el gateway y está respondiendo?</td>
+<td><code>ip neigh</code>: <code>REACHABLE</code></td>
+</tr>
+<tr class="odd">
+<td>¿Qué está expuesto a internet en el VPS?</td>
+<td><code>sudo ss -tulpn</code>: lo que escucha en <code>0.0.0.0</code>
+o <code>[::]</code></td>
+</tr>
+<tr class="even">
+<td>¿Cuántas sesiones SSH hay abiertas?</td>
+<td><code>sudo ss -tnp | grep :22</code> (VPS)</td>
+</tr>
+<tr class="odd">
+<td>¿La conexión llega a abrirse?</td>
+<td><code>sudo tcpdump -n -i any 'tcp port PUERTO and tcp[tcpflags] &amp; tcp-syn != 0'</code>
+(VPS) y provocar la conexión desde otra terminal</td>
+</tr>
+<tr class="even">
+<td>¿Hay bots probando el puerto 22?</td>
+<td>La misma captura de SYN, dejada unos minutos sin conectarse uno
+mismo</td>
+</tr>
+<tr class="odd">
+<td>¿La lentitud es de la red o de mi wifi?</td>
+<td><code>ping -c 50 IP</code> y comparar min, avg y max; repetir por
+cable</td>
+</tr>
+<tr class="even">
+<td>¿Odoo quedará expuesto al desplegarlo?</td>
+<td><code>sudo ss -tlnp</code>: debe verse <code>127.0.0.1:8069</code>,
+no <code>0.0.0.0:8069</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-3--comandos-útiles-del-bloque">Parte 3 · Comandos útiles
+del bloque</h2>
+<h3 id="interfaces-rutas-y-vecinos">Interfaces, rutas y vecinos</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ip a</code></td>
+<td><code>a</code> (<em>address</em>): interfaces y sus direcciones.
+<code>inet</code> = IPv4, <code>inet6</code> = IPv6,
+<code>link/ether</code> = MAC propia</td>
+<td>Saber la IP de una máquina: interfaz de salida (<code>eth0</code>,
+<code>enp5s0</code>), <code>scope global</code>. <code>lo</code> es
+loopback; las <code>fe80::</code> (<code>scope link</code>) se ignoran.
+Las <code>veth…</code>, <code>br-…</code> y <code>docker0</code> son de
+Docker</td>
+</tr>
+<tr class="even">
+<td><code>ip r</code></td>
+<td><code>r</code> (<em>route</em>): tabla de rutas</td>
+<td>Primer paso si una máquina no llega a algo: ¿hay ruta
+<code>default</code>? Sin ella, solo se llega a la subred</td>
+</tr>
+<tr class="odd">
+<td><code>ip -6 r</code></td>
+<td><code>-6</code>: solo la tabla IPv6</td>
+<td>En el VPS no hay ruta por defecto IPv6: IPv6 sin configurar (revisar
+al tocar netplan)</td>
+</tr>
+<tr class="even">
+<td><code>ip neigh</code></td>
+<td>Caché ARP: IP → MAC de los vecinos, con su estado</td>
+<td>Ver si el gateway responde (<code>REACHABLE</code>); un vecino en
+<code>FAILED</code> no contesta a nivel de enlace</td>
+</tr>
+<tr class="odd">
+<td><code>sudo ip neigh flush all</code></td>
+<td>Vacía la caché ARP</td>
+<td>Forzar que se vuelvan a preguntar las MACs y ver cómo se repuebla.
+No rompe nada: se rellena sola al siguiente paquete</td>
+</tr>
+<tr class="even">
+<td><code>ip link show eth0</code></td>
+<td>Datos de enlace de una interfaz, incluida la MAC</td>
+<td>Cuando solo interesa la capa de enlace</td>
+</tr>
+</tbody>
+</table>
+<h3 id="puertos-y-sockets">Puertos y sockets</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo ss -tulpn</code></td>
+<td>Quién escucha y dónde: <code>-t</code> TCP, <code>-u</code> UDP,
+<code>-l</code> solo los que escuchan, <code>-p</code> proceso,
+<code>-n</code> números en vez de nombres</td>
+<td>Inventario de lo expuesto en el VPS; foto del «antes» de desplegar
+Odoo. Sin <code>sudo</code>, la columna <em>Process</em> sale vacía</td>
+</tr>
+<tr class="even">
+<td><code>sudo ss -tnp | grep :22</code></td>
+<td>Conexiones TCP <strong>establecidas</strong> (sin <code>-l</code>)
+en el puerto 22; <code>grep</code> filtra las líneas</td>
+<td>Ver sesiones SSH abiertas y desde qué IP. <code>Send-Q</code> aquí
+son bytes en vuelo, no el backlog</td>
+</tr>
+</tbody>
+</table>
+<h3 id="conectividad">Conectividad</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ping -c N IP</code></td>
+<td>Paquetes ICMP de ida y vuelta; <code>-c</code> limita el número</td>
+<td>Medir RTT y pérdidas. Sin <code>-c</code> no para:
+<code>Ctrl-C</code>. No usar el alias <code>vps</code>: no lo
+entiende</td>
+</tr>
+<tr class="even">
+<td><code>ping -c 3 -b BROADCAST</code></td>
+<td><code>-b</code> permite hacer ping a una dirección de broadcast</td>
+<td>Comprobar quién responde en la subred. La mayoría de servidores lo
+ignoran: que contesten pocos es normal</td>
+</tr>
+<tr class="odd">
+<td><code>traceroute -n IP</code></td>
+<td>Lista de routers hasta un destino; <code>-n</code> sin resolver
+nombres</td>
+<td>Ver dónde se pierde o se frena el tráfico. Un salto lento puede
+estar sano (ICMP con baja prioridad); una línea con varias IPs es
+balanceo de carga. No viene instalado en el VPS</td>
+</tr>
+</tbody>
+</table>
+<h3 id="captura-de-tráfico">Captura de tráfico</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo tcpdump -n -i any 'tcp port 22 and tcp[tcpflags] &amp; (tcp-syn|tcp-ack) != 0'</code></td>
+<td>Captura TCP del puerto 22 con SYN o ACK. <code>sudo</code>: leer
+tráfico crudo es privilegiado; <code>-n</code> sin resolver nombres ni
+puertos; <code>-i any</code> todas las interfaces; el filtro, entre
+comillas simples para que la shell no interprete
+<code>( ) &amp; |</code></td>
+<td>Ver el handshake. Incluye los ACK de la propia sesión: mucho
+ruido</td>
+</tr>
+<tr class="even">
+<td><code>sudo tcpdump -n -i any 'tcp port 22 and tcp[tcpflags] &amp; tcp-syn != 0'</code></td>
+<td>Solo paquetes con SYN: los intentos de conexión nuevos</td>
+<td>Ver handshakes sin ruido; dejarlo unos minutos muestra los bots que
+prueban el 22 (lo que bloqueará <code>fail2ban</code> en Linux · Bloque
+4). Parar con <code>Ctrl-C</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="instalación-y-comprobación">Instalación y comprobación</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo apt install tcpdump traceroute</code></td>
+<td>Instalar en el VPS (Ubuntu); <code>apt</code> gestor de paquetes,
+<code>install</code> la acción</td>
+<td>La imagen de Netcup es mínima: casi ninguna herramienta de red viene
+de serie. Pide confirmación (<code>y</code>)</td>
+</tr>
+<tr class="even">
+<td><code>sudo pacman -S tcpdump</code></td>
+<td>Instalar en el portátil (Arch); <code>-S</code> (<em>sync</em>)
+instala desde los repositorios</td>
+<td>Solo si se quiere capturar desde el lado del cliente. El NAT no se
+ve desde ninguna de las dos máquinas: ocurre en el router</td>
+</tr>
+<tr class="odd">
+<td><code>which PROGRAMA</code></td>
+<td>Ruta del ejecutable que se usaría</td>
+<td>Comprobar si algo está instalado antes de dar por hecho que
+existe</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ssh">SSH</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ssh -G vps | grep hostname</code></td>
+<td><code>-G</code> imprime la configuración efectiva para un alias sin
+conectar</td>
+<td>Saber a qué IP apunta el alias <code>vps</code> para usarla con
+<code>ping</code> o <code>traceroute</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="documentación">Documentación</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Referencia</th>
+<th>Para qué</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Kurose y Ross, <em>Computer Networking: A Top-Down Approach</em>:
+1.3–1.5 (conmutación, estructura de internet, retardos, capas)</td>
+<td>El modelo de capas y el contexto</td>
+<td>Repasar el porqué de las capas</td>
+</tr>
+<tr class="even">
+<td>Kurose y Ross, 4.3.1–4.3.3</td>
+<td>Datagrama IPv4, direccionamiento, subredes, DHCP y NAT</td>
+<td>Cálculo de subredes y NAT</td>
+</tr>
+<tr class="odd">
+<td>Kurose y Ross, 3.1, 3.2, 3.3, 3.5.1 y 3.5.6</td>
+<td>Transporte, multiplexación, UDP, segmento TCP y handshake</td>
+<td>Puertos, sockets y la captura</td>
+</tr>
+<tr class="even">
+<td><code>man ip</code>, <code>man ss</code>, <code>man tcpdump</code>,
+<code>man pcap-filter</code></td>
+<td>Opciones y sintaxis de filtros en la versión instalada</td>
+<td><code>pcap-filter</code> documenta la sintaxis de lo que va entre
+comillas en <code>tcpdump</code></td>
+</tr>
+</tbody>
+</table>
+<h1 id="redes--bloque-2--dns">Redes · Bloque 2 — DNS</h1>
+<p>Jerarquía y delegación, resolución recursiva e iterativa, cachés,
+tipos de registro, TTL y propagación. Practicado con <code>dig</code>
+contra dominios reales, y aplicado a elegir resolutor y a entender los
+bloqueos de la operadora.</p>
+<p><strong>Entorno de referencia:</strong> portátil con CachyOS
+(<code>dig</code> del paquete <code>bind</code>, NetworkManager,
+<code>systemd-resolved</code> en modo <em>foreign</em>) y VPS
+<code>backend-lab</code> (Ubuntu 24.04, <code>systemd-resolved</code> en
+modo <em>stub</em>, <code>dig</code> aún sin instalar). Las opciones de
+<code>dig</code> y la salida de <code>resolvectl</code> cambian entre
+versiones: confírmalas con <code>dig -v</code>, <code>man dig</code> y
+<code>man resolvectl</code> en la máquina donde vayas a ejecutarlos.</p>
+<hr />
+<h2 id="parte-1--teoría-1">Parte 1 · Teoría</h2>
+<h3 id="1-qué-es-dns-y-por-qué-está-repartido">1. Qué es DNS y por qué
+está repartido</h3>
+<h4 id="qué-hace">Qué hace</h4>
+<p>Traduce nombres a IPs: las personas recuerdan nombres, los routers
+solo entienden números. Kurose le atribuye cuatro servicios:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Servicio</th>
+<th>Registro que lo implementa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Traducir nombre a IP</td>
+<td><code>A</code>, <code>AAAA</code></td>
+</tr>
+<tr class="even">
+<td>Alias de nombres</td>
+<td><code>CNAME</code></td>
+</tr>
+<tr class="odd">
+<td>Alias de correo</td>
+<td><code>MX</code></td>
+</tr>
+<tr class="even">
+<td>Reparto de carga</td>
+<td>Varios <code>A</code> para un mismo nombre, que se van rotando</td>
+</tr>
+</tbody>
+</table>
+<p>Es un protocolo de <strong>aplicación</strong> al servicio de otras
+aplicaciones: el navegador, <code>ssh</code> o <code>apt</code> le
+preguntan <strong>antes</strong> de abrir su propia conexión. Viaja
+normalmente por <strong>UDP, puerto 53</strong>: una pregunta corta y
+una respuesta corta no justifican el handshake de TCP.</p>
+<h4 id="por-qué-no-hay-una-base-de-datos-central">Por qué no hay una
+base de datos central</h4>
+<ol type="1">
+<li><strong>Punto único de fallo.</strong> Si cae, internet entero se
+queda sin DNS.</li>
+<li><strong>Volumen de tráfico.</strong> Ningún centro de datos aguanta
+las <strong>lecturas</strong> del planeta entero.</li>
+<li><strong>Distancia.</strong> Una consulta desde el otro lado del
+mundo pagaría esa latencia antes de cada conexión.</li>
+<li><strong>Mantenimiento.</strong> Una sola organización tendría que
+aplicar millones de <strong>escrituras</strong> al día y sincronizarlas
+en todas sus copias. No es un problema de rendimiento sino de
+organización, y es el que justifica la jerarquía.</li>
+</ol>
+<h4 id="la-jerarquía-y-la-delegación">La jerarquía y la delegación</h4>
+<p>Tres niveles. <strong>Ninguno sabe la respuesta completa, solo a
+quién preguntar después.</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Nivel</th>
+<th>Qué sabe</th>
+<th>Qué no sabe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Raíz</strong></td>
+<td>Dónde están los servidores de cada TLD</td>
+<td>Nada sobre dominios concretos</td>
+</tr>
+<tr class="even">
+<td><strong>TLD</strong> (<code>.com</code>, <code>.es</code>,
+<code>.dev</code>…)</td>
+<td>Qué autoritativos lleva cada dominio bajo él</td>
+<td>La IP de ningún dominio</td>
+</tr>
+<tr class="odd">
+<td><strong>Autoritativo</strong></td>
+<td>Los registros reales del dominio</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Raíz y TLD guardan el <em>dónde</em>; el autoritativo guarda
+el <em>qué</em>.</strong> Cuando un dominio cambia de IP solo se toca su
+autoritativo, y cada dueño cambia lo suyo sin pedir permiso a nadie de
+arriba: la delegación resuelve el problema de mantenimiento.</p>
+<h4 id="los-nombres-se-leen-de-derecha-a-izquierda">Los nombres se leen
+de derecha a izquierda</h4>
+<p>De lo más general a lo más concreto: <code>odoo.com</code> se
+resuelve empezando por <code>.com</code>. El nombre completo es
+<code>odoo.com.</code>, con un <strong>punto final que representa la
+raíz</strong>. <code>dig</code> lo muestra siempre; en los paneles de
+DNS no suele hacer falta escribirlo.</p>
+<h3 id="2-resolutores-frente-a-jerarquía">2. Resolutores frente a
+jerarquía</h3>
+<h4 id="dos-grupos-con-papeles-opuestos">Dos grupos con papeles
+opuestos</h4>
+<pre><code>          RESOLUTORES                               JERARQUÍA
+      (los que preguntan)                   (los que contestan)
+
+navegador                                   raíz         → «pregunta al TLD»
+  → systemd-resolved (127.0.0.53)           TLD .com     → «pregunta al autoritativo»
+      → resolutor de la operadora  ───────▶ autoritativo → «la IP es esta»
+        (hace el recorrido y GUARDA
+         en caché lo que le contestan)</code></pre>
+<ul>
+<li><strong>Resolutores:</strong> los recaderos. No son dueños de ningún
+dato; lo van a buscar y <strong>guardan una copia</strong>. Es el
+«servidor DNS local» de Kurose, y <strong>no forma parte de la
+jerarquía</strong>. Lo pone la operadora, la empresa o el proveedor del
+servidor.</li>
+<li><strong>Jerarquía:</strong> las ventanillas. Contestan lo suyo y
+<strong>no guardan nada</strong> de quién les preguntó. Tienen los datos
+originales, no copias.</li>
+</ul>
+<h4 id="el-resolutor-de-la-propia-máquina-systemd-resolved">El resolutor
+de la propia máquina: <code>systemd-resolved</code></h4>
+<p>En el portátil y en el VPS los programas preguntan a
+<code>127.0.0.53</code>, que es la <strong>dirección</strong> donde
+escucha <code>systemd-resolved</code>, un programa de la propia
+máquina.</p>
+<ul>
+<li>Es <em><strong>stub</strong></em>: tiene caché, pero <strong>no
+recorre la jerarquía</strong>. Si no sabe algo, reenvía la pregunta
+entera al resolutor de fuera (en el VPS, el de Netcup).</li>
+<li><code>/etc/resolv.conf</code> solo contiene
+<code>nameserver 127.0.0.53</code>. <strong>Nunca dice a qué resolutor
+de fuera se reenvía</strong>; eso aparece en
+<code>resolvectl status</code>.</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th><code>resolv.conf mode</code></th>
+<th>Quién gestiona <code>/etc/resolv.conf</code></th>
+<th>Dónde se vio</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>stub</code></td>
+<td><code>systemd-resolved</code>: es un enlace simbólico a
+<code>/run/systemd/resolve/stub-resolv.conf</code>, regenerado en cada
+arranque. <strong>No se edita a mano</strong></td>
+<td>VPS (Ubuntu)</td>
+</tr>
+<tr class="even">
+<td><code>foreign</code></td>
+<td>Otro programa (NetworkManager). Las consultas siguen pasando por
+<code>127.0.0.53</code></td>
+<td>Portátil (CachyOS)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="consulta-recursiva-frente-a-iterativa">Consulta recursiva frente
+a iterativa</h4>
+<ul>
+<li><strong>Recursiva:</strong> «resuélvemelo y tráeme la respuesta
+final».</li>
+<li><strong>Iterativa:</strong> «si no lo sabes, dime a quién
+preguntar».</li>
+</ul>
+<p><strong>Por qué se llama recursiva:</strong> en el modelo
+completamente recursivo cada servidor delega en el siguiente y
+<strong>espera</strong>, y la respuesta vuelve desapilándose por el
+mismo camino, como una función recursiva cuyo <strong>caso base es el
+autoritativo</strong>.</p>
+<p><strong>Por qué no se usa recursión contra la jerarquía:</strong> la
+raíz tendría que esperar y recordar cada consulta pendiente del planeta.
+Con la iterativa contesta en una frase y se olvida.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Tramo</th>
+<th>Tipo</th>
+<th>Por qué</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Programa → <code>systemd-resolved</code> → resolutor de fuera</td>
+<td><strong>Recursiva</strong></td>
+<td>El cliente quiere la respuesta final</td>
+</tr>
+<tr class="even">
+<td>Resolutor de fuera → raíz, TLD, autoritativo</td>
+<td><strong>Iterativa</strong></td>
+<td>Cada ventanilla solo dice a quién preguntar; el trabajo lo hace el
+resolutor, que solo atiende a sus clientes</td>
+</tr>
+</tbody>
+</table>
+<h4 id="la-caché">La caché</h4>
+<p>El resolutor guarda <strong>todas</strong> las respuestas del
+recorrido, no solo la IP final: dónde están los TLD, dónde los
+autoritativos de cada dominio y la IP. Al resolver después otro dominio
+<code>.com</code> que nunca vio, se salta la raíz y va directo al TLD.
+Por eso la raíz recibe muchas menos consultas de lo que parecería.</p>
+<h4 id="el-recorrido-completo">El recorrido completo</h4>
+<p>Resolución de <code>odoo.com</code> sin nada en caché:</p>
+<ol type="1">
+<li><strong>El navegador</strong> pregunta a
+<strong><code>systemd-resolved</code></strong>.
+<strong>Recursiva.</strong></li>
+<li><strong><code>systemd-resolved</code></strong> no la tiene y, como
+es <em>stub</em>, la reenvía al <strong>resolutor de fuera</strong>.
+<strong>Recursiva.</strong></li>
+<li><strong>El resolutor</strong> pregunta a la <strong>raíz</strong>.
+<strong>Iterativa.</strong> Respuesta: «para <code>.com</code>, pregunta
+a estos» (<code>NS</code>). La raíz no guarda nada.</li>
+<li><strong>El resolutor</strong> guarda en caché los TLD de
+<code>.com</code> y les pregunta. <strong>Iterativa.</strong> Respuesta:
+«para <code>odoo.com</code>, pregunta a estos autoritativos»
+(<code>NS</code>).</li>
+<li><strong>El resolutor</strong> guarda en caché los autoritativos y
+les pregunta. <strong>Iterativa.</strong> Respuesta: el <code>A</code>
+de <code>odoo.com</code>, con <code>aa</code> y el TTL completo.</li>
+<li><strong>El resolutor</strong> guarda la IP en caché y la devuelve a
+<code>systemd-resolved</code>.</li>
+<li><strong><code>systemd-resolved</code></strong> la guarda también y
+la devuelve al navegador.</li>
+</ol>
+<pre><code>navegador ─rec─▶ systemd-resolved ─rec─▶ resolutor de fuera ─iter─▶ raíz / TLD / autoritativo
+                   [caché]                  [caché]                   [sin caché: fuente]</code></pre>
+<p>Hay <strong>dos cachés</strong> en el camino, y ambas son de
+resolutores.</p>
+<h3 id="3-direcciones-especiales-loopback-y-rangos-privados">3.
+Direcciones especiales: loopback y rangos privados</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Rango</th>
+<th>Alcance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>127.0.0.0/8</code></td>
+<td>La propia máquina, en cualquier ordenador (loopback)</td>
+</tr>
+<tr class="even">
+<td><code>192.168.x.x</code>, <code>10.x.x.x</code>,
+<code>172.16–31.x.x</code></td>
+<td>Red privada, del router hacia dentro. Se repiten en cada casa sin
+conflicto porque nunca salen a internet</td>
+</tr>
+<tr class="odd">
+<td>IP pública</td>
+<td>Internet, única</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong><code>127.x.x.x</code> es loopback por norma</strong>, no
+por configuración: se sabe sin ver la máscara. <code>127.0.0.53</code>
+es tan local como <code>127.0.0.1</code>.</li>
+<li><strong><code>0.0.0.0</code> es lo contrario</strong> cuando un
+servicio escucha: <strong>todas</strong> las interfaces.</li>
+<li><strong>La máscara vive en la interfaz</strong>, no en la dirección:
+<code>ip a</code> muestra <code>127.0.0.1/8</code> en <code>lo</code>;
+<code>dig</code> solo muestra la dirección.</li>
+</ul>
+<h3 id="4-registros-de-recursos">4. Registros de recursos</h3>
+<h4 id="los-cuatro-campos">Los cuatro campos</h4>
+<pre><code>mediavida.com.   35   IN   A   84.17.59.120
+   nombre        TTL  clase tipo  valor</code></pre>
+<ul>
+<li><strong>Clase</strong> (<code>IN</code>, <em>Internet</em>) es
+siempre la misma.</li>
+<li><strong>El tipo cambia el significado de los demás
+campos.</strong></li>
+<li><strong>Nombre:</strong> de quién habla la ficha.
+<strong>Valor:</strong> a dónde apunta.</li>
+</ul>
+<h4 id="los-tipos">Los tipos</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Tipo</th>
+<th>Siglas</th>
+<th>Qué responde</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>A</code></td>
+<td><em>Address</em></td>
+<td>¿En qué IPv4 está este nombre?</td>
+<td>Una IPv4</td>
+</tr>
+<tr class="even">
+<td><code>AAAA</code></td>
+<td>IPv4 × 4 en bits</td>
+<td>¿Y en qué IPv6?</td>
+<td>Una IPv6</td>
+</tr>
+<tr class="odd">
+<td><code>NS</code></td>
+<td><em>Name Server</em></td>
+<td>¿Quiénes son los servidores de este nombre?</td>
+<td>Un nombre</td>
+</tr>
+<tr class="even">
+<td><code>CNAME</code></td>
+<td><em>Canonical Name</em></td>
+<td>¿De qué nombre es alias este?</td>
+<td>Un nombre, nunca una IP</td>
+</tr>
+<tr class="odd">
+<td><code>MX</code></td>
+<td><em>Mail eXchanger</em></td>
+<td>¿Dónde se entrega el correo de este dominio?</td>
+<td>Prioridad + nombre</td>
+</tr>
+<tr class="even">
+<td><code>TXT</code></td>
+<td><em>Text</em></td>
+<td>Texto libre que leen otros sistemas</td>
+<td>Texto</td>
+</tr>
+<tr class="odd">
+<td><code>SOA</code></td>
+<td><em>Start of Authority</em></td>
+<td>Ficha técnica de la zona</td>
+<td>Siete valores</td>
+</tr>
+<tr class="even">
+<td><code>PTR</code></td>
+<td><em>Pointer</em></td>
+<td>¿Qué nombre tiene esta IP?</td>
+<td>Un nombre</td>
+</tr>
+</tbody>
+</table>
+<p><code>RRSIG</code>, <code>DS</code> y <code>NSEC3</code> son de
+<strong>DNSSEC</strong> (firmas que prueban que una respuesta no está
+falsificada). Fuera del bloque.</p>
+<h4 id="cname"><code>CNAME</code></h4>
+<p>Con varios nombres apuntando a la misma máquina (<code>www.</code>,
+<code>tienda.</code>, <code>blog.</code>), un <code>A</code> en cada uno
+escribe la IP varias veces: al cambiar de servidor hay que tocarlas
+todas y la que se olvide queda apuntando a la máquina vieja. Con un
+<code>A</code> en el canónico y <code>CNAME</code> en los demás, la IP
+está escrita <strong>una sola vez</strong>: es la idea de la clave ajena
+de PostgreSQL. El resolutor <strong>sigue el alias él solo</strong> y
+devuelve el <code>CNAME</code> y el <code>A</code> del canónico.</p>
+<h4 id="mx-y-spf"><code>MX</code> y SPF</h4>
+<p>Sobre un mismo nombre caben dos preguntas, cada una con su ficha:
+«¿dónde está la web?» → <code>A</code>; «¿dónde dejo el correo?» →
+<code>MX</code>. Así la web y el correo pueden vivir en máquinas
+distintas con el mismo nombre. Con un dominio propio se contrata un
+proveedor de correo, y <strong>el <code>MX</code> es lo que permite
+usarlo con tu nombre</strong>. Si la web se muda, el <code>MX</code> no
+se toca.</p>
+<p>La <strong>prioridad</strong> del <code>MX</code>: se prueba primero
+el número más bajo; con dos iguales, el correo se reparte entre
+ambos.</p>
+<p><strong>SPF</strong> es el uso más común de <code>TXT</code>: lista
+quién puede <strong>enviar</strong> correo en nombre del dominio.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Qué controla</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>MX</code></td>
+<td>Dónde se <strong>recibe</strong> el correo del dominio</td>
+</tr>
+<tr class="even">
+<td>SPF (<code>TXT</code>)</td>
+<td>Quién puede <strong>enviar</strong> en su nombre</td>
+</tr>
+</tbody>
+</table>
+<p><code>TXT</code> también sirve para <strong>demostrar que un dominio
+es tuyo</strong> (Let's Encrypt puede usarlo; vuelve en el Bloque
+4).</p>
+<h4 id="soa"><code>SOA</code></h4>
+<p>Siete valores: autoritativo principal, email del responsable (con
+punto en vez de <code>@</code>), número de serie (normalmente
+<code>AAAAMMDDnn</code>, sube con cada cambio), tres tiempos de
+sincronización entre autoritativos (se ignoran) y, el último, la
+duración de la <strong>caché negativa</strong> (§6).</p>
+<h4 id="ptr-la-resolución-inversa"><code>PTR</code>: la resolución
+inversa</h4>
+<ul>
+<li><strong>El nombre es la IP al revés</strong> más
+<code>.in-addr.arpa</code>. DNS va de lo general a lo concreto de
+derecha a izquierda; una IP, de izquierda a derecha. Al darle la vuelta,
+la jerarquía puede delegar por bloques de IP igual que por
+dominios.</li>
+<li><strong>Lo controla quien tiene el bloque de IPs</strong> (Netcup
+para el VPS), no quien tiene el dominio.</li>
+<li><strong>Sirve</strong> sobre todo para el correo: muchos servidores
+rechazan correo de una IP cuyo <code>PTR</code> no encaje con el dominio
+emisor. También para que los logs muestren nombres.</li>
+</ul>
+<h4 id="quién-escribe-cada-ficha-al-tener-dominio-propio">Quién escribe
+cada ficha al tener dominio propio</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Ficha</th>
+<th>Dónde vive</th>
+<th>Quién la escribe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>NS</code> del dominio</td>
+<td>En el TLD</td>
+<td>El <strong>registrador</strong>, al comprar el dominio e indicarle
+los autoritativos</td>
+</tr>
+<tr class="even">
+<td><code>A</code>, <code>AAAA</code>, <code>CNAME</code>,
+<code>MX</code>, <code>TXT</code></td>
+<td>En el autoritativo</td>
+<td>Tú, en el panel del <strong>proveedor de DNS</strong></td>
+</tr>
+<tr class="odd">
+<td><code>PTR</code> de la IP del servidor</td>
+<td>En la zona inversa del bloque de IPs</td>
+<td>El proveedor del servidor (Netcup), desde su panel</td>
+</tr>
+</tbody>
+</table>
+<h3 id="5-el-mensaje-dns-y-cómo-lo-muestra-dig">5. El mensaje DNS y cómo
+lo muestra <code>dig</code></h3>
+<p>Las secciones de la salida de <code>dig</code> (<code>HEADER</code>,
+<code>QUESTION</code>, <code>ANSWER</code>, <code>AUTHORITY</code>,
+<code>ADDITIONAL</code>) son las del formato del mensaje DNS. Solo
+cuatro líneas importan; <code>OPT PSEUDOSECTION</code>, <code>id</code>,
+<code>global options</code> y <code>MSG SIZE</code> se ignoran.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Línea</th>
+<th>Qué dice</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>status:</code></td>
+<td><code>NOERROR</code> (existe) o <code>NXDOMAIN</code>
+(<em>Non-Existent Domain</em>)</td>
+</tr>
+<tr class="even">
+<td><code>flags:</code></td>
+<td><code>qr</code> es respuesta · <code>rd</code> pediste recursión ·
+<code>ra</code> el servidor la ofrece · <strong><code>aa</code></strong>
+respuesta autoritativa</td>
+</tr>
+<tr class="odd">
+<td><code>ANSWER SECTION</code></td>
+<td>Las fichas de la respuesta</td>
+</tr>
+<tr class="even">
+<td><code>SERVER:</code></td>
+<td>Quién contestó: IP, puerto <code>#53</code> y protocolo</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Con <code>NXDOMAIN</code>:</strong> <code>ANSWER: 0</code>,
+sin sección de respuesta, y una <code>AUTHORITY SECTION</code> con el
+<code>SOA</code> de quien afirma que el nombre no existe.</p>
+<p><strong>Preguntando directamente a un autoritativo:</strong> aparece
+<code>aa</code>, falta <code>ra</code> y sale
+<code>WARNING: recursion requested but not available</code>.
+<code>dig</code> pide recursión por defecto y el autoritativo no la
+ofrece.</p>
+<p><strong><code>dig +trace</code></strong> recorre la jerarquía él
+mismo, de forma iterativa, y muestra cada salto. Cada bloque termina en
+<code>;; Received … from …</code> y se lee <strong>de abajo
+arriba</strong>: primero quién contesta, luego qué dijo. El primer
+bloque es la única vez que usa el resolutor local (para saber dónde
+están las raíces). <strong>El paso de <code>NS</code> a <code>A</code>
+marca el final del recorrido.</strong></p>
+<h3 id="6-ttl-y-propagación">6. TTL y propagación</h3>
+<h4 id="quién-fija-el-ttl-y-qué-hace-el-resolutor">Quién fija el TTL y
+qué hace el resolutor</h4>
+<ul>
+<li>Lo decide <strong>el dueño del dominio</strong>, en su proveedor de
+DNS.</li>
+<li>El resolutor <strong>guarda la ficha y va descontando</strong>:
+contesta con lo que <strong>le queda</strong>, no con el valor
+original.</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Autoritativo</th>
+<th>Resolutor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Flag <code>aa</code></td>
+<td>Sí</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>TTL</td>
+<td>Siempre completo</td>
+<td>Lo que queda</td>
+</tr>
+</tbody>
+</table>
+<h4 id="por-qué-un-cambio-tarda">Por qué un cambio «tarda»</h4>
+<ul>
+<li><strong>Nadie avisa a las cachés.</strong> El autoritativo no guarda
+quién le preguntó, así que <strong>no sabe quién tiene copia</strong>; y
+aunque lo supiera, serían millones.</li>
+<li><strong>Cada resolutor empieza su cuenta atrás cuando alguien le
+pregunta</strong>, así que cada uno caduca en un momento distinto: parte
+de la gente ve la IP nueva y parte no.</li>
+<li><strong>El tiempo máximo es el TTL</strong>: el peor caso es un
+resolutor que guardó la ficha un instante antes del cambio.</li>
+</ul>
+<p>La «propagación» no es un cambio que viaje por internet: son cachés
+que caducan cada una a su ritmo. El TTL es la fecha de caducidad que el
+dueño pone <strong>por adelantado</strong>, porque después no puede
+hablar con las copias.</p>
+<h4 id="el-equilibrio-del-ttl">El equilibrio del TTL</h4>
+<table>
+<thead>
+<tr class="header">
+<th>TTL</th>
+<th>Se gana</th>
+<th>Se pierde</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Largo</td>
+<td>Menos consultas, respuestas más rápidas, menos carga</td>
+<td>Los cambios tardan en verse</td>
+</tr>
+<tr class="even">
+<td>Corto</td>
+<td>Los cambios se ven enseguida</td>
+<td>Más consultas y más latencia</td>
+</tr>
+</tbody>
+</table>
+<h4 id="cómo-migrar-un-servidor-sin-esperas-largas">Cómo migrar un
+servidor sin esperas largas</h4>
+<ol type="1">
+<li><strong>Bajar el TTL al menos un TTL antiguo antes</strong> del
+cambio.</li>
+<li><strong>Cambiar la IP</strong> cuando toque. Nadie tardará más que
+el TTL nuevo en verla.</li>
+<li><strong>Días después, volver a subir el TTL.</strong></li>
+<li>Si se puede, hacerlo a una hora de poco tráfico.</li>
+</ol>
+<p>Bajar el TTL el mismo día no sirve: el valor nuevo solo afecta a las
+copias que se hagan desde ese momento.</p>
+<h4 id="la-caché-negativa">La caché negativa</h4>
+<p>Un <code>NXDOMAIN</code> también se guarda. Su duración es <strong>la
+menor entre el último número del <code>SOA</code> y el TTL del propio
+<code>SOA</code></strong> (RFC 2308, sección 5).</p>
+<p><strong>La trampa:</strong> preguntar por un nombre antes de crearlo.
+El resolutor guarda «no existe» y lo sigue contestando aunque el
+registro ya esté creado.</p>
+<ul>
+<li>No preguntar por un nombre antes de crearlo.</li>
+<li>Si ya se hizo, preguntar <strong>directamente al
+autoritativo</strong>, que no tiene caché: si ahí sale
+<code>NOERROR</code> con <code>aa</code>, el registro está bien y solo
+hay que esperar.</li>
+</ul>
+<h3 id="7-elegir-y-configurar-el-resolutor">7. Elegir y configurar el
+resolutor</h3>
+<h4 id="qué-significa-cambiar-el-dns">Qué significa «cambiar el
+DNS»</h4>
+<p>Configurar <code>1.1.1.1</code> u <code>8.8.8.8</code>
+<strong>sustituye al resolutor de la operadora</strong> por uno público.
+No es el que está justo delante (ese sigue siendo
+<code>systemd-resolved</code>), sino el <strong>siguiente</strong>: el
+que hace el recorrido iterativo.</p>
+<pre><code>Por defecto:
+navegador ─rec─▶ systemd-resolved ─rec─▶ resolutor de la operadora ─iter─▶ jerarquía
+
+Con 1.1.1.1:
+navegador ─rec─▶ systemd-resolved ─rec─▶ resolutor de Cloudflare ─iter─▶ jerarquía</code></pre>
+<p>La jerarquía es la misma para todo el mundo. <strong>Solo se cambia
+de recadero.</strong> Se hace por velocidad, por esquivar bloqueos del
+resolutor de la operadora o para que esta deje de ver los nombres
+consultados. <strong>La contrapartida:</strong> el resolutor nuevo ve
+<strong>todos los dominios que consultas</strong>. La lista cambia de
+manos; es una decisión sobre en quién confías.</p>
+<h4 id="criterios-para-elegir">Criterios para elegir</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Criterio</th>
+<th>Qué preguntarse</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Privacidad</strong></td>
+<td>¿Guarda las consultas? ¿Cuánto tiempo? ¿Las asocia a mi IP? ¿Las usa
+para publicidad?</td>
+</tr>
+<tr class="even">
+<td><strong>Filtrado</strong></td>
+<td>¿Bloquea dominios de malware y <em>phishing</em>? ¿Aplica listas
+judiciales?</td>
+</tr>
+<tr class="odd">
+<td><strong>Velocidad</strong></td>
+<td>¿Cuánto tarda <strong>desde mi conexión</strong>? Depende de lo
+cerca que tenga un servidor, no de su fama</td>
+</tr>
+<tr class="even">
+<td><strong>Cifrado</strong></td>
+<td>¿Admite DNS sobre TLS o HTTPS?</td>
+</tr>
+<tr class="odd">
+<td><strong>Validación DNSSEC</strong></td>
+<td>¿Comprueba las firmas y descarta respuestas falsificadas?</td>
+</tr>
+</tbody>
+</table>
+<p>En casa la velocidad no decide (las diferencias son de pocos
+milisegundos y solo en la primera consulta de cada dominio): deciden
+privacidad y filtrado. En un servidor, lo razonable es el resolutor del
+propio proveedor: está en el mismo centro de datos y un servidor no
+tiene historial de navegación que proteger.</p>
+<h4 id="dónde-informarse-sin-caer-en-un-resolutor-falso">Dónde
+informarse sin caer en un resolutor falso</h4>
+<ul>
+<li><strong>Privacy Guides</strong>
+(<code>privacyguides.org/en/dns/</code>): proyecto sin ánimo de lucro ni
+afiliados, con criterios explícitos.</li>
+<li><strong>La web oficial de cada resolutor</strong>, para copiar sus
+IPs y leer su política. <strong>Nunca</strong> de un blog, un foro o una
+lista masiva de «servidores DNS públicos»: muchas son equipos mal
+configurados y algunas están montadas para falsificar respuestas.</li>
+<li>Señales de fiabilidad: organización conocida con sede, política de
+privacidad pública, DNS cifrado y auditorías externas.</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Columna de Privacy Guides</th>
+<th>Qué significa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Protocols</strong></td>
+<td><em>Cleartext</em> es DNS clásico (UDP 53, sin cifrar). DoH, DoT,
+DoQ y DNSCrypt son variantes cifradas</td>
+</tr>
+<tr class="even">
+<td><strong>Logging</strong></td>
+<td><em>No</em>: no guarda nada. <em>Anonymized</em>: guarda sin asociar
+a la IP</td>
+</tr>
+<tr class="odd">
+<td><strong>ECS</strong></td>
+<td><em>EDNS Client Subnet</em>: pasa un trozo de tu IP al autoritativo
+para que elija servidor cercano. Mejora la puntería de los CDN pero
+revela tu zona</td>
+</tr>
+<tr class="even">
+<td><strong>Filtering</strong></td>
+<td><em>Based on server choice</em>: cada proveedor tiene varias IPs,
+unas filtran y otras no</td>
+</tr>
+<tr class="odd">
+<td><strong>Signed Apple Profile</strong></td>
+<td>Configuración para iPhone y Mac. Irrelevante en Linux</td>
+</tr>
+</tbody>
+</table>
+<p>El DNS cifrado <strong>no oculta la navegación</strong>: la operadora
+sigue viendo a qué IP te conectas y el nombre del sitio en el SNI de
+TLS.</p>
+<h4 id="de-dónde-saca-el-dns-el-portátil">De dónde saca el DNS el
+portátil</h4>
+<p><code>systemd-resolved</code> reenvía a los servidores que
+NetworkManager le asigna en la interfaz de salida, tomados de una de
+estas fuentes, por orden:</p>
+<pre><code>1. DNS puesto a mano en la conexión del portátil      ← si existe, manda este
+2. Lo que reparte el router por DHCP al conectarse     ← si no hay manual
+3. Fallback DNS Servers de systemd-resolved             ← solo si no hay ninguno
+(+) Una VPN activa puede imponer los suyos mientras está conectada</code></pre>
+<p>Por DHCP, el router entrega a cada dispositivo su IP privada, la
+puerta de enlace y <strong>el DNS</strong>. Por eso configurar el DNS en
+el router lo aplica a todos los dispositivos de casa que lo acepten.
+Matices: muchos routers de operadora no dejan cambiarlo; otros se ponen
+a sí mismos como DNS y reenvían; y esa configuración solo vale
+<strong>en casa</strong>.</p>
+<h3 id="8-cómo-bloquea-la-operadora">8. Cómo bloquea la operadora</h3>
+<p><strong>Bloqueo por DNS.</strong> La operadora carga una lista de
+dominios en <strong>su resolutor</strong> y, para esos dominios,
+<strong>contesta con una mentira</strong>: <code>NXDOMAIN</code>, un
+<code>A</code> hacia su página de «bloqueado» o una IP que no lleva a
+ningún sitio. El cliente se lo cree porque DNS clásico no lleva prueba
+de autenticidad (DNSSEC la daría, pero la máquina no la comprueba).
+<strong>Cambiar de resolutor lo esquiva.</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Mecanismo</th>
+<th>Cómo funciona</th>
+<th>¿Lo esquiva cambiar de resolutor?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Bloqueo por DNS</td>
+<td>El resolutor de la operadora miente</td>
+<td>Sí</td>
+</tr>
+<tr class="even">
+<td><strong>Bloqueo por IP</strong></td>
+<td>Corta el tráfico hacia la IP del servidor, da igual quién la
+resolviera. Tumba todo lo que comparta esa IP</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td>Interceptar el puerto 53</td>
+<td>Como DNS clásico va sin cifrar, captura la consulta a
+<code>8.8.8.8</code> y contesta ella</td>
+<td>No; hace falta DNS cifrado</td>
+</tr>
+<tr class="even">
+<td>Mirar el SNI</td>
+<td>Al abrir HTTPS, el nombre del sitio viaja visible al inicio del
+handshake de TLS (Bloque 4)</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Un código HTTP nunca viene de DNS.</strong> Para recibirlo,
+DNS tuvo que dar una IP, abrirse una conexión TCP y <strong>alguien
+contestar</strong>. Un bloqueo por DNS daría «no se encuentra el
+sitio».</p>
+<h4 id="por-qué-una-vpn-esquiva-el-bloqueo-por-ip">Por qué una VPN
+esquiva el bloqueo por IP</h4>
+<p>Es <strong>encapsulación</strong>: el portátil cifra el paquete
+original entero, incluida la IP de destino, y lo mete dentro de otro
+paquete dirigido al servidor de la VPN, que lo saca y lo envía desde su
+IP.</p>
+<pre><code>Lo que ve la operadora:
+[ destino: servidor VPN ][ ▓▓▓▓▓▓ cifrado ▓▓▓▓▓▓ ]</code></pre>
+<p>Con VPN, la operadora no ve <strong>la IP de destino, ni las
+consultas DNS, ni el SNI</strong>. Límites: puede bloquear la propia
+VPN; el proveedor de la VPN pasa a verlo todo; y para el destino se
+viene del país de la VPN.</p>
+<h3 id="9-analogías-de-referencia">9. Analogías de referencia</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Concepto</th>
+<th>Analogía</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DNS</td>
+<td>La guía telefónica: sabes el nombre, necesitas el número</td>
+</tr>
+<tr class="even">
+<td>Jerarquía</td>
+<td>Una biblioteca por plantas: la entrada te manda a la planta
+<code>.com</code>, la planta a la estantería del dominio</td>
+</tr>
+<tr class="odd">
+<td>Delegación</td>
+<td>El catastro: la oficina central solo tiene la lista de
+ayuntamientos; cada ayuntamiento lleva su registro</td>
+</tr>
+<tr class="even">
+<td>Resolutor</td>
+<td>El recadero: le preguntas una vez y recorre las ventanillas por
+ti</td>
+</tr>
+<tr class="odd">
+<td><code>systemd-resolved</code></td>
+<td>La secretaria de casa: todos le piden a ella, y ella hace la gestión
+fuera</td>
+</tr>
+<tr class="even">
+<td>Consulta iterativa</td>
+<td>El conserje dice «planta tercera» y atiende al siguiente</td>
+</tr>
+<tr class="odd">
+<td>Consulta recursiva</td>
+<td>Una pila de llamadas: cada nivel delega y espera; el autoritativo es
+el caso base</td>
+</tr>
+<tr class="even">
+<td>Caché de los TLD</td>
+<td>La segunda vez subes directo a la tercera planta sin pasar por la
+entrada</td>
+</tr>
+<tr class="odd">
+<td>Loopback</td>
+<td>El pasillo de tu casa: no sale a la calle</td>
+</tr>
+<tr class="even">
+<td>Rangos privados</td>
+<td>El «2.º B» de tu edificio: otro edificio también tiene uno</td>
+</tr>
+<tr class="odd">
+<td><code>127.x.x.x</code> sin máscara</td>
+<td>El 112: se sabe qué es porque está reservado por norma</td>
+</tr>
+<tr class="even">
+<td><code>CNAME</code></td>
+<td>La clave ajena: el código del almacén en vez de su dirección</td>
+</tr>
+<tr class="odd">
+<td><code>A</code> frente a <code>MX</code></td>
+<td>El local de la tienda frente al almacén donde se entregan los
+paquetes</td>
+</tr>
+<tr class="even">
+<td>SPF</td>
+<td>La lista de mensajeros autorizados que publica una empresa</td>
+</tr>
+<tr class="odd">
+<td>TTL</td>
+<td>La fecha de caducidad del yogur</td>
+</tr>
+<tr class="even">
+<td>Propagación</td>
+<td>Neveras distintas cuyos yogures caducan en días distintos</td>
+</tr>
+<tr class="odd">
+<td>Cambiar de resolutor</td>
+<td>Cambiar de recadero: la biblioteca es la misma</td>
+</tr>
+<tr class="even">
+<td>DHCP y el DNS del router</td>
+<td>El conserje apunta a cada vecino qué recadero usar al entrar; si el
+vecino ya tiene uno en su agenda, hace caso a su agenda</td>
+</tr>
+<tr class="odd">
+<td>Bloqueo por DNS</td>
+<td>El recadero vuelve diciendo «ese libro no existe» sin haber subido a
+la biblioteca</td>
+</tr>
+<tr class="even">
+<td>VPN</td>
+<td>Meter la carta en un sobre opaco dirigido a un amigo en el
+extranjero, que la reenvía desde allí</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-2--ejemplos-1">Parte 2 · Ejemplos</h2>
+<h3 id="el-recorrido-de-mediavidacom-con-dig-trace">El recorrido de
+<code>mediavida.com</code> con <code>dig +trace</code></h3>
+<p>En el portátil: <code>dig -4 +trace mediavida.com</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Bloque</th>
+<th>Contesta</th>
+<th>Tipo</th>
+<th>Dice</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td><code>systemd-resolved</code> (<code>127.0.0.53</code>)</td>
+<td><code>NS</code></td>
+<td>«Los 13 servidores raíz son
+<code>a</code>–<code>m</code>.root-servers.net»</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>Raíz (<code>a.root-servers.net</code>)</td>
+<td><code>NS</code></td>
+<td>«Para <code>.com</code>, pregunta a estos»</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>TLD (<code>b.gtld-servers.net</code>)</td>
+<td><code>NS</code></td>
+<td>«Para <code>mediavida.com</code>, pregunta a <code>christina</code>
+o <code>damian</code> (Cloudflare)»</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>Autoritativo (<code>christina.ns.cloudflare.com</code>)</td>
+<td><strong><code>A</code></strong></td>
+<td>«La IP es <code>84.17.59.120</code>»</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>El bloque 0 tardó 5 ms: caché y loopback, sin salir de la
+máquina.</li>
+<li>Dos autoritativos, 13 raíces y 13 TLD de <code>.com</code>:
+redundancia, sin punto único de fallo.</li>
+<li>Mediavida no gestiona su propio DNS: lo contrata a Cloudflare.</li>
+<li>Consultas seguidas a <code>mediavida.com</code> devolvían IPs
+distintas (<code>.115</code>, <code>.117</code>, <code>.119</code>,
+<code>.120</code>): reparto de carga con varios <code>A</code>.</li>
+<li>La primera resolución tardó 55 ms; la segunda, 8 ms: la caché.</li>
+</ul>
+<h3
+id="respuesta-del-autoritativo-frente-a-la-de-un-resolutor">Respuesta
+del autoritativo frente a la de un resolutor</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Consulta</th>
+<th><code>aa</code></th>
+<th>TTL de <code>mediavida.com</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>dig @christina.ns.cloudflare.com mediavida.com</code></td>
+<td>Sí</td>
+<td><code>35</code>, siempre</td>
+</tr>
+<tr class="even">
+<td><code>dig @1.1.1.1 mediavida.com</code>, varias veces</td>
+<td>No</td>
+<td><code>33</code>, <code>35</code>, <code>35</code>,
+<code>22</code></td>
+</tr>
+</tbody>
+</table>
+<p>Los TTL de <code>1.1.1.1</code> saltan porque detrás de esa IP hay
+cientos de servidores, cada uno con su caché. Un <code>35</code>
+significa que esa máquina acababa de ir al autoritativo.</p>
+<h3 id="un-nombre-que-no-existe">Un nombre que no existe</h3>
+<p><code>dig estedominionoexiste12345.com</code> devuelve
+<code>status: NXDOMAIN</code>, <code>ANSWER: 0</code> y una
+<code>AUTHORITY SECTION</code> con el <code>SOA</code> de
+<code>com.</code>: quien afirma que no existe es el TLD, que sabe qué
+dominios <code>.com</code> están delegados.</p>
+<h3 id="un-alias-wwwwikipediaorg">Un alias:
+<code>www.wikipedia.org</code></h3>
+<p><code>dig www.wikipedia.org</code> devuelve dos fichas: el
+<code>CNAME</code> de <code>www.wikipedia.org</code> hacia
+<code>dyna.wikimedia.org</code>, con TTL <code>11930</code>, y la IP de
+<code>dyna.wikimedia.org</code>, con TTL <code>107</code>. El resolutor
+siguió el alias él solo.</p>
+<p>El alias casi nunca cambia (TTL de más de tres horas); la IP cambia a
+menudo porque Wikipedia manda a cada usuario a su centro de datos más
+cercano (<code>dyna</code>, dinámico): TTL de menos de dos minutos.</p>
+<h3 id="el-correo-de-kogniateches">El correo de
+<code>kogniatech.es</code></h3>
+<pre><code>kogniatech.es.  IN  MX   10 mx00.ionos.es.
+kogniatech.es.  IN  TXT  &quot;v=spf1 include:_spf-eu.ionos.com ~all&quot;
+kogniatech.es.  21600 IN SOA ns1051.ui-dns.com. hostmaster.1und1.com. 2017060123 28800 7200 604800 600</code></pre>
+<p>(Hay un segundo <code>MX</code> de IONOS con la misma prioridad.)</p>
+<table>
+<thead>
+<tr class="header">
+<th>Parte</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Dos <code>MX</code> con prioridad <code>10</code></td>
+<td>El correo se reparte entre los dos servidores de IONOS; ninguno es
+de reserva</td>
+</tr>
+<tr class="even">
+<td><code>v=spf1</code></td>
+<td>Política SPF, versión 1</td>
+</tr>
+<tr class="odd">
+<td><code>include:_spf-eu.ionos.com</code></td>
+<td>Pueden enviar los servidores que lista IONOS</td>
+</tr>
+<tr class="even">
+<td><code>~all</code></td>
+<td>Cualquier otro es sospechoso</td>
+</tr>
+<tr class="odd">
+<td><code>ns1051.ui-dns.com.</code></td>
+<td>Autoritativo principal, infraestructura de IONOS</td>
+</tr>
+<tr class="even">
+<td><code>hostmaster.1und1.com.</code></td>
+<td>Email del responsable; 1&amp;1 es el nombre antiguo de IONOS</td>
+</tr>
+<tr class="odd">
+<td><code>600</code></td>
+<td>Caché negativa: <code>min(600, 21600) = 600</code> s</td>
+</tr>
+</tbody>
+</table>
+<h3 id="el-ptr-del-vps">El <code>PTR</code> del VPS</h3>
+<pre><code>$ dig +noall +answer -x 89.58.45.111
+111.45.58.89.in-addr.arpa.  21600  IN  PTR  v2202609416983518596.powersrv.de.</code></pre>
+<p>El nombre genérico de Netcup. Si el VPS llega a enviar correo
+(alertas, Odoo), habrá que cambiar el <code>PTR</code> desde el panel de
+Netcup para que encaje con el dominio.</p>
+<h3 id="registros-para-apuntar-mlozanodev-al-vps">Registros para apuntar
+<code>mlozano.dev</code> al VPS</h3>
+<pre><code>mlozano.dev.       IN  NS     (los autoritativos de Cloudflare)  ← en el TLD .dev, lo da de alta el registrador
+mlozano.dev.       IN  A      89.58.45.111                       ← en Cloudflare
+www.mlozano.dev.   IN  CNAME  mlozano.dev.                       ← en Cloudflare</code></pre>
+<pre><code>raíz ──NS──▶ TLD .dev ──NS──▶ Cloudflare ──A──▶ 89.58.45.111</code></pre>
+<p>Los registros van en «DNS only» (nube gris): con el proxy de
+Cloudflare activado, el <code>A</code> público sería una IP de
+Cloudflare, no la del VPS. Antes de crearlos, no consultar los nombres
+(caché negativa).</p>
+<h3 id="migración-con-un-ttl-de-un-día">Migración con un TTL de un
+día</h3>
+<p>Un <code>A</code> con TTL de 86400 s y migración el sábado a las
+10:00:</p>
+<ol type="1">
+<li>Bajar el TTL a 300 <strong>el viernes a las 10:00 o
+antes</strong>.</li>
+<li>El sábado, cambiar la IP: nadie tarda más de 5 minutos en
+verla.</li>
+<li>Días después, volver a subir el TTL.</li>
+</ol>
+<p>Si se baja el TTL el sábado a las 10:00, un resolutor que guardó la
+ficha a las 9:59 con 86400 s sigue con la IP vieja hasta el domingo a
+las 9:59.</p>
+<h3 id="la-trampa-de-la-caché-negativa">La trampa de la caché
+negativa</h3>
+<p>Se consulta <code>erp.cliente.es</code> antes de crearlo:
+<code>NXDOMAIN</code>. Se crea el registro y se vuelve a consultar:
+sigue <code>NXDOMAIN</code> durante el mínimo del <code>SOA</code> (10
+minutos con un <code>SOA</code> como el de <code>kogniatech.es</code>).
+Diagnóstico: <code>dig NS cliente.es</code> para saber el autoritativo y
+<code>dig @AUTORITATIVO erp.cliente.es</code>: si da
+<code>NOERROR</code> con <code>aa</code>, está bien; solo hay que
+esperar.</p>
+<h3 id="medir-resolutores-desde-casa">Medir resolutores desde casa</h3>
+<p>Siete rondas de
+<code>dig @RESOLUTOR example.org | grep "Query time"</code> en el
+portátil:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Resolutor</th>
+<th>Media</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Quad9 <code>9.9.9.9</code></td>
+<td>3,0 ms</td>
+</tr>
+<tr class="even">
+<td>Cloudflare <code>1.1.1.1</code></td>
+<td>4,0 ms</td>
+</tr>
+<tr class="odd">
+<td>Google <code>8.8.8.8</code></td>
+<td>5,9 ms</td>
+</tr>
+</tbody>
+</table>
+<p>Los tres tienen servidores muy cerca. <code>example.org</code> estaba
+en la caché de los tres, así que se midió la <strong>distancia</strong>,
+que es lo que interesa al comparar. Diferencia irrelevante; Quad9 encaja
+además por filtrado de malware por defecto y ECS opcional.</p>
+<h3 id="de-dónde-venía-el-dns-del-portátil">De dónde venía el DNS del
+portátil</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Dato</th>
+<th>Valor</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>resolvectl status</code>, interfaz <code>enp5s0</code></td>
+<td><code>8.8.8.8</code> y <code>8.8.4.4</code></td>
+<td>Usaba Google</td>
+</tr>
+<tr class="even">
+<td><code>ipv4.dns</code> de <code>Wired connection 1</code></td>
+<td><code>--</code></td>
+<td>Sin DNS puesto a mano</td>
+</tr>
+<tr class="odd">
+<td><code>ipv4.ignore-auto-dns</code></td>
+<td><code>no</code></td>
+<td>Acepta el DNS del router</td>
+</tr>
+<tr class="even">
+<td>Conclusión</td>
+<td></td>
+<td><strong>El <code>8.8.8.8</code> venía del router</strong>, que lo
+repartía por DHCP</td>
+</tr>
+</tbody>
+</table>
+<p>Otras líneas de <code>resolvectl status</code> en el portátil:
+<code>resolv.conf mode: foreign</code> (NetworkManager),
+<code>Fallback DNS Servers</code> con Quad9, Cloudflare y Google (los de
+emergencia que trae <code>systemd-resolved</code> en Arch), interfaces
+<code>veth…</code>, <code>br-…</code> y <code>docker0</code> de Docker
+sin DNS, <code>LLMNR</code> y <code>mDNS</code> (nombres locales tipo
+<code>impresora.local</code> sin servidor DNS), <code>DNSOverTLS</code>
+desactivado y <code>DNSSEC=no/unsupported</code>. La conexión VPN
+<code>kognia</code> impone sus propios DNS cuando está activa.</p>
+<p><strong>El cambio a Quad9:</strong></p>
+<ol type="1">
+<li>En el router (HGU Mitrastar de O2), apartado del servidor DHCP:
+<code>9.9.9.9</code> y <code>149.112.112.112</code>, copiadas de
+<code>quad9.net</code>. Valores anteriores: <code>8.8.8.8</code> y
+<code>8.8.4.4</code>.</li>
+<li>En el portátil:
+<code>nmcli connection up "Wired connection 1"</code> para pedir de
+nuevo la configuración.</li>
+<li><code>resolvectl status</code> muestra Quad9 en <code>enp5s0</code>.
+En <code>dig</code>, <code>SERVER</code> sigue siendo
+<code>127.0.0.53</code>: la secretaria no cambia, solo a quién
+llama.</li>
+</ol>
+<h3 id="el-resolutor-del-vps">El resolutor del VPS</h3>
+<p><code>resolvectl status</code> en el VPS:
+<code>resolv.conf mode: stub</code> y
+<code>Current DNS Server: 46.38.252.230</code>, el resolutor de Netcup
+(cuatro en la lista, dos IPv4 y dos IPv6).
+<code>ls -l /etc/resolv.conf</code> muestra el enlace a
+<code>/run/systemd/resolve/stub-resolv.conf</code>. Se deja así.</p>
+<h3 id="pixeldraincom-capa-por-capa">pixeldrain.com, capa por capa</h3>
+<p>En el navegador, <code>http://pixeldrain.com</code> mostraba un
+<code>451</code> y <code>https://pixeldrain.com</code> daba <em>Unable
+to connect</em>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Capa</th>
+<th>Prueba</th>
+<th>Resultado</th>
+<th>Conclusión</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>DNS</strong></td>
+<td><code>dig @8.8.8.8</code> y <code>dig @1.1.1.1</code></td>
+<td>Mismas IPs (<code>203.23.179.11</code> y <code>.12</code>), en
+distinto orden y con distinto TTL</td>
+<td><strong>No hay bloqueo DNS</strong></td>
+</tr>
+<tr class="even">
+<td><strong>HTTP, puerto 80</strong></td>
+<td>Navegador</td>
+<td>Página genérica, sin cifrar</td>
+<td>Alguien responde en nombre de pixeldrain</td>
+</tr>
+<tr class="odd">
+<td><strong>HTTPS, puerto 443</strong></td>
+<td>Navegador</td>
+<td>No conecta</td>
+<td>Se estudia con <code>curl -v</code> en el Bloque 3: TCP sí se abre y
+el corte llega tras el <code>Client hello</code> de TLS</td>
+</tr>
+</tbody>
+</table>
+<p>Cambiar de resolutor no sirvió porque el bloqueo no está en DNS: es
+sobre el tráfico (por IP o mirando el SNI, Bloque 4), con una respuesta
+inyectada en lo que va sin cifrar.</p>
+<h3 id="confusiones-vistas-1">Confusiones vistas</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Confusión</th>
+<th>Corrección</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>127.0.0.53</code> está en mi subred</td>
+<td>Es loopback: la propia máquina. Todo <code>127.0.0.0/8</code> lo
+es</td>
+</tr>
+<tr class="even">
+<td><code>127.0.0.1</code> escucha en toda la red local</td>
+<td>Eso es <code>0.0.0.0</code>. <code>127.0.0.1</code> es solo la
+propia máquina</td>
+</tr>
+<tr class="odd">
+<td>El TLD devuelve la IP del dominio</td>
+<td>Devuelve los <code>NS</code> de los autoritativos: el
+<em>dónde</em></td>
+</tr>
+<tr class="even">
+<td>El TLD que contesta es el autoritativo</td>
+<td>El TLD <strong>dice quiénes son</strong> los autoritativos; estos
+todavía no han hablado</td>
+</tr>
+<tr class="odd">
+<td>Tras resolver <code>odoo.com</code>, para otro <code>.com</code> hay
+que volver a la raíz</td>
+<td>El resolutor ya tiene en caché los TLD de <code>.com</code></td>
+</tr>
+<tr class="even">
+<td><code>systemd-resolved</code> recorre la jerarquía</td>
+<td>Es <em>stub</em>: reenvía de forma recursiva al resolutor de
+fuera</td>
+</tr>
+<tr class="odd">
+<td>Raíz, TLD y autoritativo guardan caché</td>
+<td>Solo los resolutores guardan copias</td>
+</tr>
+<tr class="even">
+<td>El <code>MX</code> apunta a la web del dominio</td>
+<td>Su valor es el servidor de correo; web y correo son fichas
+independientes</td>
+</tr>
+<tr class="odd">
+<td>Bajar el TTL el mismo día de la migración</td>
+<td>Hay que bajarlo un TTL antiguo antes</td>
+</tr>
+<tr class="even">
+<td>Tras un <code>NXDOMAIN</code>, al crear el registro ya sale
+<code>NOERROR</code></td>
+<td>El <code>NXDOMAIN</code> está en caché durante el mínimo del
+<code>SOA</code></td>
+</tr>
+<tr class="odd">
+<td><code>/etc/resolv.conf</code> dice qué resolutor de fuera se
+usa</td>
+<td>Solo apunta a <code>127.0.0.53</code>. El de fuera está en
+<code>resolvectl status</code></td>
+</tr>
+<tr class="even">
+<td>Cambiar el DNS en el router lo cambia en todos los dispositivos</td>
+<td>Solo en los que aceptan el del router (sin DNS manual e
+<code>ignore-auto-dns: no</code>)</td>
+</tr>
+<tr class="odd">
+<td>El <code>451</code> de pixeldrain es un bloqueo por DNS</td>
+<td>DNS daba las IPs correctas en dos resolutores; un código HTTP no
+viene de DNS</td>
+</tr>
+<tr class="even">
+<td>Cambiar de resolutor esquiva cualquier bloqueo</td>
+<td>Solo el de DNS</td>
+</tr>
+</tbody>
+</table>
+<h3 id="preguntas-frecuentes-y-cómo-responderlas-1">Preguntas frecuentes
+y cómo responderlas</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Pregunta</th>
+<th>Comando (dónde)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>¿A qué IP apunta un nombre?</td>
+<td><code>dig +short NOMBRE</code> (portátil)</td>
+</tr>
+<tr class="even">
+<td>¿Quién lleva el correo de un dominio?</td>
+<td><code>dig +noall +answer DOMINIO MX</code></td>
+</tr>
+<tr class="odd">
+<td>¿Quiénes son los autoritativos de un dominio?</td>
+<td><code>dig +noall +answer DOMINIO NS</code></td>
+</tr>
+<tr class="even">
+<td>¿El dato está bien en la fuente, aunque las cachés no se hayan
+enterado?</td>
+<td><code>dig @AUTORITATIVO NOMBRE</code> y buscar <code>aa</code></td>
+</tr>
+<tr class="odd">
+<td>¿Cómo va la propagación de un cambio?</td>
+<td><code>dig @1.1.1.1 NOMBRE</code>, <code>dig @8.8.8.8 NOMBRE</code> y
+<code>dig @9.9.9.9 NOMBRE</code>, comparando valor y TTL</td>
+</tr>
+<tr class="even">
+<td>¿Dónde se rompe una resolución?</td>
+<td><code>dig -4 +trace NOMBRE</code>: el último bloque que responde
+bien</td>
+</tr>
+<tr class="odd">
+<td>¿Cuánto tardará en verse un cambio?</td>
+<td>El TTL de la ficha en el autoritativo</td>
+</tr>
+<tr class="even">
+<td>¿De quién es una IP que aparece en un log?</td>
+<td><code>dig +noall +answer -x IP</code></td>
+</tr>
+<tr class="odd">
+<td>¿A qué resolutor reenvía esta máquina?</td>
+<td><code>resolvectl status</code>: interfaz con
+<code>Default Route: yes</code>, línea <code>DNS Servers</code></td>
+</tr>
+<tr class="even">
+<td>¿Por qué el portátil usa este DNS?</td>
+<td><code>nmcli -f ipv4.dns,ipv4.ignore-auto-dns connection show "Wired connection 1"</code></td>
+</tr>
+<tr class="odd">
+<td>¿Qué resolutor es más rápido desde aquí?</td>
+<td><code>dig @RESOLUTOR example.org | grep "Query time"</code>, varias
+rondas</td>
+</tr>
+<tr class="even">
+<td>¿Un sitio bloqueado lo está por DNS?</td>
+<td><code>dig</code> contra dos resolutores públicos: si dan las mismas
+IPs, el bloqueo está en otra capa</td>
+</tr>
+<tr class="odd">
+<td>Antes del certificado TLS del VPS, ¿el dominio apunta a él?</td>
+<td><code>dig +short mlozano.dev</code> debe dar
+<code>89.58.45.111</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-3--comandos-útiles-del-bloque-1">Parte 3 · Comandos útiles
+del bloque</h2>
+<h3 id="instalación">Instalación</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo pacman -S bind</code></td>
+<td>Instalar <code>dig</code> en el portátil; <code>-S</code>
+(<em>sync</em>) instala desde los repositorios</td>
+<td>En Arch, <code>dig</code> viene dentro del paquete
+<code>bind</code></td>
+</tr>
+<tr class="even">
+<td><code>sudo apt install bind9-dnsutils</code></td>
+<td>Instalar <code>dig</code> en el VPS</td>
+<td>La imagen mínima de Ubuntu no lo trae. Hará falta en Linux · Bloque
+3 para comprobar el dominio antes de pedir el certificado</td>
+</tr>
+<tr class="odd">
+<td><code>dig -v</code></td>
+<td>Versión instalada</td>
+<td>Antes de consultar <code>man dig</code>, saber de qué versión
+es</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dig-consultas"><code>dig</code>: consultas</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>dig NOMBRE</code></td>
+<td>Registro <code>A</code> preguntando al resolutor del sistema
+(<code>127.0.0.53</code>), con la respuesta completa</td>
+<td>Ver <code>status</code>, <code>flags</code>, respuesta y quién
+contestó</td>
+</tr>
+<tr class="even">
+<td><code>dig NOMBRE TIPO</code></td>
+<td>Pedir otro registro: <code>MX</code>, <code>AAAA</code>,
+<code>NS</code>, <code>TXT</code>, <code>SOA</code>,
+<code>CNAME</code></td>
+<td>El tipo va detrás del nombre</td>
+</tr>
+<tr class="odd">
+<td><code>dig +short NOMBRE</code></td>
+<td><code>+short</code>: solo el valor</td>
+<td>Scripts, o sacar la IP para <code>curl -H "Host: …"</code></td>
+</tr>
+<tr class="even">
+<td><code>dig +noall +answer NOMBRE</code></td>
+<td><code>+noall</code> apaga todas las secciones; <code>+answer</code>
+enciende solo la respuesta</td>
+<td>La combinación del día a día. Las opciones <code>+</code> son de
+consulta; las <code>-</code>, del programa</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Trampas comunes:</strong> un <code>NXDOMAIN</code> puede
+venir de la caché negativa aunque el registro ya exista; lo que devuelve
+un resolutor es su copia, con el TTL restante.</p>
+<h3 id="dig-elegir-a-quién-preguntar"><code>dig</code>: elegir a quién
+preguntar</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>dig @SERVIDOR NOMBRE</code></td>
+<td><code>@</code>: pregunta a un servidor concreto (IP o nombre) en vez
+de al resolutor del sistema</td>
+<td>Contra un autoritativo (sacarlo con <code>dig NOMBRE NS</code>): el
+dato real sin caché, con <code>aa</code>; sale
+<code>WARNING: recursion requested but not available</code>, que es
+normal. Contra <code>1.1.1.1</code>, <code>8.8.8.8</code> o
+<code>9.9.9.9</code>: ver la propagación. Los TTL de
+<code>1.1.1.1</code> saltan entre consultas</td>
+</tr>
+<tr class="even">
+<td><code>dig @SERVIDOR example.org | grep "Query time"</code></td>
+<td>Solo la línea del tiempo de respuesta; <code>|</code> pasa la salida
+a <code>grep</code>, comillas por el espacio</td>
+<td>Comparar resolutores con varias rondas. Un dominio popular mide la
+distancia; uno raro, también el recorrido completo</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dig-recorrido-e-inversa"><code>dig</code>: recorrido e
+inversa</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>dig -4 +trace NOMBRE</code></td>
+<td><code>+trace</code>: recorre la jerarquía desde la raíz, salto a
+salto; <code>-4</code>: solo IPv4</td>
+<td>Diagnosticar dónde se rompe una resolución; tras comprar un dominio,
+ver que el TLD apunta a tus autoritativos. Leer cada bloque de abajo
+arriba. Sin <code>-4</code>, en una red sin IPv6 salen errores
+<code>network unreachable</code> inofensivos. Ignorar
+<code>RRSIG</code>, <code>DS</code>, <code>NSEC3</code></td>
+</tr>
+<tr class="even">
+<td><code>dig +noall +answer -x IP</code></td>
+<td><code>-x</code>: consulta inversa (<code>PTR</code>), construye sola
+el nombre <code>.in-addr.arpa</code></td>
+<td>Identificar IPs de <code>/var/log/auth.log</code> o de los logs de
+nginx; comprobar el <code>PTR</code> antes de enviar correo desde el
+VPS. Lo controla el dueño del bloque de IPs</td>
+</tr>
+</tbody>
+</table>
+<h3 id="el-resolutor-del-sistema">El resolutor del sistema</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cat /etc/resolv.conf</code></td>
+<td>Ver a qué servidor DNS preguntan los programas</td>
+<td>Siempre dirá <code>127.0.0.53</code>: no enseña el resolutor de
+fuera</td>
+</tr>
+<tr class="even">
+<td><code>ls -l /etc/resolv.conf</code></td>
+<td><code>-l</code> formato largo: si es un enlace simbólico
+(<code>l</code> inicial) y a dónde apunta (<code>-&gt;</code>)</td>
+<td>En Ubuntu apunta a <code>/run/...</code>: no editar a mano, se
+sobrescribe. El DNS del VPS se cambiaría por netplan (Linux · Bloque
+3)</td>
+</tr>
+<tr class="odd">
+<td><code>resolvectl status</code></td>
+<td>Modo de <code>systemd-resolved</code> y a qué servidores reenvía en
+cada interfaz</td>
+<td>Primer paso cuando una máquina no resuelve. Líneas clave:
+<code>resolv.conf mode</code>, <code>Current DNS Server</code>,
+<code>DNS Servers</code> de la interfaz con
+<code>Default Route: yes</code>. No necesita <code>sudo</code>. Ignorar
+<code>veth…</code>, <code>br-…</code>, <code>docker0</code>,
+<code>LLMNR</code>, <code>mDNS</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="interfaces-y-sockets">Interfaces y sockets</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ip a</code></td>
+<td>Interfaces y direcciones</td>
+<td>IP pública del VPS: <code>eth0</code>, <code>inet</code>,
+<code>scope global</code>. <code>lo</code> es loopback
+(<code>127.0.0.1/8</code>)</td>
+</tr>
+<tr class="even">
+<td><code>sudo ss -tulpn | grep 127.0.0.53</code></td>
+<td>Quién escucha en esa dirección: <code>-t</code> TCP, <code>-u</code>
+UDP, <code>-l</code> escuchando, <code>-p</code> proceso,
+<code>-n</code> números</td>
+<td>Confirmar que en el 53 está <code>systemd-resolved</code>. Sin
+<code>sudo</code>, no sale el proceso</td>
+</tr>
+</tbody>
+</table>
+<h3 id="networkmanager-portátil">NetworkManager (portátil)</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>nmcli connection show</code></td>
+<td>Conexiones guardadas; <code>DEVICE</code> dice cuál va por qué
+interfaz (<code>--</code> = inactiva)</td>
+<td>Saber el nombre exacto de la conexión activa</td>
+</tr>
+<tr class="even">
+<td><code>nmcli -f ipv4.dns,ipv4.ignore-auto-dns connection show "Wired connection 1"</code></td>
+<td><code>-f</code> (<em>fields</em>): solo esos campos.
+<code>ipv4.dns</code> = DNS a mano (<code>--</code> ninguno);
+<code>ipv4.ignore-auto-dns</code> = <code>yes</code> ignora el del
+router</td>
+<td>Antes de cambiar el DNS en el router, comprobar que el portátil le
+hará caso. El nombre lleva espacios: <strong>entre
+comillas</strong></td>
+</tr>
+<tr class="odd">
+<td><code>nmcli connection up "Wired connection 1"</code></td>
+<td>Reactiva la conexión y pide de nuevo la configuración por DHCP</td>
+<td>Aplicar un cambio del router sin reiniciar; verificar después con
+<code>resolvectl status</code>. Corta la red un instante</td>
+</tr>
+</tbody>
+</table>
+<h3 id="documentación-1">Documentación</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Referencia</th>
+<th>Para qué</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Kurose y Ross, 8.ª ed., 2.4 (2.4.1 servicios, 2.4.2 funcionamiento y
+caché, 2.4.3 registros y mensajes)</td>
+<td>La base del bloque</td>
+<td>Repasar jerarquía, recorrido y formato del mensaje</td>
+</tr>
+<tr class="even">
+<td>Grigorik, <em>High Performance Browser Networking</em>, cap. 1
+(hpbn.co)</td>
+<td>Latencia y su coste</td>
+<td>Contexto del porqué de la caché</td>
+</tr>
+<tr class="odd">
+<td>RFC 2308, sección 5</td>
+<td>Caché negativa</td>
+<td>Duda exacta sobre cuánto se guarda un <code>NXDOMAIN</code></td>
+</tr>
+<tr class="even">
+<td>RFC 1034 y 1035</td>
+<td>Definición original de DNS</td>
+<td>Dudas concretas, no lectura entera</td>
+</tr>
+<tr class="odd">
+<td><code>privacyguides.org/en/dns/</code></td>
+<td>Evaluación independiente de resolutores</td>
+<td>Elegir resolutor</td>
+</tr>
+<tr class="even">
+<td><code>quad9.net</code>,
+<code>developers.google.com/speed/public-dns</code>, la página de
+<code>1.1.1.1</code> de Cloudflare</td>
+<td>IPs y políticas oficiales</td>
+<td>Copiar IPs de resolutores: solo de aquí</td>
+</tr>
+<tr class="odd">
+<td><code>man dig</code>, <code>man resolvectl</code>,
+<code>man systemd-resolved</code>, <code>man nmcli</code></td>
+<td>Opciones en la versión instalada</td>
+<td>Antes de usar una opción nueva</td>
+</tr>
+</tbody>
+</table>
+<h1 id="redes--bloque-3--http">Redes · Bloque 3 — HTTP</h1>
+<p>Métodos, códigos de estado, cabeceras, cookies, conexiones
+persistentes y HTTP/1.1 frente a HTTP/2. Todo observado con
+<code>curl -v</code>.</p>
+<p><strong>Entorno de referencia:</strong> VPS <code>backend-lab</code>
+(Ubuntu 24.04, <code>curl</code> 8.5.0, Python 3.12.3, shell fish) y
+portátil con CachyOS (<code>curl</code> 8.22.0). Las opciones y los
+mensajes de <code>curl</code> cambian entre versiones: confírmalos con
+<code>man curl</code> en la máquina donde vayas a ejecutar el
+comando.</p>
+<hr />
+<h2 id="parte-1--teoría-2">Parte 1 · Teoría</h2>
+<h3 id="1-dónde-está-http-la-llamada-y-la-conversación">1. Dónde está
+HTTP: la llamada y la conversación</h3>
+<p>HTTP es un protocolo de <strong>aplicación</strong>. No transporta
+nada por sí mismo: viaja por una conexión <strong>TCP</strong> que tiene
+que estar abierta antes de enviar la primera línea.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>TCP</th>
+<th>HTTP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Papel</td>
+<td>La llamada: conectar, que todo llegue completo y en orden,
+colgar</td>
+<td>La conversación: qué se pide y qué se responde</td>
+</tr>
+<tr class="even">
+<td>Qué sabe</td>
+<td>IPs, puertos, orden de los bytes, qué paquete se perdió</td>
+<td>Método, ruta, <code>Host</code>, códigos, cabeceras, cookies,
+<em>streams</em></td>
+</tr>
+<tr class="odd">
+<td>Qué no sabe</td>
+<td>Qué significan los bytes que transporta</td>
+<td>Cómo llegan los bytes; da por hecho que la conexión funciona</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Regla práctica con <code>curl -v</code>:</strong> lo que
+aparece en una línea <code>&gt;</code> o <code>&lt;</code> es HTTP. Las
+líneas <code>*</code> de conexión (<code>Trying</code>,
+<code>Connected to</code>, <code>Established connection</code>,
+<code>Closing connection</code>) son TCP.</p>
+<p><strong>Encapsulación completa</strong> de una petición HTTPS con
+HTTP/2 desde el portátil:</p>
+<pre><code>trama Wi-Fi: «del portátil al router»                       ← enlace
+ └─ datagrama IP: «de 192.168.17.250 a 84.17.59.115»         ← red
+     └─ segmento TCP: «del puerto 42678 al 443»              ← transporte
+         └─ TLS: cifrado                                     ← (Bloque 4)
+             └─ trama HTTP/2 [stream 3]: HEAD /foro, Host…   ← aplicación</code></pre>
+<p>Cada aparato abre solo los sobres que necesita: el router doméstico
+llega hasta IP y los puertos (NAT); los routers de internet, hasta IP;
+el servidor los abre todos. Con HTTPS, la operadora ve IPs y puertos,
+pero no la petición; con HTTP sin cifrar lo ve todo y puede
+modificarlo.</p>
+<p><strong>Mismo nombre, dos cosas:</strong> la <em>trama</em> de la
+capa de enlace (Ethernet, Wi-Fi) y la <em>trama</em> de HTTP/2 (§9) son
+unidades distintas de capas distintas.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Capa</th>
+<th>Nombre de su unidad</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Aplicación</td>
+<td>Mensaje (y, en HTTP/2, tramas)</td>
+</tr>
+<tr class="even">
+<td>Transporte</td>
+<td>Segmento</td>
+</tr>
+<tr class="odd">
+<td>Red</td>
+<td>Datagrama</td>
+</tr>
+<tr class="even">
+<td>Enlace</td>
+<td>Trama</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sin estado (<em>stateless</em>).</strong> El servidor no
+recuerda nada entre una petición y la siguiente. Las sesiones existen
+gracias a las cookies (§6).</p>
+<h3 id="2-servidor-web">2. Servidor web</h3>
+<p>«Servidor» significa dos cosas:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Sentido</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Máquina</td>
+<td>El ordenador que aloja programas</td>
+<td>El VPS <code>backend-lab</code></td>
+</tr>
+<tr class="even">
+<td>Programa</td>
+<td>Un proceso que escucha en un puerto y responde</td>
+<td><code>sshd</code>, <code>labweb</code>, PostgreSQL</td>
+</tr>
+</tbody>
+</table>
+<p>Un <strong>servidor web</strong> es un programa que habla HTTP:
+escucha en un puerto, recibe peticiones y devuelve respuestas.
+<code>labweb</code> (hecho con <code>http.server</code> de Python) ya lo
+es. <strong>nginx</strong> y <strong>Apache</strong> son servidores web
+de propósito general: sirven ficheros y, sobre todo, se ponen delante de
+otras aplicaciones como <em>reverse proxy</em>. Odoo trae su propio
+servidor web, pero en producción se le pone nginx delante.</p>
+<h3 id="3-el-mensaje-http">3. El mensaje HTTP</h3>
+<p>Petición y respuesta tienen la misma estructura:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Parte</th>
+<th>Petición</th>
+<th>Respuesta</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Primera línea</td>
+<td><strong>Línea de petición:</strong> método, ruta y versión
+(<code>GET /health HTTP/1.1</code>)</td>
+<td><strong>Línea de estado:</strong> versión, código y frase
+(<code>HTTP/1.0 200 OK</code>)</td>
+</tr>
+<tr class="even">
+<td>Cabeceras</td>
+<td>Una por línea, <code>Nombre: valor</code></td>
+<td>Igual</td>
+</tr>
+<tr class="odd">
+<td>Línea vacía</td>
+<td>Marca el fin de las cabeceras</td>
+<td>Igual</td>
+</tr>
+<tr class="even">
+<td>Cuerpo</td>
+<td>Opcional; un <code>GET</code> normalmente no lleva</td>
+<td>El contenido (HTML, <code>ok</code>…); puede no existir</td>
+</tr>
+</tbody>
+</table>
+<p>La línea vacía es un salto de línea solo (<code>\r\n</code>).
+<code>curl -v</code> le pone el prefijo <code>&gt;</code> o
+<code>&lt;</code>, pero está vacía.</p>
+<p><strong>Partes de una URL:</strong></p>
+<pre><code>https://www.odoo.com/web/login
+└─┬──┘  └────┬─────┘└───┬────┘
+protocolo  nombre     ruta
+             │          └─ va en la línea de petición (GET /web/login)
+             └─ va en la cabecera Host</code></pre>
+<p>Sin ruta en la URL, <code>curl</code> pide <code>/</code>. Sin
+protocolo, usa <code>http://</code>.</p>
+<p><strong>Versiones en la primera línea.</strong> Cada lado anuncia la
+suya: <code>curl</code> pide con <code>HTTP/1.1</code> y
+<code>labweb</code> contesta con <code>HTTP/1.0</code>. El servidor
+responde con la versión que habla, aunque el cliente pida otra más
+nueva.</p>
+<p><strong>HTTP/0.9</strong> (1991) no tenía línea de estado ni
+cabeceras: la respuesta era directamente el cuerpo. <code>curl</code>
+rechaza hoy esas respuestas
+(<code>Received HTTP/0.9 when not allowed</code>) salvo con
+<code>--http0.9</code>. Recibir una es señal de que algo en medio
+manipula la respuesta.</p>
+<h3 id="4-métodos">4. Métodos</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Método</th>
+<th>Qué pide</th>
+<th>Cuerpo en la petición</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>GET</code></td>
+<td>Obtener un recurso, sin cambiar nada</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code>HEAD</code></td>
+<td>Igual que <code>GET</code>, pero la respuesta no trae cuerpo</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><code>POST</code></td>
+<td>Enviar datos para que el servidor haga algo (formulario, login)</td>
+<td>Sí</td>
+</tr>
+<tr class="even">
+<td><code>PUT</code></td>
+<td>Sustituir un recurso</td>
+<td>Sí</td>
+</tr>
+<tr class="odd">
+<td><code>DELETE</code></td>
+<td>Borrar un recurso</td>
+<td>Normalmente no</td>
+</tr>
+</tbody>
+</table>
+<p>Un servidor solo atiende los métodos para los que tiene código. En
+<code>http.server</code> de Python, cada método necesita un método
+<code>do_GET</code>, <code>do_HEAD</code>, <code>do_POST</code>…; si
+falta, responde <code>501 Unsupported method</code>.</p>
+<p><strong>Métodos frente a opciones de <code>curl</code>.</strong> El
+método viaja al servidor (es la primera palabra de la línea
+<code>&gt;</code>). Las opciones (<code>-v</code>, <code>-f</code>,
+<code>-I</code>, <code>-X</code>) son instrucciones para el programa
+<code>curl</code> y nunca salen de tu máquina. Algunas opciones deciden
+el método: <code>-I</code> envía <code>HEAD</code> y
+<code>-X POST</code> envía <code>POST</code>.</p>
+<h3 id="5-códigos-de-estado">5. Códigos de estado</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Familia</th>
+<th>Significado</th>
+<th>¿De quién es el problema?</th>
+<th>Vistos en el bloque</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>1xx</code></td>
+<td>Información provisional</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code>2xx</code></td>
+<td>Éxito</td>
+<td>De nadie</td>
+<td><code>200</code></td>
+</tr>
+<tr class="odd">
+<td><code>3xx</code></td>
+<td>Redirección: «está en otro sitio» (cabecera
+<code>Location</code>)</td>
+<td>De nadie</td>
+<td><code>301</code>, <code>302</code></td>
+</tr>
+<tr class="even">
+<td><code>4xx</code></td>
+<td>Error del cliente</td>
+<td>Del que pide</td>
+<td><code>403</code>, <code>451</code></td>
+</tr>
+<tr class="odd">
+<td><code>5xx</code></td>
+<td>Error del servidor</td>
+<td>Del que responde</td>
+<td><code>501</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>Código</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>200 OK</code></td>
+<td>Petición atendida</td>
+</tr>
+<tr class="even">
+<td><code>301 Moved Permanently</code></td>
+<td>El recurso está definitivamente en la URL de
+<code>Location</code></td>
+</tr>
+<tr class="odd">
+<td><code>302 Found</code></td>
+<td>Redirección temporal</td>
+</tr>
+<tr class="even">
+<td><code>403 Forbidden</code></td>
+<td>El servidor entiende la petición pero se niega a atenderla</td>
+</tr>
+<tr class="odd">
+<td><code>451 Unavailable For Legal Reasons</code></td>
+<td>Bloqueado por motivos legales (RFC 7725)</td>
+</tr>
+<tr class="even">
+<td><code>501 Not Implemented</code></td>
+<td>El servidor no sabe atender ese método</td>
+</tr>
+</tbody>
+</table>
+<p><strong>El código lo decide el programa.</strong> HTTP no genera un
+<code>404</code> solo: hace falta que el código del servidor compruebe
+la ruta y decida que no existe. <code>labweb</code> responde
+<code>200</code> a cualquier ruta que no sea <code>/health</code>.</p>
+<p><strong>Un código HTTP prueba que alguien contestó.</strong> Para
+recibirlo hubo DNS, conexión TCP y un programa respondiendo. Otra cosa
+es que ese programa sea el servidor real (§ ejemplos, pixeldrain).</p>
+<h3 id="6-cabeceras">6. Cabeceras</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Cabecera</th>
+<th>Va en</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Host</code></td>
+<td>Petición</td>
+<td>Nombre del sitio que se pide; obligatoria en HTTP/1.1</td>
+</tr>
+<tr class="even">
+<td><code>User-Agent</code></td>
+<td>Petición</td>
+<td>Programa que pide (<code>curl/8.22.0</code>, un navegador…)</td>
+</tr>
+<tr class="odd">
+<td><code>Accept</code></td>
+<td>Petición</td>
+<td>Tipos de contenido aceptados (<code>*/*</code> = cualquiera)</td>
+</tr>
+<tr class="even">
+<td><code>Cookie</code></td>
+<td>Petición</td>
+<td>Cookies guardadas, de vuelta al servidor</td>
+</tr>
+<tr class="odd">
+<td><code>Server</code></td>
+<td>Respuesta</td>
+<td>Programa que responde (<code>BaseHTTP/0.6 Python/3.12.3</code>,
+<code>nginx</code>…)</td>
+</tr>
+<tr class="even">
+<td><code>Date</code></td>
+<td>Respuesta</td>
+<td>Momento de la respuesta</td>
+</tr>
+<tr class="odd">
+<td><code>Content-Type</code></td>
+<td>Respuesta (o petición con cuerpo)</td>
+<td>Tipo del cuerpo (<code>text/html</code>)</td>
+</tr>
+<tr class="even">
+<td><code>Content-Length</code></td>
+<td>Respuesta (o petición con cuerpo)</td>
+<td>Tamaño del cuerpo en bytes</td>
+</tr>
+<tr class="odd">
+<td><code>Connection</code></td>
+<td>Ambas</td>
+<td><code>keep-alive</code> o <code>close</code> tras la respuesta
+(§7)</td>
+</tr>
+<tr class="even">
+<td><code>Location</code></td>
+<td>Respuesta <code>3xx</code></td>
+<td>Adónde redirigir</td>
+</tr>
+<tr class="odd">
+<td><code>Set-Cookie</code></td>
+<td>Respuesta</td>
+<td>«Guarda este dato y devuélvemelo»</td>
+</tr>
+</tbody>
+</table>
+<h4 id="host-y-el-virtual-hosting"><code>Host</code> y el <em>virtual
+hosting</em></h4>
+<p>Varios sitios pueden compartir IP y puerto (<code>80</code> o
+<code>443</code>). DNS ya terminó su trabajo (todos los nombres dan la
+misma IP) y TCP solo conoce IPs y puertos, así que el nombre tiene que
+viajar <strong>dentro</strong> de la petición: en <code>Host</code>. El
+programa que escucha la lee y decide qué sitio servir. En nginx lo hace
+la directiva <code>server_name</code> (Redes · Bloque 5).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Alternativa</th>
+<th>Por qué no sirve</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>NAT</td>
+<td>Trabaja con IPs y puertos en el router doméstico, para conexiones
+salientes. El nombre no existe en esas capas, y el VPS no tiene NAT
+delante</td>
+</tr>
+<tr class="even">
+<td>Un puerto distinto por sitio</td>
+<td>Obliga a escribirlo en la URL, los cortafuegos de empresa suelen
+permitir solo <code>80</code> y <code>443</code>, y no escala</td>
+</tr>
+</tbody>
+</table>
+<p>Con HTTPS, el nombre viaja además antes, en el <em>handshake</em> de
+TLS (SNI, Bloque 4); por eso, para probar un dominio contra una IP
+concreta por HTTPS, <code>-H "Host: …"</code> no basta y se usa
+<code>--resolve</code>.</p>
+<h3 id="7-cookies-y-sesiones">7. Cookies y sesiones</h3>
+<p>Recorrido, con el <code>session_id</code> de Odoo:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Paso</th>
+<th>Mensaje</th>
+<th>Qué pasa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Petición <code>GET /web/login</code></td>
+<td>Sin cookies</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Respuesta con <code>Set-Cookie: session_id=…</code></td>
+<td>El <strong>servidor</strong> inventa el identificador, lo guarda y
+pide al cliente que lo guarde</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>—</td>
+<td>El navegador lo guarda</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Peticiones siguientes con <code>Cookie: session_id=…</code></td>
+<td>El navegador lo devuelve solo, a cada petición del sitio</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Respuesta</td>
+<td>El servidor busca el identificador y sabe de qué sesión se
+trata</td>
+</tr>
+</tbody>
+</table>
+<p><code>Set-Cookie</code> va en la respuesta (servidor → cliente);
+<code>Cookie</code>, en las peticiones (cliente → servidor). El
+identificador lo crea siempre el servidor: solo él sabe qué
+significa.</p>
+<p><strong>Atributos.</strong> Lo que va detrás del
+<code>nombre=valor</code>, separado por <code>;</code>. Son
+instrucciones para el navegador y no se devuelven al servidor.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Atributo</th>
+<th>Qué indica al navegador</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Expires</code></td>
+<td>Fecha de caducidad</td>
+</tr>
+<tr class="even">
+<td><code>Max-Age</code></td>
+<td>Segundos de vida; si aparece junto a <code>Expires</code>, manda
+<code>Max-Age</code></td>
+</tr>
+<tr class="odd">
+<td><code>Path</code></td>
+<td>En qué rutas del sitio enviarla (<code>/</code> = en todas)</td>
+</tr>
+<tr class="even">
+<td><code>Domain</code></td>
+<td>A qué dominios enviarla</td>
+</tr>
+<tr class="odd">
+<td><code>Secure</code></td>
+<td>Enviarla solo por HTTPS: nunca viaja sin cifrar</td>
+</tr>
+<tr class="even">
+<td><code>HttpOnly</code></td>
+<td>No dejar que el JavaScript de la página la lea</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Secuestro de sesión.</strong> Quien presenta un
+<code>session_id</code> válido entra en la sesión sin contraseña: la
+cookie demuestra quién tiene el tique, no quién eres. La defensa es
+impedir el robo: <code>Secure</code> y TLS (que no viaje en claro),
+<code>HttpOnly</code> (que no la lea un script inyectado), caducidad
+corta y cerrar sesión (el servidor invalida el identificador).</p>
+<h3 id="8-conexiones-persistentes-keep-alive">8. Conexiones persistentes
+(keep-alive)</h3>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>No persistente</th>
+<th>Persistente</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Conexiones</td>
+<td>Una por petición</td>
+<td>Una para varias peticiones</td>
+</tr>
+<tr class="even">
+<td>Coste</td>
+<td>Un <em>handshake</em> de TCP (y de TLS con HTTPS) por petición</td>
+<td>Solo el primero</td>
+</tr>
+<tr class="odd">
+<td>Por defecto en</td>
+<td>HTTP/1.0</td>
+<td>HTTP/1.1 y HTTP/2</td>
+</tr>
+</tbody>
+</table>
+<p>Cada conexión nueva paga al menos un RTT de <em>handshake</em> antes
+de enviar la primera línea. Contra <code>127.0.0.1</code> no se nota;
+contra un servidor lejano, sí.</p>
+<p><strong>Para mantener la conexión, el cliente tiene que saber dónde
+acaba cada cuerpo sin que se cierre:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Mecanismo</th>
+<th>Cómo marca el final</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Cerrar la conexión</td>
+<td>El final del cuerpo es el cierre. Impide reutilizar</td>
+</tr>
+<tr class="even">
+<td><code>Content-Length</code></td>
+<td>Indica cuántos bytes mide el cuerpo</td>
+</tr>
+<tr class="odd">
+<td><code>Transfer-Encoding: chunked</code> (HTTP/1.1)</td>
+<td>El cuerpo va en trozos con su tamaño y un trozo vacío al final; para
+cuando no se sabe el tamaño de antemano</td>
+</tr>
+<tr class="even">
+<td>Tramas (HTTP/2)</td>
+<td>Cada trama marca su longitud y el final de su <em>stream</em></td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>Connection: keep-alive</code> es HTTP</strong>, porque
+es una cabecera. HTTP <strong>pide</strong> que no se cierre; TCP
+<strong>mantiene</strong> la conexión abierta.</p>
+<h3 id="9-los-límites-de-http11">9. Los límites de HTTP/1.1</h3>
+<p><strong>Bloqueo en cabeza de cola</strong> (<em>head-of-line
+blocking</em>). Por una conexión HTTP/1.1 las respuestas viajan enteras,
+sin ninguna etiqueta que diga a qué petición pertenecen, así que tienen
+que salir en el mismo orden que las peticiones. Si la primera tarda, las
+demás esperan aunque estén listas.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Petición enviada</th>
+<th>Tarda en prepararse</th>
+<th>Llega con HTTP/1.1</th>
+<th>Llega con HTTP/2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1ª</td>
+<td>5 s</td>
+<td>5 s</td>
+<td>5 s</td>
+</tr>
+<tr class="even">
+<td>2ª</td>
+<td>0,1 s</td>
+<td>5 s</td>
+<td>0,1 s</td>
+</tr>
+<tr class="odd">
+<td>3ª</td>
+<td>0,1 s</td>
+<td>5 s</td>
+<td>0,1 s</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Parches de HTTP/1.1:</strong></p>
+<ul>
+<li><em>Pipelining</em>: enviar varias peticiones sin esperar respuesta.
+No elimina el bloqueo (las respuestas siguen en orden) y en la práctica
+casi nadie lo usa.</li>
+<li><strong>Varias conexiones en paralelo</strong>, unas seis por
+origen. Funciona, pero cada una paga su <em>handshake</em>.</li>
+<li>Trucos de rendimiento (<em>domain sharding</em>, concatenar
+ficheros, <em>sprites</em>, incrustar recursos) que HTTP/2 vuelve
+innecesarios.</li>
+</ul>
+<h3 id="10-http2">10. HTTP/2</h3>
+<p>No cambia métodos, códigos ni cabeceras: cambia cómo viajan.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Pieza</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Capa de tramas binarias</td>
+<td>Los mensajes se trocean en tramas binarias, ya no en texto</td>
+</tr>
+<tr class="even">
+<td>Trama (<em>frame</em>)</td>
+<td>Un trozo de un mensaje: <code>HEADERS</code> (cabeceras, incluido lo
+que era la primera línea) o <code>DATA</code> (cuerpo)</td>
+</tr>
+<tr class="odd">
+<td>Cabecera de la trama</td>
+<td>9 bytes delante de cada trama: longitud, tipo, <em>flags</em> e
+<strong>identificador de <em>stream</em></strong></td>
+</tr>
+<tr class="even">
+<td><em>Stream</em></td>
+<td>Una petición con su respuesta. En una conexión hay muchos; los
+abiertos por el cliente llevan números impares (<code>1</code>,
+<code>3</code>, <code>5</code>…)</td>
+</tr>
+<tr class="odd">
+<td>Multiplexado</td>
+<td>Tramas de varios <em>streams</em> intercaladas en la misma conexión;
+el receptor las separa por el identificador</td>
+</tr>
+<tr class="even">
+<td>Una conexión por origen</td>
+<td>Ya no hacen falta seis</td>
+</tr>
+<tr class="odd">
+<td>Compresión de cabeceras (HPACK)</td>
+<td>Las cabeceras repetidas no se reenvían enteras</td>
+</tr>
+<tr class="even">
+<td>Pseudocabeceras</td>
+<td><code>:method</code>, <code>:scheme</code>, <code>:authority</code>
+(equivale a <code>Host</code>), <code>:path</code></td>
+</tr>
+<tr class="odd">
+<td>ALPN</td>
+<td>Acuerdo dentro del <em>handshake</em> de TLS para hablar
+<code>h2</code> (detalle en el Bloque 4)</td>
+</tr>
+<tr class="even">
+<td><em>Server push</em></td>
+<td>El servidor envía recursos sin que se pidan; los navegadores
+principales lo han retirado</td>
+</tr>
+</tbody>
+</table>
+<p>Señales en la salida de <code>curl</code>: cabeceras de respuesta en
+minúsculas, línea de estado sin frase (<code>HTTP/2 301</code>) y líneas
+<code>[HTTP/2] [1] …</code>, donde el número es el <em>stream</em>. Las
+líneas <code>&gt;</code> de HTTP/2 son una traducción de
+<code>curl</code>: lo que viaja es binario.</p>
+<pre><code>1 conexión TCP
+ ├─ stream 1 → HEAD /
+ └─ stream 3 → HEAD /foro</code></pre>
+<p><strong>Lo que HTTP/2 no resuelve.</strong> Todos los
+<em>streams</em> viajan por una sola conexión TCP, y TCP no sabe que
+existen: solo ve una fila de bytes que debe entregar completa y en
+orden. Si se pierde un paquete, TCP retiene todo lo que viene detrás,
+sea del <em>stream</em> que sea.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Bloqueo en cabeza de cola</th>
+<th>HTTP/1.1</th>
+<th>HTTP/2</th>
+<th>HTTP/3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>En HTTP (una respuesta lenta)</td>
+<td>Sí</td>
+<td>Resuelto</td>
+<td>Resuelto</td>
+</tr>
+<tr class="even">
+<td>En TCP (un paquete perdido)</td>
+<td>Sí</td>
+<td>Sí</td>
+<td>Resuelto</td>
+</tr>
+</tbody>
+</table>
+<p><strong>HTTP/3</strong> sustituye TCP por <strong>QUIC</strong>
+(sobre UDP), que conoce los <em>streams</em> y solo retiene el afectado.
+El servidor anuncia que lo habla con la cabecera <code>alt-svc</code>, y
+el navegador cambia a partir de ahí. Fuera del roadmap de este año.</p>
+<h3 id="11-código-http-frente-a-código-de-salida">11. Código HTTP frente
+a código de salida</h3>
+<pre><code>labweb ──(código HTTP: 501)──▶ curl ──(código de salida: 0 o 22)──▶ shell / systemd</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Número</th>
+<th>Entre quiénes</th>
+<th>Valores</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Código HTTP</td>
+<td>Servidor → <code>curl</code></td>
+<td><code>200</code>, <code>501</code>…</td>
+</tr>
+<tr class="even">
+<td>Código de salida</td>
+<td><code>curl</code> → quien lo lanzó</td>
+<td><code>0</code> = terminó bien; otro número = fallo</td>
+</tr>
+</tbody>
+</table>
+<p>systemd no entiende HTTP: decide si un servicio ha fallado por el
+código de salida. Sin <code>-f</code>, <code>curl</code> sale con
+<code>0</code> ante cualquier respuesta HTTP, aunque sea un error. Con
+<code>-f</code>, ante un código <code>400</code> o superior sale con
+<code>22</code>. La regla de <code>-f</code> es fija; lo que depende del
+servidor es qué código envía. <code>-f</code> solo mira el número: un
+<code>200</code> con cuerpo <code>roto</code> lo da por bueno.</p>
+<p>En bash el código de salida está en <code>$?</code>; en fish, en
+<code>$status</code>.</p>
+<h3 id="12-analogías-de-referencia">12. Analogías de referencia</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Concepto</th>
+<th>Analogía</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TCP y HTTP</td>
+<td>La llamada de teléfono y la conversación: la línea transporta el
+sonido sin entender el idioma</td>
+</tr>
+<tr class="even">
+<td>Mensaje HTTP</td>
+<td>Un sobre: cabeceras escritas por fuera, cuerpo dentro</td>
+</tr>
+<tr class="odd">
+<td>Servidor (máquina y programa)</td>
+<td>El local del restaurante y los camareros; cada uno atiende su mesa
+(puerto)</td>
+</tr>
+<tr class="even">
+<td>Código de estado</td>
+<td>El sello del funcionario: aprobado, ve a otra ventanilla, el
+formulario está mal, se nos ha caído el sistema</td>
+</tr>
+<tr class="odd">
+<td><code>501</code></td>
+<td>Una ventanilla que recoge el formulario y lo devuelve sellado: «aquí
+no hacemos este trámite»</td>
+</tr>
+<tr class="even">
+<td><code>-f</code></td>
+<td>Conectar el pitido del detector de humo</td>
+</tr>
+<tr class="odd">
+<td><code>Host</code></td>
+<td>El nombre del inquilino en un edificio con una sola dirección; el
+conserje (nginx) reparte por nombre</td>
+</tr>
+<tr class="even">
+<td>NAT frente a <code>Host</code></td>
+<td>El NAT sabe a qué edificio va el paquete, no a qué inquilino</td>
+</tr>
+<tr class="odd">
+<td>Cookie</td>
+<td>El tique del guardarropa: lo imprime la discoteca, tú solo lo
+guardas y lo enseñas</td>
+</tr>
+<tr class="even">
+<td><code>Content-Length</code></td>
+<td>Un paquete etiquetado «contiene 166 páginas»: al llegar a 166, has
+terminado</td>
+</tr>
+<tr class="odd">
+<td>Conexión no persistente</td>
+<td>Colgar y volver a marcar para cada frase</td>
+</tr>
+<tr class="even">
+<td>Bloqueo en cabeza de cola</td>
+<td>La caja del supermercado: si el primero paga con monedas, esperan
+todos</td>
+</tr>
+<tr class="odd">
+<td>Seis conexiones</td>
+<td>Abrir más cajas</td>
+</tr>
+<tr class="even">
+<td>Multiplexado</td>
+<td>Una cinta compartida donde cada producto lleva el número de
+cliente</td>
+</tr>
+<tr class="odd">
+<td>Bloqueo de TCP en HTTP/2</td>
+<td>Si la cinta se para, nadie avanza, lleve la etiqueta que lleve</td>
+</tr>
+<tr class="even">
+<td>Los <em>streams</em> dentro de TCP</td>
+<td>Cajas etiquetadas en un camión: el conductor no lee las
+etiquetas</td>
+</tr>
+<tr class="odd">
+<td>TLS</td>
+<td>Meter la carta en una caja fuerte en lugar de en un sobre
+transparente</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-2--ejemplos-2">Parte 2 · Ejemplos</h2>
+<h3 id="una-petición-completa-a-labweb-anotada">Una petición completa a
+<code>labweb</code>, anotada</h3>
+<pre><code>*   Trying 127.0.0.1:8080...                         ← TCP: conectando
+* Connected to 127.0.0.1 (127.0.0.1) port 8080       ← TCP: conexión abierta
+&gt; GET /health HTTP/1.1                               ← línea de petición: método, ruta, versión
+&gt; Host: 127.0.0.1:8080                               ← cabeceras de la petición
+&gt; User-Agent: curl/8.5.0
+&gt; Accept: */*
+&gt;                                                    ← línea vacía: fin de la petición (sin cuerpo)
+* HTTP 1.0, assume close after body                  ← curl: verá el cierre como final
+&lt; HTTP/1.0 200 OK                                    ← línea de estado
+&lt; Server: BaseHTTP/0.6 Python/3.12.3                 ← cabeceras de la respuesta (sin Content-Length)
+&lt; Date: Wed, 07 Oct 2026 08:27:41 GMT
+&lt;                                                    ← línea vacía
+ok                                                   ← cuerpo
+* Closing connection                                 ← TCP: se cierra</code></pre>
+<h3 id="cómo-responde-labweb-y-por-qué">Cómo responde
+<code>labweb</code> y por qué</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Petición</th>
+<th>Respuesta</th>
+<th>Por qué</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>GET /health</code></td>
+<td><code>200</code>, cuerpo <code>ok</code></td>
+<td>Su código reconoce la ruta</td>
+</tr>
+<tr class="even">
+<td><code>GET /</code> o <code>GET /fake-url</code></td>
+<td><code>200</code>, cuerpo
+<code>labweb en backend-lab, pid 656, usuario 999</code></td>
+<td>Solo distingue <code>/health</code>; a todo lo demás responde esa
+línea</td>
+</tr>
+<tr class="odd">
+<td><code>HEAD /health</code></td>
+<td><code>501 Unsupported method ('HEAD')</code>, con
+<code>Connection: close</code> y <code>Content-Length: 357</code> (de la
+página de error que no se envía)</td>
+<td>No define <code>do_HEAD</code></td>
+</tr>
+<tr class="even">
+<td><code>POST /health</code></td>
+<td><code>501 Unsupported method ('POST')</code> y página HTML de
+error</td>
+<td>No define <code>do_POST</code></td>
+</tr>
+<tr class="odd">
+<td>Dos peticiones seguidas</td>
+<td>Dos conexiones, <code>Closing connection</code> tras cada una</td>
+<td><code>http.server</code> usa
+<code>protocol_version = 'HTTP/1.0'</code> por defecto y
+<code>labweb</code> no envía <code>Content-Length</code></td>
+</tr>
+</tbody>
+</table>
+<p>Según la documentación de <code>http.server</code> (Python 3.12), si
+<code>protocol_version</code> pasa a <code>'HTTP/1.1'</code> el servidor
+admite conexiones persistentes, pero entonces debe enviar
+<code>Content-Length</code> en todas sus respuestas.
+<code>request_version</code> es otra cosa: la versión que pidió el
+cliente.</p>
+<h3 id="el-healthcheck-y--f">El healthcheck y <code>-f</code></h3>
+<p><code>labweb-health.service</code> ejecuta
+<code>curl -fsS --max-time 5 http://127.0.0.1:8080/health</code>.
+Probado con el <code>501</code> del <code>POST</code> como error:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Comando</th>
+<th>Código HTTP</th>
+<th>Código de salida</th>
+<th>Qué concluye systemd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>curl -X POST http://127.0.0.1:8080/health</code></td>
+<td><code>501</code></td>
+<td><code>0</code></td>
+<td>Todo bien: el error pasa desapercibido</td>
+</tr>
+<tr class="even">
+<td><code>curl -f -X POST http://127.0.0.1:8080/health</code></td>
+<td><code>501</code></td>
+<td><code>22</code>
+(<code>The requested URL returned error: 501</code>)</td>
+<td><code>failed</code>, con el error en el journal</td>
+</tr>
+</tbody>
+</table>
+<p>Con <code>-f</code> desaparece además la página HTML de error de la
+salida.</p>
+<h3 id="una-ip-varios-sitios-cloudflare">Una IP, varios sitios:
+Cloudflare</h3>
+<p><code>dig +short cloudflare.com</code> devuelve, entre otras,
+<code>104.16.132.229</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Petición (portátil)</th>
+<th><code>Host</code> enviado</th>
+<th>Respuesta</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>curl -v http://104.16.132.229</code></td>
+<td><code>104.16.132.229</code></td>
+<td><code>403 Forbidden</code>, cuerpo <code>error code: 1003</code>
+(acceso directo por IP no permitido)</td>
+</tr>
+<tr class="even">
+<td><code>curl -v -H "Host: cloudflare.com" http://104.16.132.229</code></td>
+<td><code>cloudflare.com</code></td>
+<td><code>301</code>,
+<code>Location: https://www.cloudflare.com/</code></td>
+</tr>
+</tbody>
+</table>
+<p>Misma IP, mismo puerto, misma petición: solo cambia
+<code>Host</code>. Es lo que hará nginx en el VPS con
+<code>server_name</code>.</p>
+<h3 id="la-cookie-de-sesión-de-odoo">La cookie de sesión de Odoo</h3>
+<p><code>curl -I https://www.odoo.com/web/login</code> devuelve
+<code>HTTP/2 200</code>, <code>server: nginx</code> (odoo.com tiene
+nginx delante de Odoo) y dos cookies:</p>
+<pre><code>set-cookie: frontend_lang=en_US; Expires=Thu, 07 Oct 2027 16:08:03 GMT; Path=/
+set-cookie: session_id=BjCS6s...; Expires=Thu, 07 Oct 2027 ...; Max-Age=604800; Secure; HttpOnly; Path=/</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Cookie</th>
+<th>Uso</th>
+<th>Atributos que importan</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>frontend_lang</code></td>
+<td>Idioma de la web</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code>session_id</code></td>
+<td>La sesión del usuario</td>
+<td><code>Secure</code> (solo HTTPS), <code>HttpOnly</code> (sin acceso
+desde JavaScript), <code>Max-Age=604800</code> (7 días; manda sobre el
+<code>Expires</code> de un año)</td>
+</tr>
+</tbody>
+</table>
+<p>Si Odoo se sirviera por HTTP sin TLS, el <code>session_id</code> de
+los usuarios viajaría en claro: uno de los motivos por los que el
+certificado no es opcional en el VPS.</p>
+<h3 id="keep-alive-labweb-frente-a-mediavida">Keep-alive:
+<code>labweb</code> frente a mediavida</h3>
+<p>Dos URLs en un mismo <code>curl -v</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th><code>labweb</code> (VPS)</th>
+<th><code>http://mediavida.com</code> (portátil)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Versión de la respuesta</td>
+<td><code>HTTP/1.0</code></td>
+<td><code>HTTP/1.1</code></td>
+</tr>
+<tr class="even">
+<td><code>Content-Length</code></td>
+<td>No</td>
+<td><code>166</code></td>
+</tr>
+<tr class="odd">
+<td><code>Connection</code></td>
+<td>—</td>
+<td><code>keep-alive</code></td>
+</tr>
+<tr class="even">
+<td>Conexiones</td>
+<td>2 (<code>Trying</code> dos veces)</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>Tras cada respuesta</td>
+<td><code>Closing connection</code></td>
+<td><code>left intact</code></td>
+</tr>
+<tr class="even">
+<td>Segunda petición</td>
+<td><code>Trying</code> de nuevo</td>
+<td><code>Reusing existing http: connection with host mediavida.com</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="http11-frente-a-http2-en-paralelo">HTTP/1.1 frente a HTTP/2, en
+paralelo</h3>
+<p>Dos URLs de <code>https://www.mediavida.com</code> a la vez
+(<code>-Z</code>):</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th><code>--http1.1</code> (VPS, <code>curl</code> 8.5.0)</th>
+<th><code>--http2</code> (portátil, <code>curl</code> 8.22.0)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Versión negociada</td>
+<td><code>ALPN: server accepted http/1.1</code></td>
+<td><code>ALPN: server accepted h2</code> →
+<code>using HTTP/2</code></td>
+</tr>
+<tr class="even">
+<td>Conexiones</td>
+<td>2 (<code>Connected to</code> dos veces; <code>Connection #0</code> y
+<code>#1</code>)</td>
+<td>1 (<code>Established connection</code> una vez)</td>
+</tr>
+<tr class="odd">
+<td><em>Handshakes</em> TCP y TLS</td>
+<td>2, casi intercalados</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>Segunda petición</td>
+<td>Por su propia conexión</td>
+<td><code>Multiplexed connection found</code>, <em>stream</em>
+<code>[3]</code></td>
+</tr>
+<tr class="odd">
+<td>Orden</td>
+<td>—</td>
+<td>Las dos peticiones salen antes de que llegue ninguna respuesta</td>
+</tr>
+</tbody>
+</table>
+<p>Antes de abrir nada, <code>curl</code> espera a saber si puede
+multiplexar:
+<code>Waiting on connection to negotiate possible multiplexing</code>.</p>
+<p>Ambas pruebas recibieron <code>403</code> del CDN de mediavida
+(Bunny), con <code>CDN-Challenge: true</code>: protección contra bots
+ante peticiones que no vienen de un navegador. No afecta a lo que se
+mide, que es la conexión.</p>
+<h3 id="una-página-real-en-el-navegador">Una página real en el
+navegador</h3>
+<p>Herramientas de desarrollador (<code>F12</code> → <em>Network</em>,
+recargar, clic derecho en los títulos de columna → <em>Protocol</em>)
+sobre <code>https://www.odoo.com/web/login</code>: <strong>27
+peticiones</strong> para una página; la mayoría <code>h3</code>, muchas
+<code>h2</code> y una <code>http/1.1</code>. Con HTTP/1.1 y seis
+conexiones, 27 peticiones serían varias rondas de cola.</p>
+<h3 id="inyección-de-la-operadora-pixeldrain">Inyección de la operadora:
+pixeldrain</h3>
+<p><strong>Por HTTP</strong>, desde el portátil en la red de casa:</p>
+<pre><code>&gt; GET / HTTP/1.1
+&gt; Host: pixeldrain.com
+&gt; 
+* Received HTTP/0.9 when not allowed
+&lt; &lt;!DOCTYPE html&gt;
+curl: (1) Received HTTP/0.9 when not allowed</code></pre>
+<p>Con <code>--http0.9</code>, el cuerpo es una página en español:
+<em>«Contenido bloqueado por requerimiento de la Autoridad Competente
+comunicado a esta Operadora»</em>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Dato</th>
+<th>Qué indica</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sin línea de estado ni cabeceras</td>
+<td>No responde un servidor HTTP real: es una página inyectada</td>
+</tr>
+<tr class="even">
+<td><code>lang="es"</code> y texto en español</td>
+<td>Pixeldrain es un servicio en inglés</td>
+</tr>
+<tr class="odd">
+<td>El propio mensaje</td>
+<td>La operadora bloquea por requerimiento de una autoridad</td>
+</tr>
+</tbody>
+</table>
+<p>El <code>451</code> que se vio en el navegador en el Bloque 2 no
+aparece hoy: o la operadora ha cambiado la página, o aquel código venía
+de otro sitio.</p>
+<p><strong>Por HTTPS</strong>
+(<code>curl -v https://pixeldrain.com</code>): la conexión TCP se abre,
+<code>curl</code> envía el <code>Client hello</code> de TLS y llega
+<code>Recv failure: Connection reset by peer</code> (código
+<code>35</code>). El corte llega después de abrir TCP, no antes como se
+supuso en el Bloque 2. Qué lee quien intercepta en ese mensaje (el SNI)
+es del Bloque 4.</p>
+<h3 id="errores-de-curl-y-de-la-shell-vistos">Errores de
+<code>curl</code> y de la shell vistos</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Lo que se ve</th>
+<th>Causa</th>
+<th>Arreglo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>curl: (2) no URL specified</code> tras
+<code>curl -X http://…</code></td>
+<td><code>-X</code> tomó la URL como nombre del método</td>
+<td>El método justo detrás: <code>-X POST URL</code></td>
+</tr>
+<tr class="even">
+<td><code>Warning: The provided HTTP header 'cloudflare.com' does not look like a header?</code></td>
+<td>A <code>-H</code> se le pasó solo el valor</td>
+<td>La línea completa entre comillas:
+<code>-H "Host: cloudflare.com"</code></td>
+</tr>
+<tr class="odd">
+<td><code>curl: (22) The requested URL returned error: 501</code></td>
+<td><code>-f</code> ante un código <code>400</code> o superior</td>
+<td>Es lo esperado en un healthcheck</td>
+</tr>
+<tr class="even">
+<td><code>curl: (1) Received HTTP/0.9 when not allowed</code></td>
+<td>Respuesta sin línea de estado</td>
+<td><code>--http0.9</code> para verla; sospechar de algo en medio</td>
+</tr>
+<tr class="odd">
+<td><code>curl: (35) Recv failure: Connection reset by peer</code></td>
+<td>Corte durante el <em>handshake</em> de TLS</td>
+<td>Diagnóstico en el Bloque 4</td>
+</tr>
+<tr class="even">
+<td><code>Immediate connect fail for 2400:…: Network is unreachable</code></td>
+<td>El portátil no tiene salida IPv6; <code>curl</code> pasa a IPv4</td>
+<td>Nada que hacer; el VPS sí tiene IPv6</td>
+</tr>
+<tr class="odd">
+<td>Cada cabecera aparece dos veces</td>
+<td><code>-I</code> las escribe en la salida normal y <code>-v</code>
+otra vez con <code>&lt;</code></td>
+<td>Usar solo una de las dos opciones si molesta</td>
+</tr>
+<tr class="even">
+<td><code>fish: $? is not the exit status</code></td>
+<td>En fish la variable es <code>$status</code></td>
+<td><code>echo $status</code></td>
+</tr>
+<tr class="odd">
+<td><code>grep</code> no filtra la salida de <code>curl -v</code></td>
+<td>Orden de la tubería invertido, y <code>-v</code> escribe en
+<em>stderr</em></td>
+<td><code>curl … 2&gt;&amp;1 | grep …</code></td>
+</tr>
+<tr class="even">
+<td>No aparece <code>set-cookie</code> de sesión en odoo.com</td>
+<td>Se pidió <code>http://odoo.com/</code>: solo un <code>302</code> a
+HTTPS</td>
+<td>URL completa: <code>https://www.odoo.com/web/login</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="confusiones-vistas-2">Confusiones vistas</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Confusión</th>
+<th>Corrección</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Una ruta inexistente da <code>404</code></td>
+<td>Solo si el código del servidor lo programa; <code>labweb</code> da
+<code>200</code></td>
+</tr>
+<tr class="even">
+<td>Las partes del mensaje son cabecera y cuerpo</td>
+<td>Primera línea, cabeceras, línea vacía y cuerpo (opcional)</td>
+</tr>
+<tr class="odd">
+<td><code>-I</code> muestra las cabeceras de la petición</td>
+<td>Las de la <strong>respuesta</strong>; lo consigue enviando
+<code>HEAD</code></td>
+</tr>
+<tr class="even">
+<td><code>-I</code> envía <code>GET</code></td>
+<td>Envía <code>HEAD</code> (por eso <code>labweb</code> dio
+<code>501</code>)</td>
+</tr>
+<tr class="odd">
+<td>El código HTTP es el de la conexión</td>
+<td>Es la respuesta del servidor, dentro de HTTP; la conexión (TCP) no
+tiene códigos</td>
+</tr>
+<tr class="even">
+<td><code>-f</code> es un método</td>
+<td>Es una opción de <code>curl</code>; no cambia nada de lo que se
+envía</td>
+</tr>
+<tr class="odd">
+<td><code>-f</code> depende de cómo esté configurado
+<code>curl</code></td>
+<td>Su regla es fija (<code>≥ 400</code> → <code>22</code>); lo que
+varía es el código que elige el servidor</td>
+</tr>
+<tr class="even">
+<td>Las líneas <code>*</code> son mensajes del servidor</td>
+<td>Son avisos de <code>curl</code> para ti; no viajan</td>
+</tr>
+<tr class="odd">
+<td><code>Host</code> es la URL</td>
+<td>Es solo el nombre; la ruta va en la línea de petición</td>
+</tr>
+<tr class="even">
+<td>El NAT reparte los sitios de un servidor</td>
+<td>El NAT traduce IPs y puertos en el router doméstico; el reparto por
+nombre lo hace <code>Host</code></td>
+</tr>
+<tr class="odd">
+<td>La cookie la inventa el navegador</td>
+<td>La crea el servidor y la envía en <code>Set-Cookie</code></td>
+</tr>
+<tr class="even">
+<td><code>Secure</code> impide que JavaScript lea la cookie</td>
+<td>Eso es <code>HttpOnly</code>; <code>Secure</code> limita el envío a
+HTTPS</td>
+</tr>
+<tr class="odd">
+<td>HTTP/1.1 abre una conexión por petición</td>
+<td>Reutiliza la conexión; el bloqueo está dentro de ella</td>
+</tr>
+<tr class="even">
+<td><code>Connection: keep-alive</code> es TCP</td>
+<td>Es una cabecera HTTP; TCP solo ejecuta lo que pide</td>
+</tr>
+<tr class="odd">
+<td><code>left intact</code> se debe a HTTP/2</td>
+<td>HTTP/1.1 también mantiene la conexión si el servidor marca el final
+de cada respuesta</td>
+</tr>
+<tr class="even">
+<td>Una trama de HTTP/2 es un segmento TCP</td>
+<td>Es un trozo de un mensaje HTTP/2 que viaja dentro de los segmentos
+TCP</td>
+</tr>
+<tr class="odd">
+<td>Un <em>stream</em> es una conexión cliente-servidor</td>
+<td>Es una petición con su respuesta; una conexión lleva muchos</td>
+</tr>
+<tr class="even">
+<td>Con HTTP/2 un paquete perdido solo frena su <em>stream</em></td>
+<td>Frena todos: TCP no sabe qué bytes son de cada <em>stream</em></td>
+</tr>
+<tr class="odd">
+<td>Las tramas de HTTP/2 son las de la capa de enlace</td>
+<td>Mismo nombre, capas distintas</td>
+</tr>
+</tbody>
+</table>
+<h3 id="preguntas-frecuentes-y-cómo-responderlas-2">Preguntas frecuentes
+y cómo responderlas</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Pregunta</th>
+<th>Comando o consulta</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>¿Responde <code>labweb</code> y con qué código?</td>
+<td><code>curl -v http://127.0.0.1:8080/health</code> (VPS)</td>
+</tr>
+<tr class="even">
+<td>¿Qué cabeceras devuelve un sitio, sin descargar la página?</td>
+<td><code>curl -I URL</code></td>
+</tr>
+<tr class="odd">
+<td>¿Fallaría un healthcheck con esta respuesta?</td>
+<td><code>curl -f URL</code>, y después <code>echo $status</code>
+(fish)</td>
+</tr>
+<tr class="even">
+<td>¿Qué versión de HTTP habla un servidor?</td>
+<td>Primera línea <code>&lt;</code> de <code>curl -v</code>; con HTTPS,
+<code>ALPN: server accepted …</code></td>
+</tr>
+<tr class="odd">
+<td>¿Reutiliza la conexión?</td>
+<td><code>curl -v URL1 URL2</code>: buscar <code>Reusing existing</code>
+frente a <code>Closing connection</code></td>
+</tr>
+<tr class="even">
+<td>¿Multiplexa?</td>
+<td><code>curl -v -I -Z --http2 URL1 URL2 2&gt;&amp;1 | grep -ic established</code>
+→ <code>1</code></td>
+</tr>
+<tr class="odd">
+<td>¿Qué sitio sirve una IP si le pido un nombre concreto?</td>
+<td><code>curl -v -H "Host: NOMBRE" http://IP</code></td>
+</tr>
+<tr class="even">
+<td>¿Qué cookie de sesión pone una aplicación?</td>
+<td><code>curl -I URL_DE_LOGIN</code> y buscar
+<code>set-cookie</code></td>
+</tr>
+<tr class="odd">
+<td>¿Responde el servidor real o algo en medio?</td>
+<td><code>curl -v http://…</code>: una respuesta sin línea de estado o
+con <code>Server</code> inesperado es sospechosa; <code>--http0.9</code>
+para ver el cuerpo</td>
+</tr>
+<tr class="even">
+<td>¿Cuántas peticiones y con qué protocolo carga una página?</td>
+<td>Navegador, <code>F12</code> → <em>Network</em> → columna
+<em>Protocol</em></td>
+</tr>
+<tr class="odd">
+<td>Odoo detrás de nginx no carga: ¿de qué lado está el fallo?</td>
+<td><code>curl -v</code> en el VPS contra el puerto de Odoo, saltándose
+nginx. Un <code>502</code> de nginx: no pudo hablar con Odoo; un
+<code>500</code>: Odoo respondió con error</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-3--comandos-útiles-del-bloque-2">Parte 3 · Comandos útiles
+del bloque</h2>
+<h3 id="curl-peticiones-y-lectura-de-la-respuesta"><code>curl</code>:
+peticiones y lectura de la respuesta</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>curl URL</code></td>
+<td>Petición <code>GET</code>; escribe el cuerpo de la respuesta</td>
+<td>Sin <code>http://</code> usa HTTP; sin ruta pide <code>/</code></td>
+</tr>
+<tr class="even">
+<td><code>curl -v URL</code></td>
+<td><code>-v</code> (<em>verbose</em>): toda la conversación.
+<code>*</code> = avisos de <code>curl</code> (conexión),
+<code>&gt;</code> = lo enviado, <code>&lt;</code> = lo recibido</td>
+<td>Primer paso de cualquier diagnóstico HTTP. Con HTTPS añade muchas
+líneas de TLS</td>
+</tr>
+<tr class="odd">
+<td><code>curl -I URL</code></td>
+<td><code>-I</code> (<code>--head</code>): envía <code>HEAD</code> y
+muestra solo línea de estado y cabeceras</td>
+<td>Ver código, <code>Server</code>, cookies o redirecciones sin
+descargar la página. Si el servidor no implementa <code>HEAD</code> da
+<code>501</code> (<code>labweb</code>). Con <code>-v</code> las
+cabeceras salen dos veces</td>
+</tr>
+<tr class="even">
+<td><code>curl -X MÉTODO URL</code></td>
+<td><code>-X</code> (<code>--request</code>): cambia el método
+(<code>-X POST</code>)</td>
+<td>El valor va justo detrás; sin él, <code>curl</code> toma la URL como
+método: <code>(2) no URL specified</code></td>
+</tr>
+<tr class="odd">
+<td><code>curl -d DATOS URL</code></td>
+<td><code>-d</code> (<code>--data</code>): envía datos en el cuerpo y
+cambia el método a <code>POST</code></td>
+<td>Alternativa a <code>-X POST</code> cuando de verdad hay datos</td>
+</tr>
+<tr class="even">
+<td><code>curl -H "Nombre: valor" URL</code></td>
+<td><code>-H</code> (<code>--header</code>): añade o sustituye una
+cabecera</td>
+<td>La línea completa, entre comillas por el espacio. Solo el valor da
+<code>does not look like a header</code></td>
+</tr>
+<tr class="odd">
+<td><code>curl -H "Host: NOMBRE" http://IP</code></td>
+<td>Pedir a una IP presentándose como un dominio</td>
+<td><em>Virtual hosting</em> (Cloudflare
+<code>403</code>/<code>1003</code> frente a <code>301</code>). Con HTTPS
+no basta: el nombre también viaja en TLS</td>
+</tr>
+<tr class="even">
+<td><code>curl --resolve NOMBRE:PUERTO:IP URL</code></td>
+<td>Fijar a qué IP resuelve un nombre solo para esta petición</td>
+<td>Probar <code>mlozano.dev</code> contra el VPS antes de cambiar el
+DNS (Linux · Bloque 3). Funciona también con HTTPS</td>
+</tr>
+<tr class="odd">
+<td><code>curl --http0.9 URL</code></td>
+<td>Aceptar respuestas sin línea de estado</td>
+<td>Diagnóstico de inyecciones (pixeldrain). Desactivado por defecto
+desde la 7.66</td>
+</tr>
+</tbody>
+</table>
+<h3 id="curl-códigos-de-salida-y-scripts"><code>curl</code>: códigos de
+salida y scripts</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>curl -f URL</code></td>
+<td><code>-f</code> (<code>--fail</code>): con código HTTP
+<code>≥ 400</code>, sale con <code>22</code> y no escribe el cuerpo</td>
+<td>Imprescindible en healthchecks. Solo mira el código, no el
+contenido</td>
+</tr>
+<tr class="even">
+<td><code>curl -fsS --max-time 5 URL</code></td>
+<td><code>-s</code> silencio, <code>-S</code> pero muestra errores,
+<code>--max-time</code> límite en segundos</td>
+<td>La línea de <code>labweb-health.service</code></td>
+</tr>
+<tr class="odd">
+<td><code>echo $status</code> (fish) / <code>echo $?</code> (bash)</td>
+<td>Código de salida del último comando</td>
+<td>Justo después, sin nada en medio. <code>0</code> = bien</td>
+</tr>
+<tr class="even">
+<td>Códigos vistos</td>
+<td><code>1</code> protocolo no soportado (HTTP/0.9), <code>2</code>
+error de uso, <code>7</code> nadie escucha, <code>22</code> error HTTP
+con <code>-f</code>, <code>35</code> fallo en TLS, <code>52</code> el
+servidor no respondió</td>
+<td>Lista completa en <code>man curl</code>, sección <em>EXIT
+CODES</em></td>
+</tr>
+</tbody>
+</table>
+<h3 id="curl-conexiones-y-versiones"><code>curl</code>: conexiones y
+versiones</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>curl -v URL1 URL2</code></td>
+<td>Varias URLs, una detrás de otra; reutiliza la conexión si puede</td>
+<td>Comprobar keep-alive: <code>Reusing existing</code> frente a
+<code>Closing connection</code></td>
+</tr>
+<tr class="even">
+<td><code>curl -Z URL1 URL2</code></td>
+<td><code>-Z</code> (<code>--parallel</code>): lanza las peticiones a la
+vez</td>
+<td>Ver cuántas conexiones abre cada versión</td>
+</tr>
+<tr class="odd">
+<td><code>curl --http1.1 URL</code></td>
+<td>Forzar HTTP/1.1</td>
+<td>Comparar con HTTP/2; en paralelo abre una conexión por petición</td>
+</tr>
+<tr class="even">
+<td><code>curl --http2 URL</code></td>
+<td>Intentar HTTP/2 (por HTTPS se acuerda con ALPN)</td>
+<td>La línea <code>ALPN: server accepted h2</code> y después
+<code>using HTTP/2</code> lo confirman</td>
+</tr>
+</tbody>
+</table>
+<h3 id="shell-filtrar-salidas">Shell: filtrar salidas</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>COMANDO 2&gt;&amp;1 | grep -i TEXTO</code></td>
+<td><code>2&gt;&amp;1</code> une <em>stderr</em> a la salida normal;
+<code>|</code> pasa la salida al siguiente; <code>grep -i</code> filtra
+sin distinguir mayúsculas</td>
+<td><code>curl -v</code> escribe en <em>stderr</em>: sin
+<code>2&gt;&amp;1</code>, <code>grep</code> no ve nada. El productor va
+a la izquierda de <code>|</code>. Funciona en bash y fish</td>
+</tr>
+<tr class="even">
+<td><code>grep -ic TEXTO</code></td>
+<td><code>-c</code>: cuenta las líneas en lugar de mostrarlas</td>
+<td>Contar conexiones (<code>established</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dns">DNS</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>dig +short NOMBRE</code></td>
+<td>Solo las IPs de la respuesta</td>
+<td>Encontrar la IP a la que pedir con <code>-H "Host: …"</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="documentación-y-navegador">Documentación y navegador</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>man curl</code>, y dentro <code>/--opción</code> +
+<code>Enter</code>, <code>n</code>, <code>q</code></td>
+<td>Buscar una opción por su nombre largo; <code>n</code> siguiente
+coincidencia; <code>q</code> salir</td>
+<td>Buscar <code>--request</code>, <code>--header</code>,
+<code>--fail</code>, <code>/EXIT CODES</code>. Mejor el nombre largo que
+palabras sueltas. Usar el <code>man</code> de la máquina donde se
+ejecuta</td>
+</tr>
+<tr class="even">
+<td><code>https://docs.python.org/3.12/library/http.server.html</code></td>
+<td>Documentación de <code>http.server</code> para la versión del
+VPS</td>
+<td><code>protocol_version</code> decide la versión que habla
+<code>labweb</code>; <code>request_version</code> es la del cliente</td>
+</tr>
+<tr class="odd">
+<td>Navegador: <code>F12</code> → <em>Network</em> → recargar → columna
+<em>Protocol</em></td>
+<td>Peticiones de una página y su protocolo (<code>http/1.1</code>,
+<code>h2</code>, <code>h3</code>)</td>
+<td>Solo registra lo pedido con la pestaña abierta</td>
+</tr>
+<tr class="even">
+<td>RFC 9110 (secc. 7.2 <code>Host</code>, 9 métodos, 15 códigos), RFC
+9112 (secc. 9 conexiones), RFC 7725 (<code>451</code>)</td>
+<td>Consulta del significado exacto</td>
+<td>Buscar el código o la cabecera concretos, no leer entero</td>
+</tr>
+</tbody>
+</table>
+</main>
+<script>
+// Filtrar índice
+const filtro=document.getElementById('filtro');
+const items=[...document.querySelectorAll('#toc li')];
+filtro.addEventListener('input',()=>{
+  const q=filtro.value.trim().toLowerCase();
+  items.forEach(li=>li.classList.add('oculto'));
+  items.forEach(li=>{
+    const t=li.querySelector(':scope > a').textContent.toLowerCase();
+    if(!q||t.includes(q)){let n=li;while(n&&n.tagName==='LI'){n.classList.remove('oculto');n=n.parentElement.closest('li');}
+      if(q) li.querySelectorAll('li').forEach(c=>c.classList.remove('oculto'));}
+  });
+});
+// Resaltar sección actual
+const enlaces=new Map([...document.querySelectorAll('#toc a')].map(a=>[decodeURIComponent(a.hash.slice(1)),a]));
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  document.querySelectorAll('#toc a.activo').forEach(a=>a.classList.remove('activo'));
+  const a=enlaces.get(e.target.id); if(a){a.classList.add('activo');a.scrollIntoView({block:'nearest'});}}})},
+  {rootMargin:'0px 0px -75% 0px'});
+document.querySelectorAll('main h1[id],main h2[id],main h3[id]').forEach(h=>obs.observe(h));
+// Menú móvil
+document.getElementById('abrir').onclick=()=>document.body.classList.toggle('menu');
+document.querySelectorAll('#toc a').forEach(a=>a.onclick=()=>document.body.classList.remove('menu'));
+</script>
+</body>
+</html>

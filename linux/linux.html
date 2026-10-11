@@ -1,0 +1,3810 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linux y VPS: apuntes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@100..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F7FA; --ink:#1C2533; --muted:#5B6678; --rule:#D5DCE6;
+  --accent:#1F5F8B; --accent-soft:#E2ECF4; --code-bg:#E9EDF3; --side:#ECF0F5;
+  --serif:"Google Sans Flex",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sans:"Google Sans Flex",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"DejaVu Sans Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{--paper:#141A23; --ink:#DCE3EC; --muted:#93A0B2; --rule:#2B3542;
+  --accent:#7DB4DD; --accent-soft:#1E2C3B; --code-bg:#1C2430; --side:#10151D;}
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:1.5rem;font-size:17px}
+body{margin:0;background:var(--paper);color:var(--ink);font:17.5px/1.65 var(--serif);
+  display:grid;grid-template-columns:320px minmax(0,1fr);min-height:100vh}
+/* Índice lateral */
+nav#toc{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--side);
+  border-right:1px solid var(--rule);padding:1.25rem 1rem 3rem;font:15px/1.45 var(--sans)}
+nav#toc .brand{font-weight:700;font-size:1.05rem;margin:0 0 .75rem;color:var(--ink)}
+#filtro{width:100%;padding:.45rem .6rem;margin-bottom:1rem;border:1px solid var(--rule);
+  border-radius:6px;background:var(--paper);color:var(--ink);font:inherit}
+nav#toc ul{list-style:none;margin:0;padding:0}
+nav#toc ul ul{padding-left:.85rem;border-left:1px solid var(--rule);margin:.15rem 0 .4rem .3rem}
+nav#toc a{color:var(--muted);text-decoration:none;display:block;padding:.18rem .4rem;border-radius:4px}
+nav#toc a:hover{color:var(--ink);background:var(--accent-soft)}
+nav#toc a.activo{color:var(--accent);font-weight:600}
+nav#toc > ul > li > a{color:var(--ink);font-weight:700;margin-top:.6rem}
+nav#toc > ul > li > ul > li > a{font-weight:600;color:var(--ink)}
+nav#toc li.oculto{display:none}
+/* Contenido */
+main{padding:2.5rem clamp(1.25rem,4vw,4rem) 6rem;max-width:62rem}
+main p,main li{max-width:72ch}
+h1,h2,h3,h4,h5{font-family:var(--sans);line-height:1.25;color:var(--ink)}
+h1{font-size:2.1rem;font-weight:700;letter-spacing:-.01em;margin:4.5rem 0 1rem;padding:1.2rem 0 1.2rem 1.1rem;border-left:6px solid var(--accent);
+  background:linear-gradient(90deg,var(--accent-soft),transparent 70%)}
+main > h1:first-child{margin-top:0}
+h2{font-size:1.55rem;font-weight:650;margin:3rem 0 1rem;padding-bottom:.4rem;border-bottom:2px solid var(--rule)}
+h3{font-size:1.2rem;font-weight:650;margin:2.2rem 0 .6rem}
+h4{font-size:1rem;font-weight:600;margin:1.6rem 0 .4rem;color:var(--muted)}
+a{color:var(--accent)}
+hr{border:0;border-top:1px solid var(--rule);margin:2rem 0}
+strong{font-weight:600}
+code{font-family:var(--mono);font-size:.86em;color:var(--accent);background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{background:var(--code-bg);border-left:3px solid var(--accent);padding:1rem 1.1rem;overflow-x:auto;
+  border-radius:0 6px 6px 0;line-height:1.5;font-size:.95rem}
+pre code{background:none;padding:0;font-size:.95em;color:var(--ink)}
+table{display:block;overflow-x:auto;border-collapse:collapse;margin:1.2rem 0;font-size:.93rem;line-height:1.5;max-width:100%}
+th,td{border:1px solid var(--rule);padding:.5rem .7rem;text-align:left;vertical-align:top}
+th{background:var(--accent-soft);font-family:var(--sans);font-weight:600}
+td code{white-space:nowrap}
+blockquote{margin:1.2rem 0;padding:.6rem 1rem;border-left:3px solid var(--muted);color:var(--muted)}
+a:focus-visible,#filtro:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Móvil */
+#abrir{display:none}
+@media (max-width:900px){
+  body{display:block}
+  nav#toc{position:fixed;inset:0 25% 0 0;z-index:10;transform:translateX(-100%);transition:transform .2s}
+  body.menu nav#toc{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.35)}
+  #abrir{display:block;position:fixed;right:1rem;bottom:1rem;z-index:11;padding:.6rem 1rem;
+    border:0;border-radius:6px;background:var(--accent);color:var(--paper);font:600 16px var(--sans)}
+  h1{font-size:1.7rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{nav#toc,#abrir{display:none} body{display:block}}
+</style>
+</head>
+<body>
+<nav id="toc">
+<p class="brand">Linux y VPS: apuntes</p>
+<input id="filtro" type="search" placeholder="Filtrar el índice…" aria-label="Filtrar el índice">
+<ul>
+<li><a href="#linuxvps--bloque-1--el-sistema-por-dentro"
+id="toc-linuxvps--bloque-1--el-sistema-por-dentro">Linux/VPS · Bloque 1
+— El sistema por dentro</a>
+<ul>
+<li><a href="#parte-1--teoría" id="toc-parte-1--teoría">Parte 1 ·
+Teoría</a>
+<ul>
+<li><a href="#1-la-terminal-edición-de-línea-y-vim"
+id="toc-1-la-terminal-edición-de-línea-y-vim">1. La terminal: edición de
+línea y Vim</a></li>
+<li><a href="#2-leer-ficheros-cat-less-grep"
+id="toc-2-leer-ficheros-cat-less-grep">2. Leer ficheros:
+<code>cat</code>, <code>less</code>, <code>grep</code></a></li>
+<li><a href="#3-redirección-y-tuberías"
+id="toc-3-redirección-y-tuberías">3. Redirección y tuberías</a></li>
+<li><a href="#4-jerarquía-de-ficheros"
+id="toc-4-jerarquía-de-ficheros">4. Jerarquía de ficheros</a></li>
+<li><a href="#5-discos-particiones-y-sistemas-de-ficheros"
+id="toc-5-discos-particiones-y-sistemas-de-ficheros">5. Discos,
+particiones y sistemas de ficheros</a></li>
+<li><a href="#6-permisos-de-ficheros" id="toc-6-permisos-de-ficheros">6.
+Permisos de ficheros</a></li>
+<li><a href="#7-usuarios-y-grupos" id="toc-7-usuarios-y-grupos">7.
+Usuarios y grupos</a></li>
+<li><a href="#8-elevación-de-privilegios-su-sudo-y-sudoers"
+id="toc-8-elevación-de-privilegios-su-sudo-y-sudoers">8. Elevación de
+privilegios: <code>su</code>, <code>sudo</code> y
+<code>sudoers</code></a></li>
+<li><a href="#9-procesos" id="toc-9-procesos">9. Procesos</a></li>
+<li><a href="#10-cómo-arranca-un-linux-moderno"
+id="toc-10-cómo-arranca-un-linux-moderno">10. Cómo arranca un Linux
+moderno</a></li>
+</ul></li>
+<li><a href="#parte-2--ejemplos" id="toc-parte-2--ejemplos">Parte 2 ·
+Ejemplos</a>
+<ul>
+<li><a href="#identidad-y-grupos-en-el-portátil"
+id="toc-identidad-y-grupos-en-el-portátil">Identidad y grupos en el
+portátil</a></li>
+<li><a href="#cuentas-etcpasswd-y-etcshadow"
+id="toc-cuentas-etcpasswd-y-etcshadow">Cuentas: <code>/etc/passwd</code>
+y <code>/etc/shadow</code></a></li>
+<li><a href="#sudoers-alargar-la-caché-de-contraseña"
+id="toc-sudoers-alargar-la-caché-de-contraseña"><code>sudoers</code>:
+alargar la caché de contraseña</a></li>
+<li><a href="#discos-del-portátil" id="toc-discos-del-portátil">Discos
+del portátil</a></li>
+<li><a href="#salud-del-vps-en-top" id="toc-salud-del-vps-en-top">Salud
+del VPS en <code>top</code></a></li>
+<li><a href="#la-cadena-ssh-en-ps-aux"
+id="toc-la-cadena-ssh-en-ps-aux">La cadena SSH en
+<code>ps aux</code></a></li>
+<li><a href="#qué-cuenta-el-journal-de-postgresql-en-el-vps"
+id="toc-qué-cuenta-el-journal-de-postgresql-en-el-vps">Qué cuenta el
+journal de PostgreSQL en el VPS</a></li>
+<li><a href="#arranque-vps-frente-a-portátil"
+id="toc-arranque-vps-frente-a-portátil">Arranque: VPS frente a
+portátil</a></li>
+<li><a href="#quitar-el-target-gráfico-y-snapd-del-vps"
+id="toc-quitar-el-target-gráfico-y-snapd-del-vps">Quitar el target
+gráfico y <code>snapd</code> del VPS</a></li>
+<li><a href="#fallos-típicos-y-cómo-se-ven"
+id="toc-fallos-típicos-y-cómo-se-ven">Fallos típicos y cómo se
+ven</a></li>
+<li><a href="#preguntas-frecuentes"
+id="toc-preguntas-frecuentes">Preguntas frecuentes</a></li>
+</ul></li>
+<li><a href="#parte-3--comandos-útiles-del-bloque"
+id="toc-parte-3--comandos-útiles-del-bloque">Parte 3 · Comandos útiles
+del bloque</a>
+<ul>
+<li><a href="#leer-y-buscar-en-ficheros"
+id="toc-leer-y-buscar-en-ficheros">Leer y buscar en ficheros</a></li>
+<li><a href="#redirección-y-tuberías"
+id="toc-redirección-y-tuberías">Redirección y tuberías</a></li>
+<li><a href="#discos-y-sistemas-de-ficheros"
+id="toc-discos-y-sistemas-de-ficheros">Discos y sistemas de
+ficheros</a></li>
+<li><a href="#empaquetar-y-comprimir"
+id="toc-empaquetar-y-comprimir">Empaquetar y comprimir</a></li>
+<li><a href="#permisos-y-propietarios"
+id="toc-permisos-y-propietarios">Permisos y propietarios</a></li>
+<li><a href="#usuarios-grupos-y-privilegios"
+id="toc-usuarios-grupos-y-privilegios">Usuarios, grupos y
+privilegios</a></li>
+<li><a href="#procesos-y-señales" id="toc-procesos-y-señales">Procesos y
+señales</a></li>
+<li><a href="#arranque-systemd-y-journal"
+id="toc-arranque-systemd-y-journal">Arranque, systemd y journal</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#linuxvps--bloque-2--systemd-de-verdad"
+id="toc-linuxvps--bloque-2--systemd-de-verdad">Linux/VPS · Bloque 2 —
+systemd de verdad</a>
+<ul>
+<li><a href="#parte-1--teoría-1" id="toc-parte-1--teoría-1">Parte 1 ·
+Teoría</a>
+<ul>
+<li><a href="#1-procesos-sesiones-y-servicios"
+id="toc-1-procesos-sesiones-y-servicios">1. Procesos, sesiones y
+servicios</a></li>
+<li><a href="#2-systemd-y-las-units" id="toc-2-systemd-y-las-units">2.
+systemd y las units</a></li>
+<li><a href="#3-el-unit-file-de-un-servicio"
+id="toc-3-el-unit-file-de-un-servicio">3. El unit file de un
+servicio</a></li>
+<li><a href="#4-targets-y-arranque-automático"
+id="toc-4-targets-y-arranque-automático">4. Targets y arranque
+automático</a></li>
+<li><a href="#5-drop-ins" id="toc-5-drop-ins">5. Drop-ins</a></li>
+<li><a href="#6-dependencias" id="toc-6-dependencias">6.
+Dependencias</a></li>
+<li><a href="#7-diagnosticar-un-servicio-que-falla"
+id="toc-7-diagnosticar-un-servicio-que-falla">7. Diagnosticar un
+servicio que falla</a></li>
+<li><a href="#8-el-journal" id="toc-8-el-journal">8. El journal</a></li>
+<li><a href="#9-activación-por-socket"
+id="toc-9-activación-por-socket">9. Activación por socket</a></li>
+<li><a href="#10-timers-y-cron" id="toc-10-timers-y-cron">10. Timers y
+cron</a></li>
+</ul></li>
+<li><a href="#parte-2--ejemplos-1" id="toc-parte-2--ejemplos-1">Parte 2
+· Ejemplos</a>
+<ul>
+<li><a href="#servicio-de-larga-duración"
+id="toc-servicio-de-larga-duración">Servicio de larga duración</a></li>
+<li><a href="#tarea-periódica-servicio-oneshot-y-timer"
+id="toc-tarea-periódica-servicio-oneshot-y-timer">Tarea periódica:
+servicio <code>oneshot</code> y timer</a></li>
+<li><a href="#drop-in-con-dependencia"
+id="toc-drop-in-con-dependencia">Drop-in con dependencia</a></li>
+<li><a href="#dos-units-de-postgresql-en-ubuntu"
+id="toc-dos-units-de-postgresql-en-ubuntu">Dos units de PostgreSQL en
+Ubuntu</a></li>
+<li><a href="#ssh-en-ubuntu-2404" id="toc-ssh-en-ubuntu-2404">SSH en
+Ubuntu 24.04</a></li>
+<li><a href="#fallos-típicos-y-cómo-se-ven-1"
+id="toc-fallos-típicos-y-cómo-se-ven-1">Fallos típicos y cómo se
+ven</a></li>
+<li><a href="#preguntas-al-journal"
+id="toc-preguntas-al-journal">Preguntas al journal</a></li>
+</ul></li>
+<li><a href="#parte-3--comandos-útiles-del-bloque-1"
+id="toc-parte-3--comandos-útiles-del-bloque-1">Parte 3 · Comandos útiles
+del bloque</a>
+<ul>
+<li><a href="#procesos" id="toc-procesos">Procesos</a></li>
+<li><a href="#servicios" id="toc-servicios">Servicios</a></li>
+<li><a href="#unit-files" id="toc-unit-files">Unit files</a></li>
+<li><a href="#journal" id="toc-journal">Journal</a></li>
+<li><a href="#red" id="toc-red">Red</a></li>
+<li><a href="#timers-y-cron" id="toc-timers-y-cron">Timers y
+cron</a></li>
+<li><a href="#permisos-y-ficheros" id="toc-permisos-y-ficheros">Permisos
+y ficheros</a></li>
+<li><a href="#ssh-y-sistema" id="toc-ssh-y-sistema">SSH y
+sistema</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<button id="abrir" aria-label="Abrir índice">Índice</button>
+<main>
+<h1 id="linuxvps--bloque-1--el-sistema-por-dentro">Linux/VPS · Bloque 1
+— El sistema por dentro</h1>
+<p>Terminal, ficheros y sistemas de ficheros, permisos, usuarios y
+privilegios, procesos y señales, y cómo arranca un Linux moderno.</p>
+<p><strong>Entorno de referencia:</strong> VPS <code>backend-lab</code>
+(Ubuntu 24.04, systemd) y portátil (CachyOS, derivada de Arch, con
+Btrfs). La shell de ambos es <strong>fish</strong>. Los nombres de
+ficheros, rutas y valores de este documento existen en esas versiones;
+con otra distribución, confírmalos en su documentación.</p>
+<hr />
+<h2 id="parte-1--teoría">Parte 1 · Teoría</h2>
+<h3 id="1-la-terminal-edición-de-línea-y-vim">1. La terminal: edición de
+línea y Vim</h3>
+<h4 id="atajos-de-la-línea-de-comandos">Atajos de la línea de
+comandos</h4>
+<p>Funcionan en la shell y en la mayoría de programas Unix. Sirven para
+no depender de las flechas.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Atajo</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Ctrl-A</code> / <code>Ctrl-E</code></td>
+<td>Cursor al principio / al final de la línea</td>
+</tr>
+<tr class="even">
+<td><code>Ctrl-B</code> / <code>Ctrl-F</code></td>
+<td>Cursor una letra a la izquierda / a la derecha</td>
+</tr>
+<tr class="odd">
+<td><code>Ctrl-P</code> / <code>Ctrl-N</code></td>
+<td>Comando anterior / siguiente del historial</td>
+</tr>
+<tr class="even">
+<td><code>Ctrl-W</code></td>
+<td>Borrar la palabra anterior al cursor</td>
+</tr>
+<tr class="odd">
+<td><code>Ctrl-U</code> / <code>Ctrl-K</code></td>
+<td>Borrar hasta el principio / hasta el final de la línea</td>
+</tr>
+<tr class="even">
+<td><code>Ctrl-Y</code></td>
+<td>Pegar lo último borrado</td>
+</tr>
+</tbody>
+</table>
+<h4 id="vim">Vim</h4>
+<p>Dentro de una sesión SSH no hay entorno gráfico: el editor tiene que
+funcionar en la terminal. Vim está instalado en casi cualquier servidor;
+<code>nano</code> no siempre.</p>
+<p>Vim tiene <strong>dos modos</strong>, y casi toda la confusión
+inicial viene de no saber en cuál estás:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Modo</th>
+<th>Qué hacen las teclas</th>
+<th>Cómo se entra</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Normal</td>
+<td>Son comandos (moverse, borrar, guardar)</td>
+<td>Al abrir Vim, y con <code>Esc</code> desde cualquier otro modo</td>
+</tr>
+<tr class="even">
+<td>Inserción</td>
+<td>Escriben texto</td>
+<td><code>i</code> (insertar en el cursor), <code>o</code> (abre línea
+nueva debajo y entra)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>Comando (en modo normal)</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>:wq</code></td>
+<td>Guardar y salir</td>
+</tr>
+<tr class="even">
+<td><code>:q</code></td>
+<td>Salir; falla si hay cambios sin guardar</td>
+</tr>
+<tr class="odd">
+<td><code>:q!</code></td>
+<td>Salir descartando los cambios</td>
+</tr>
+<tr class="even">
+<td><code>G</code></td>
+<td>Ir a la última línea</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-leer-ficheros-cat-less-grep">2. Leer ficheros:
+<code>cat</code>, <code>less</code>, <code>grep</code></h3>
+<p>Los tres «leen» ficheros, pero resuelven problemas distintos.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Herramienta</th>
+<th>Qué hace</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cat</code></td>
+<td>Vuelca el fichero entero</td>
+<td>Ficheros pequeños, o para pasarlo a otro comando por tubería</td>
+</tr>
+<tr class="even">
+<td><code>less</code></td>
+<td>Muestra el fichero por páginas, sin cargarlo entero en memoria</td>
+<td>Ficheros largos que quieres recorrer. <code>Espacio</code> avanza,
+<code>b</code> retrocede, <code>/TEXTO</code> busca, <code>n</code>
+siguiente coincidencia, <code>q</code> sale</td>
+</tr>
+<tr class="odd">
+<td><code>grep</code></td>
+<td><strong>Filtra</strong>: solo muestra las líneas que contienen un
+patrón</td>
+<td>Sabes qué buscas y no quieres leer el resto</td>
+</tr>
+</tbody>
+</table>
+<p><code>grep</code> no necesita <code>cat</code> delante:
+<code>grep "error" fichero</code> basta.
+<code>cat FICHERO \| grep</code> solo tiene sentido cuando la entrada
+viene de otro comando (<code>ps aux \| grep ssh</code>).</p>
+<h3 id="3-redirección-y-tuberías">3. Redirección y tuberías</h3>
+<p>Todo proceso tiene <strong>dos canales de salida
+independientes</strong>, aunque ambos acaben en tu pantalla:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Canal</th>
+<th>Número</th>
+<th>Qué lleva</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>stdout</code></td>
+<td>1</td>
+<td>La salida normal</td>
+</tr>
+<tr class="even">
+<td><code>stderr</code></td>
+<td>2</td>
+<td>Errores y diagnósticos</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th>Operador</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&gt; FICHERO</code></td>
+<td>Manda <strong>solo stdout</strong> al fichero (lo sobrescribe).
+stderr sigue yendo a la pantalla</td>
+</tr>
+<tr class="even">
+<td><code>2&gt; FICHERO</code></td>
+<td>Manda <strong>solo stderr</strong> al fichero</td>
+</tr>
+<tr class="odd">
+<td><code>&gt; FICHERO 2&gt;&amp;1</code></td>
+<td>stderr va al mismo sitio al que apunta stdout <strong>en ese
+momento</strong>; ambos acaban en el fichero</td>
+</tr>
+<tr class="even">
+<td><code>|</code></td>
+<td>Tubería: la stdout de un comando es la entrada del siguiente</td>
+</tr>
+<tr class="odd">
+<td><code>&amp;</code> (al final)</td>
+<td>Lanza el comando en segundo plano y devuelve la terminal</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>El orden importa.</strong>
+<code>2&gt;&amp;1 &gt; FICHERO</code> no hace lo mismo que
+<code>&gt; FICHERO 2&gt;&amp;1</code>: en el primer caso stderr se
+apunta a la pantalla (donde stdout estaba todavía) y luego stdout cambia
+al fichero. Escribe siempre <code>&gt; FICHERO 2&gt;&amp;1</code>.</li>
+<li>El <code>&amp;</code> de <code>2&gt;&amp;1</code> significa «el
+destino del canal», no «el fichero llamado 1». Sin él,
+<code>2&gt;1</code> crearía un fichero llamado <code>1</code>.</li>
+<li><strong><code>/dev/null</code></strong> es un fichero especial que
+destruye lo que recibe. No es ocultar la salida: el contenido deja de
+existir. Se usa cuando un comando es muy verboso y solo te importa si
+falla; con <code>&gt; /dev/null</code>, los errores (stderr) siguen
+apareciendo.</li>
+<li><strong>El globbing lo hace la shell, no el comando.</strong> Antes
+de ejecutar <code>rm -rf ./*</code>, la shell sustituye <code>./*</code>
+por los nombres de lo que hay dentro. <code>rm</code> recibe una lista
+de ficheros sueltos, no el asterisco. <code>echo ./*</code> enseña
+exactamente lo que recibiría. El <code>*</code> no incluye los ficheros
+ocultos (los que empiezan por <code>.</code>).</li>
+</ul>
+<h3 id="4-jerarquía-de-ficheros">4. Jerarquía de ficheros</h3>
+<p>Todo cuelga de una única raíz, <code>/</code>. Cada directorio
+principal tiene un uso fijo:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Ruta</th>
+<th>Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/etc</code></td>
+<td>Configuración del sistema</td>
+</tr>
+<tr class="even">
+<td><code>/var</code></td>
+<td>Datos que cambian: logs (<code>/var/log</code>), bases de datos,
+cachés</td>
+</tr>
+<tr class="odd">
+<td><code>/home</code></td>
+<td>Directorios personales de los usuarios</td>
+</tr>
+<tr class="even">
+<td><code>/root</code></td>
+<td>Directorio personal de root</td>
+</tr>
+<tr class="odd">
+<td><code>/usr</code></td>
+<td>Programas y librerías</td>
+</tr>
+<tr class="even">
+<td><code>/boot</code></td>
+<td>Kernel, <code>initramfs</code> y, en máquinas UEFI, el
+bootloader</td>
+</tr>
+<tr class="odd">
+<td><code>/dev</code></td>
+<td>Dispositivos, representados como ficheros
+(<code>/dev/nvme0n1</code>, <code>/dev/vda</code>)</td>
+</tr>
+<tr class="even">
+<td><code>/proc</code>, <code>/sys</code></td>
+<td>Información del kernel y del hardware, generada al leerla (no hay
+datos en disco)</td>
+</tr>
+<tr class="odd">
+<td><code>/tmp</code>, <code>/run</code></td>
+<td>Temporales y estado en ejecución; normalmente en RAM, desaparecen al
+reiniciar</td>
+</tr>
+</tbody>
+</table>
+<p><strong>En Linux todo se representa como fichero</strong>:
+dispositivos, procesos (<code>/proc/PID/</code>), información del
+kernel. Por eso las mismas herramientas (<code>cat</code>,
+<code>grep</code>, <code>ls</code>) sirven para todo.</p>
+<h3 id="5-discos-particiones-y-sistemas-de-ficheros">5. Discos,
+particiones y sistemas de ficheros</h3>
+<p>Son <strong>tres capas distintas</strong>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Capa</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Disco</td>
+<td>El dispositivo (físico, o virtual en un VPS)</td>
+<td><code>/dev/nvme1n1</code> en el portátil; <code>/dev/vda</code> en
+el VPS</td>
+</tr>
+<tr class="even">
+<td>Partición</td>
+<td>Una división lógica del disco, descrita en la tabla de particiones
+(hoy, normalmente GPT)</td>
+<td><code>/dev/nvme1n1p2</code></td>
+</tr>
+<tr class="odd">
+<td>Sistema de ficheros</td>
+<td>La estructura que organiza ficheros y directorios dentro de una
+partición</td>
+<td><code>btrfs</code>, <code>ext4</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Montar</strong> es enganchar un sistema de ficheros a un
+directorio del árbol (el <strong>punto de montaje</strong>). Hasta que
+no se monta, existe pero no se puede navegar. Un mismo sistema de
+ficheros puede estar montado en varios sitios.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Tipo</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ext4</code></td>
+<td>El sistema de ficheros clásico de Linux, con <em>journaling</em> (se
+recupera tras un corte de luz). El del VPS</td>
+</tr>
+<tr class="even">
+<td><code>btrfs</code></td>
+<td>Moderno: compresión transparente, <em>snapshots</em> y
+<strong>subvolúmenes</strong>. El del portátil</td>
+</tr>
+<tr class="odd">
+<td><code>ntfs</code></td>
+<td>El de Windows</td>
+</tr>
+<tr class="even">
+<td><code>fat32</code> / <code>vfat</code></td>
+<td>Sencillo y legible por cualquier firmware. Lo usan la
+<strong>ESP</strong> y <code>/boot</code></td>
+</tr>
+<tr class="odd">
+<td><code>tmpfs</code></td>
+<td>Vive en RAM; muy rápido; desaparece al reiniciar (<code>/tmp</code>,
+<code>/run</code>)</td>
+</tr>
+<tr class="even">
+<td><code>proc</code>, <code>sysfs</code></td>
+<td>Virtuales: el kernel genera su contenido al leerlos</td>
+</tr>
+<tr class="odd">
+<td><code>overlay</code></td>
+<td>Lo usa Docker: capas de solo lectura (<code>lowerdir</code>) bajo
+una única capa de escritura (<code>upperdir</code>); varios contenedores
+comparten las capas base</td>
+</tr>
+<tr class="even">
+<td><code>linux-swap</code></td>
+<td>Espacio de intercambio. <code>zram</code> crea un dispositivo en
+RAM, comprimido, y lo usa como swap (más rápido que uno en disco)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Subvolúmenes de Btrfs.</strong> Una misma partición puede
+aparecer montada varias veces (<code>/</code>, <code>/home</code>,
+<code>/var/log</code>…), cada una con su <code>subvolid</code> y su
+<code>subvol=/@nombre</code>. Son divisiones lógicas de la misma
+partición que se pueden recuperar (<em>rollback</em>) por separado: se
+puede volver <code>/</code> a una versión anterior sin tocar
+<code>/home</code>.</p>
+<p><strong>Opciones de montaje</strong> (la parte entre paréntesis de la
+salida de <code>mount</code>):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Opción</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>rw</code></td>
+<td>Lectura y escritura</td>
+</tr>
+<tr class="even">
+<td><code>noatime</code></td>
+<td>No escribe la fecha de último acceso en cada lectura (menos
+escrituras)</td>
+</tr>
+<tr class="odd">
+<td><code>compress=zstd:1</code></td>
+<td>Compresión transparente de los datos (Btrfs)</td>
+</tr>
+<tr class="even">
+<td><code>ssd</code>, <code>discard=async</code></td>
+<td>Ajustes para discos de estado sólido</td>
+</tr>
+<tr class="odd">
+<td><code>nosuid</code>, <code>noexec</code>, <code>nodev</code></td>
+<td>No permite setuid, ejecutar programas ni dispositivos en ese
+montaje</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ESP</strong> (<em>EFI System Partition</em>): partición
+<code>fat32</code> con las banderas <code>boot, esp</code>, donde el
+firmware UEFI busca el bootloader.</p>
+<h3 id="6-permisos-de-ficheros">6. Permisos de ficheros</h3>
+<p><code>ls -l</code> muestra, para cada fichero:</p>
+<pre><code>-rw-r-----  1  miguel  miguel  ...  fichero
+│└┬┘└┬┘└┬┘     └─ dueño └─ grupo
+│ │  │  └─ resto
+│ │  └─ grupo
+│ └─ dueño
+└─ tipo</code></pre>
+<ul>
+<li><strong>Tipo</strong> (primer carácter): <code>-</code> fichero,
+<code>d</code> directorio, <code>l</code> enlace simbólico.</li>
+<li><strong>Tres tríos</strong>: dueño, grupo, resto. Se aplica
+<strong>el primero que corresponde</strong>: si eres el dueño, cuenta el
+trío del dueño aunque el del grupo diera más.</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Permiso</th>
+<th>En un fichero</th>
+<th>En un directorio</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>r</code></td>
+<td>Leerlo</td>
+<td>Listar su contenido</td>
+</tr>
+<tr class="even">
+<td><code>w</code></td>
+<td>Modificarlo</td>
+<td>Crear, renombrar y borrar ficheros dentro</td>
+</tr>
+<tr class="odd">
+<td><code>x</code></td>
+<td>Ejecutarlo</td>
+<td>Entrar en él (<code>cd</code>) y acceder a lo de dentro</td>
+</tr>
+</tbody>
+</table>
+<h4 id="notación-octal">Notación octal</h4>
+<p>Cada trío es un número: <code>r</code>=4, <code>w</code>=2,
+<code>x</code>=1, sumados.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Dígito</th>
+<th>Permisos</th>
+<th></th>
+<th>Modo</th>
+<th>Permisos</th>
+<th>Uso típico</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td><code>---</code></td>
+<td></td>
+<td><code>644</code></td>
+<td><code>rw-r--r--</code></td>
+<td>Fichero normal</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td><code>--x</code></td>
+<td></td>
+<td><code>755</code></td>
+<td><code>rwxr-xr-x</code></td>
+<td>Programa o directorio</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td><code>-w-</code></td>
+<td></td>
+<td><code>600</code></td>
+<td><code>rw-------</code></td>
+<td>Solo el dueño (claves privadas)</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td><code>r--</code></td>
+<td></td>
+<td><code>640</code></td>
+<td><code>rw-r-----</code></td>
+<td>Dueño escribe, grupo lee</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td><code>r-x</code></td>
+<td></td>
+<td><code>750</code></td>
+<td><code>rwxr-x---</code></td>
+<td>Directorio del grupo</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td><code>rw-</code></td>
+<td></td>
+<td><code>700</code></td>
+<td><code>rwx------</code></td>
+<td>Directorio privado</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td><code>rwx</code></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="notación-simbólica">Notación simbólica</h4>
+<p><code>chmod QUIÉN OPERACIÓN PERMISO</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Quién</th>
+<th>Operación</th>
+<th>Permiso</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>u</code> dueño, <code>g</code> grupo, <code>o</code> resto,
+<code>a</code> todos</td>
+<td><code>+</code> añade, <code>-</code> quita, <code>=</code> fija
+exactamente</td>
+<td><code>r</code>, <code>w</code>, <code>x</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>chmod go+r f</code> añade lectura a grupo y resto;
+<code>chmod u=rw,g=r,o= f</code> fija <code>rw-r-----</code> borrando lo
+que hubiera antes.</p>
+<h4 id="umask"><code>umask</code></h4>
+<p>Resta permisos a lo que se <strong>crea a partir de ese
+momento</strong>; no toca lo que ya existe. Los máximos de partida son
+666 para ficheros (no nacen ejecutables) y 777 para directorios.</p>
+<table>
+<thead>
+<tr class="header">
+<th><code>umask</code></th>
+<th>Ficheros nuevos</th>
+<th>Directorios nuevos</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>022</code></td>
+<td><code>644</code></td>
+<td><code>755</code></td>
+</tr>
+<tr class="even">
+<td><code>077</code></td>
+<td><code>600</code></td>
+<td><code>700</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="chown-frente-a-chmod"><code>chown</code> frente a
+<code>chmod</code></h4>
+<p><code>chown</code> cambia <strong>de quién es</strong> el fichero
+(dueño y grupo); <code>chmod</code> cambia <strong>qué se puede
+hacer</strong> con él. Cambiar el dueño requiere root.</p>
+<h4 id="permisos-especiales">Permisos especiales</h4>
+<p>Resuelven el caso de un programa que necesita más permisos de los que
+tiene quien lo ejecuta.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Bit</th>
+<th>Octal</th>
+<th>Se ve en <code>ls -l</code> como</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>setuid</code></td>
+<td>4</td>
+<td><code>s</code> donde iría la <code>x</code> del dueño</td>
+<td>El proceso corre con los permisos del <strong>dueño del
+fichero</strong>, no de quien lo lanza. <code>passwd</code> lo usa para
+escribir en <code>/etc/shadow</code></td>
+</tr>
+<tr class="even">
+<td><code>setgid</code></td>
+<td>2</td>
+<td><code>s</code> donde iría la <code>x</code> del grupo</td>
+<td>En un fichero, igual con el grupo. En un
+<strong>directorio</strong>, lo creado dentro hereda el grupo del
+directorio</td>
+</tr>
+<tr class="odd">
+<td>sticky</td>
+<td>1</td>
+<td><code>t</code> donde iría la <code>x</code> del resto</td>
+<td>En un directorio compartido, solo el dueño de un fichero (o root)
+puede borrarlo. <code>/tmp</code> es <code>drwxrwxrwt</code></td>
+</tr>
+</tbody>
+</table>
+<p>Se escriben como un cuarto dígito delante: <code>chmod 4755</code>,
+<code>chmod 2755</code>, <code>chmod 1777</code>.</p>
+<h3 id="7-usuarios-y-grupos">7. Usuarios y grupos</h3>
+<table>
+<thead>
+<tr class="header">
+<th>UID</th>
+<th>Tipo de cuenta</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td><code>root</code>, el superusuario</td>
+</tr>
+<tr class="even">
+<td>1–999</td>
+<td>Cuentas de <strong>sistema</strong> y de servicio (<code>bin</code>,
+<code>daemon</code>, <code>postgres</code>…)</td>
+</tr>
+<tr class="odd">
+<td>1000 en adelante</td>
+<td>Usuarios normales (el primero, <code>miguel</code>, tiene el
+1000)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="etcpasswd"><code>/etc/passwd</code></h4>
+<p>Legible por cualquiera. Una línea por cuenta, siete campos separados
+por <code>:</code>:</p>
+<pre><code>usuario : x : UID : GID : comentario : directorio_home : shell</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Campo</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>x</code></td>
+<td>La contraseña no está aquí, sino en <code>/etc/shadow</code></td>
+</tr>
+<tr class="even">
+<td><code>GID</code></td>
+<td>Grupo <strong>primario</strong></td>
+</tr>
+<tr class="odd">
+<td><code>shell</code></td>
+<td>Programa que se lanza al iniciar sesión.
+<code>/usr/bin/nologin</code> = cuenta que no permite sesión
+interactiva</td>
+</tr>
+</tbody>
+</table>
+<h4 id="etcshadow"><code>/etc/shadow</code></h4>
+<p>Solo legible por root. Contiene las contraseñas cifradas:</p>
+<pre><code>usuario : hash : último_cambio : mín : máx : aviso : inactividad : expiración : reservado</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Valor del campo <code>hash</code></th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>$6$…</code></td>
+<td>Hash real, algoritmo sha512crypt</td>
+</tr>
+<tr class="even">
+<td><code>$y$…</code></td>
+<td>Hash real, algoritmo yescrypt (más moderno)</td>
+</tr>
+<tr class="odd">
+<td><code>!</code> o <code>*</code> (o <code>!*</code>)</td>
+<td>No hay contraseña utilizable: no se puede entrar con contraseña</td>
+</tr>
+</tbody>
+</table>
+<p><code>último_cambio</code> son <strong>días desde el 1 de enero de
+1970</strong>.</p>
+<p>Las cuentas de servicio combinan los dos cerrojos: shell
+<code>nologin</code> y sin contraseña. Cada demonio corre con su propia
+cuenta limitada para que, si lo comprometen, el atacante herede solo
+esos permisos y no los de root.</p>
+<h4 id="grupos">Grupos</h4>
+<p>Cada usuario tiene un <strong>grupo primario</strong> (campo GID de
+<code>/etc/passwd</code>, normalmente con su mismo nombre) y puede estar
+en varios <strong>suplementarios</strong> (<code>/etc/group</code>).
+Sirven para dar permisos a un conjunto de usuarios sin repetir la regla
+persona a persona.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Grupo</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo</code> (Ubuntu) / <code>wheel</code> (Arch)</td>
+<td>Derecho a usar <code>sudo</code></td>
+</tr>
+<tr class="even">
+<td><code>docker</code></td>
+<td>Usar Docker sin <code>sudo</code></td>
+</tr>
+<tr class="odd">
+<td><code>video</code>, <code>audio</code>, <code>kvm</code>,
+<code>storage</code></td>
+<td>Acceso a dispositivos concretos</td>
+</tr>
+<tr class="even">
+<td><code>adm</code>, <code>systemd-journal</code></td>
+<td>Leer los logs del sistema sin <code>sudo</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="8-elevación-de-privilegios-su-sudo-y-sudoers">8. Elevación de
+privilegios: <code>su</code>, <code>sudo</code> y
+<code>sudoers</code></h3>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th><code>su</code></th>
+<th><code>sudo</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Qué hace</td>
+<td>Abre una sesión <strong>completa</strong> como otro usuario (root
+por defecto)</td>
+<td>Ejecuta <strong>un comando</strong> con privilegios y vuelve a tu
+usuario</td>
+</tr>
+<tr class="even">
+<td>Contraseña que pide</td>
+<td>La del usuario de destino</td>
+<td>La tuya</td>
+</tr>
+<tr class="odd">
+<td>Duración</td>
+<td>Hasta <code>exit</code></td>
+<td>Un comando; la autenticación se <strong>cachea</strong> (por
+terminal) unos minutos</td>
+</tr>
+<tr class="even">
+<td>Registro</td>
+<td>No distingue quién eras</td>
+<td>Anota usuario, terminal y comando</td>
+</tr>
+<tr class="odd">
+<td>Requisito</td>
+<td>Conocer la contraseña de destino</td>
+<td>Estar en el grupo <code>sudo</code>/<code>wheel</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong><code>sudo su</code></strong>: <code>sudo</code> (con tu
+contraseña) ejecuta <code>su</code>; como ya es root, <code>su</code> no
+pide contraseña de destino. Es la forma de abrir una sesión de root
+cuando la cuenta root no tiene contraseña utilizable.</li>
+<li><strong>El prompt avisa:</strong> <code>$</code> usuario normal,
+<code>#</code> root (en psql, <code>=&gt;</code> frente a
+<code>=#</code>). Si ves <code>#</code> y no recuerdas cómo llegaste,
+estás en una sesión de root.</li>
+<li>En una sesión de root <strong>ningún comando pide
+confirmación</strong>: es el riesgo de <code>su</code> frente a
+<code>sudo</code>.</li>
+</ul>
+<h4 id="etcsudoers"><code>/etc/sudoers</code></h4>
+<p>Se edita <strong>siempre con <code>visudo</code></strong>, que valida
+la sintaxis antes de guardar; un error escrito a mano puede dejar sin
+<code>sudo</code> al sistema. Anatomía de una línea:</p>
+<pre><code>root    ALL=(ALL)   ALL
+│       │    │      └─ qué comandos
+│       │    └─ como qué usuarios puede ejecutarlos
+│       └─ en qué máquinas
+└─ quién</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Directiva</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>NOPASSWD:</code> delante de los comandos</td>
+<td>No pide contraseña</td>
+</tr>
+<tr class="even">
+<td><code>Defaults timestamp_timeout=N</code></td>
+<td>Minutos que dura la autenticación en caché (por defecto, 15)</td>
+</tr>
+</tbody>
+</table>
+<p><code>NOPASSWD: ALL</code> quita la última comprobación de que quien
+actúa eres tú: cualquier proceso que corra con tu usuario podría hacerse
+root sin barrera. En una máquina con IP pública es lo que hay que
+evitar. Alargar <code>timestamp_timeout</code> mantiene la barrera y
+reduce las veces que se pide.</p>
+<h3 id="9-procesos">9. Procesos</h3>
+<p><strong>Proceso.</strong> Un programa en ejecución, con un número
+único, el <strong>PID</strong>. Todo proceso nace de otro, su
+<strong>padre</strong> (<strong>PPID</strong>). El <strong>PID
+1</strong> es el primero que lanza el kernel.</p>
+<p><strong>Zombie.</strong> Proceso que ya terminó pero cuyo padre no ha
+recogido su estado de salida; sigue en la tabla de procesos, sin
+consumir recursos. Muchos zombies indican un padre defectuoso.</p>
+<p><strong>Hilos del kernel.</strong> Los procesos
+<code>[kworker/…]</code>, <code>kthreadd</code>, <code>ksoftirqd</code>…
+no son programas instalados: son trabajo interno del kernel. Se
+reconocen porque <code>VIRT</code>, <code>RES</code> y <code>SHR</code>
+valen 0. En un diagnóstico se ignoran.</p>
+<p><strong>Cadena de procesos de una conexión SSH.</strong>
+<code>sshd</code> principal (root, escucha el puerto; nunca atiende
+conexiones directamente) → un hijo de root que verifica quién eres
+(<code>sshd: usuario [priv]</code>) → un hijo ya con tu usuario que
+gestiona la sesión (<code>sshd: usuario@pts/0</code>) → tu shell. Es el
+patrón de «usar privilegios solo el tiempo necesario». El proceso
+principal sigue escuchando para la siguiente conexión.</p>
+<h4 id="estado-de-un-proceso-columna-s-en-top-stat-en-ps">Estado de un
+proceso (columna <code>S</code> en <code>top</code>, <code>STAT</code>
+en <code>ps</code>)</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Estado</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>R</code></td>
+<td>Ejecutándose o listo para ejecutarse</td>
+</tr>
+<tr class="even">
+<td><code>S</code></td>
+<td>Dormido, esperando algo (la mayoría de procesos, y es normal)</td>
+</tr>
+<tr class="odd">
+<td><code>D</code></td>
+<td>Dormido esperando disco o red, sin poder interrumpirse</td>
+</tr>
+<tr class="even">
+<td><code>I</code></td>
+<td>Hilo del kernel inactivo</td>
+</tr>
+<tr class="odd">
+<td><code>Z</code></td>
+<td>Zombie</td>
+</tr>
+<tr class="even">
+<td>Sufijos de <code>ps</code></td>
+<td><code>s</code> líder de sesión · <code>+</code> en primer plano de
+su terminal · <code>l</code> con varios hilos</td>
+</tr>
+</tbody>
+</table>
+<h4 id="señales">Señales</h4>
+<p>Avisos cortos que el kernel entrega a un proceso.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Señal</th>
+<th>Número</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>SIGTERM</code></td>
+<td>15</td>
+<td>Pide que termine. El proceso puede capturarla y limpiar antes
+(guardar datos, cerrar conexiones)</td>
+</tr>
+<tr class="even">
+<td><code>SIGKILL</code></td>
+<td>9</td>
+<td>El kernel lo mata sin aviso. No se puede capturar ni ignorar</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Primero <code>-15</code>; <code>-9</code> solo si el proceso
+sigue vivo pasados unos segundos.</strong> Matar con <code>-9</code> una
+base de datos a mitad de escritura puede corromper datos.</p>
+<h4 id="lectura-de-ps-aux">Lectura de <code>ps aux</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>Columna</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>USER</code></td>
+<td>Con qué usuario corre</td>
+</tr>
+<tr class="even">
+<td><code>PID</code></td>
+<td>Identificador</td>
+</tr>
+<tr class="odd">
+<td><code>%CPU</code>, <code>%MEM</code></td>
+<td>Uso de CPU y de memoria</td>
+</tr>
+<tr class="even">
+<td><code>VSZ</code></td>
+<td>Memoria virtual reservada (inflada; poco útil)</td>
+</tr>
+<tr class="odd">
+<td><code>RSS</code></td>
+<td>Memoria física realmente en uso. La que importa</td>
+</tr>
+<tr class="even">
+<td><code>TTY</code></td>
+<td>Terminal asociada; <code>?</code> = ninguna (servicio de fondo);
+<code>pts/N</code> = sesión remota</td>
+</tr>
+<tr class="odd">
+<td><code>STAT</code></td>
+<td>Estado</td>
+</tr>
+<tr class="even">
+<td><code>START</code>, <code>TIME</code></td>
+<td>Cuándo arrancó · CPU <strong>acumulada</strong> (no tiempo
+transcurrido)</td>
+</tr>
+<tr class="odd">
+<td><code>COMMAND</code></td>
+<td>El programa</td>
+</tr>
+</tbody>
+</table>
+<p>Para una primera lectura basta con <strong><code>COMMAND</code>,
+<code>USER</code> y <code>PID</code></strong>. El resto se consulta
+cuando hay una pregunta concreta.</p>
+<h4 id="lectura-de-top">Lectura de <code>top</code></h4>
+<p>Cabecera:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Línea</th>
+<th>Qué mirar</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>up ... load average: A, B, C</code></td>
+<td>Tiempo encendido; carga media en 1, 5 y 15 minutos.
+<strong>Compárala con el número de núcleos</strong>: con 2 núcleos, 2.00
+es ocupación completa; por encima, hay procesos esperando CPU</td>
+</tr>
+<tr class="even">
+<td><code>Tasks: ... zombie</code></td>
+<td>Procesos totales y por estado. <code>0 zombie</code> es lo sano</td>
+</tr>
+<tr class="odd">
+<td><code>%Cpu(s)</code></td>
+<td><code>us</code> programas, <code>sy</code> kernel, <code>id</code>
+ocioso, <strong><code>wa</code> esperando al disco</strong> (si sube, el
+cuello de botella es el disco, no la CPU)</td>
+</tr>
+<tr class="even">
+<td><code>MiB Mem</code></td>
+<td><code>used</code> en uso, <code>buff/cache</code> caché de disco,
+<strong><code>avail Mem</code></strong> memoria realmente
+disponible</td>
+</tr>
+<tr class="odd">
+<td><code>MiB Swap</code></td>
+<td>Intercambio en uso</td>
+</tr>
+</tbody>
+</table>
+<p><code>buff/cache</code> no es memoria ocupada de forma preocupante:
+el kernel la libera al instante si un proceso la necesita. El dato
+realista es <code>avail Mem</code>.</p>
+<p>Columnas de la tabla:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Columna</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>PR</code>, <code>NI</code></td>
+<td>Prioridad real y valor <em>nice</em> (−20 a 19; <strong>más bajo =
+más prioridad</strong>; <code>PR</code> = <code>NI</code> + 20 en
+procesos normales)</td>
+</tr>
+<tr class="even">
+<td><code>VIRT</code>, <code>RES</code>, <code>SHR</code></td>
+<td>Memoria virtual · física en uso · parte de la física compartida con
+otros procesos</td>
+</tr>
+<tr class="odd">
+<td><code>S</code></td>
+<td>Estado</td>
+</tr>
+<tr class="even">
+<td><code>TIME+</code></td>
+<td>CPU acumulada</td>
+</tr>
+</tbody>
+</table>
+<h3 id="10-cómo-arranca-un-linux-moderno">10. Cómo arranca un Linux
+moderno</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Fase</th>
+<th>Quién</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1. Firmware</td>
+<td>UEFI (antes, BIOS)</td>
+<td>Comprueba el hardware y busca el bootloader en la ESP</td>
+</tr>
+<tr class="even">
+<td>2. Bootloader</td>
+<td>GRUB, systemd-boot…</td>
+<td>Muestra el menú si hay varias opciones y <strong>carga en RAM el
+kernel y el <code>initramfs</code></strong>; cede el control al
+kernel</td>
+</tr>
+<tr class="odd">
+<td>3. Kernel</td>
+<td>Linux</td>
+<td>Toma el control del hardware real</td>
+</tr>
+<tr class="even">
+<td>4. <code>initramfs</code></td>
+<td>El kernel</td>
+<td>Monta el disco real usando los drivers mínimos que trae este sistema
+de ficheros temporal</td>
+</tr>
+<tr class="odd">
+<td>5. Espacio de usuario</td>
+<td>El kernel lanza <strong>systemd como PID 1</strong></td>
+<td>systemd arranca el resto</td>
+</tr>
+<tr class="even">
+<td>6. Targets y units</td>
+<td>systemd</td>
+<td>Arranca los servicios agrupados por fases hasta el target por
+defecto</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Bootloader.</strong> Su único trabajo es cargar y entregar el
+control. No instala ni actualiza kernels: eso lo hace el gestor de
+paquetes, que además regenera la lista de opciones del menú. Si una
+opción es otro sistema operativo (Windows), el bootloader hace
+<strong>chainload</strong>: le cede el control al bootloader de ese
+sistema, que arranca su propio kernel.</p>
+<p><strong><code>initramfs</code>.</strong> Resuelve un problema de
+huevo y gallina: el kernel necesita drivers para leer el disco real,
+pero esos drivers viven normalmente dentro de la partición que aún no
+puede montar. Se guarda como <strong>fichero en
+<code>/boot</code></strong> y se vuelve a cargar en RAM <strong>en cada
+arranque</strong>; no persiste entre arranques, se descarta cuando el
+disco real está montado. Los gestores de paquetes lo regeneran al
+actualizar el kernel.</p>
+<p><strong>Son dos pasos distintos del kernel, uno detrás de
+otro:</strong> primero usa el <code>initramfs</code> para montar el
+disco real; después, y sin relación causal con aquel, lanza systemd.</p>
+<p><strong>Targets.</strong> Un <strong>target</strong> no ejecuta nada:
+es un punto de sincronización que agrupa units. Cada uno depende de que
+otros se hayan alcanzado antes.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Target</th>
+<th>Qué significa alcanzarlo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sysinit.target</code></td>
+<td>Inicialización básica</td>
+</tr>
+<tr class="even">
+<td><code>local-fs.target</code></td>
+<td>Sistemas de ficheros locales montados</td>
+</tr>
+<tr class="odd">
+<td><code>network.target</code> /
+<code>network-online.target</code></td>
+<td>Red configurada / <strong>con conectividad confirmada</strong></td>
+</tr>
+<tr class="even">
+<td><code>nss-lookup.target</code></td>
+<td>Resolución de nombres funcionando</td>
+</tr>
+<tr class="odd">
+<td><code>basic.target</code></td>
+<td>Lo esencial listo: pueden arrancar los servicios normales</td>
+</tr>
+<tr class="even">
+<td><code>multi-user.target</code></td>
+<td>Sistema completo en modo texto, listo para login. <strong>El normal
+de un servidor</strong></td>
+</tr>
+<tr class="odd">
+<td><code>graphical.target</code></td>
+<td>Lo anterior más el entorno gráfico. Innecesario en un servidor sin
+pantalla</td>
+</tr>
+<tr class="even">
+<td><code>getty.target</code></td>
+<td>Prompts de login en las terminales</td>
+</tr>
+</tbody>
+</table>
+<p><code>graphical.target</code> depende de
+<code>multi-user.target</code>: lo extiende, no lo sustituye.
+<code>systemctl set-default</code> cambia el target que se persigue al
+arrancar (crea el enlace
+<code>/etc/systemd/system/default.target</code>); el cambio se aplica en
+el siguiente arranque.</p>
+<p><strong>SSH no es parte del arranque.</strong> <code>sshd</code> es
+un servicio más: se arranca durante la fase de
+<code>multi-user.target</code> y se queda escuchando el puerto.
+Conectarse es un evento posterior e independiente, que puede ocurrir mil
+veces sin que el sistema vuelva a arrancar.</p>
+<h4 id="medir-el-arranque">Medir el arranque</h4>
+<p><code>systemd-analyze</code> desglosa el tiempo por fase:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Fase en la salida</th>
+<th>Qué mide</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>firmware</code></td>
+<td>El UEFI comprobando el hardware físico</td>
+</tr>
+<tr class="even">
+<td><code>loader</code></td>
+<td>El bootloader, hasta cargar el kernel</td>
+</tr>
+<tr class="odd">
+<td><code>kernel</code></td>
+<td>La inicialización del kernel</td>
+</tr>
+<tr class="even">
+<td><code>initrd</code></td>
+<td>El <code>initramfs</code>, hasta montar el disco real</td>
+</tr>
+<tr class="odd">
+<td><code>userspace</code></td>
+<td>systemd arrancando servicios hasta el target por defecto</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Una VM no tiene todas las fases.</strong> En un VPS no
+aparecen <code>firmware</code>, <code>loader</code> ni
+<code>initrd</code>: el hipervisor entrega al kernel un entorno ya
+preparado, sin hardware físico que comprobar. Por eso un VPS arranca
+bastante más rápido que un portátil.</p>
+<p><code>systemd-analyze blame</code> lista las units por tiempo de
+activación. <strong>No mide cuánto retrasó cada una el
+arranque</strong>: systemd arranca en paralelo, y una unit lenta puede
+estar terminando de fondo mientras el sistema ya es utilizable. Las
+unidades <code>.device</code> que aparecen en un portátil son esperas a
+que el kernel registre un dispositivo (TPM, puertos serie, particiones
+del disco con varias rutas alternativas: <code>by-id</code>,
+<code>by-partuuid</code>, <code>by-path</code>).</p>
+<h4 id="el-journal-y-los-permisos">El journal y los permisos</h4>
+<p><code>journalctl</code> lee el registro de systemd. <strong>Sin
+privilegios solo muestra los mensajes de tu propio usuario</strong>, no
+los del sistema ni los de servicios de otros usuarios; el aviso
+<code>You are currently not seeing messages from other users and the system</code>
+lo indica. Se resuelve con <code>sudo</code> o perteneciendo a los
+grupos <code>adm</code> o <code>systemd-journal</code>. <code>-b</code>
+limita a un arranque; <code>-u UNIT</code> limita a una unit. Un
+arranque que lleva días activo acumula todos esos días en
+<code>-b</code>.</p>
+<hr />
+<h2 id="parte-2--ejemplos">Parte 2 · Ejemplos</h2>
+<h3 id="identidad-y-grupos-en-el-portátil">Identidad y grupos en el
+portátil</h3>
+<pre><code>❯ id
+uid=1000(miguel) gid=1000(miguel) groups=1000(miguel),3(sys),90(network),955(docker),956(nopasswdlogin),979(rfkill),982(users),983(video),985(storage),989(lp),990(kvm),995(audio),998(wheel)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Parte</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>uid=1000(miguel)</code></td>
+<td>Primer UID de usuario normal</td>
+</tr>
+<tr class="even">
+<td><code>gid=1000(miguel)</code></td>
+<td>Grupo primario con el mismo nombre que el usuario (grupo
+privado)</td>
+</tr>
+<tr class="odd">
+<td><code>docker</code></td>
+<td>Permite usar <code>docker</code> sin <code>sudo</code></td>
+</tr>
+<tr class="even">
+<td><code>wheel</code></td>
+<td>El equivalente en Arch al grupo <code>sudo</code> de Ubuntu</td>
+</tr>
+<tr class="odd">
+<td><code>video</code>, <code>audio</code>, <code>kvm</code>,
+<code>storage</code></td>
+<td>Acceso directo a esos dispositivos sin pasar por root</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cuentas-etcpasswd-y-etcshadow">Cuentas: <code>/etc/passwd</code>
+y <code>/etc/shadow</code></h3>
+<p>Los hashes reales no se copian aquí.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Cuenta</th>
+<th>Shell (<code>/etc/passwd</code>)</th>
+<th>Campo de contraseña (<code>/etc/shadow</code>)</th>
+<th>¿Entrada con contraseña?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>root</code> (portátil)</td>
+<td><code>/usr/bin/bash</code></td>
+<td><code>$y$j9T$…</code> (yescrypt)</td>
+<td>Sí</td>
+</tr>
+<tr class="even">
+<td><code>bin</code>, <code>daemon</code> (portátil)</td>
+<td><code>/usr/bin/nologin</code></td>
+<td><code>!*</code></td>
+<td>No: ni shell ni contraseña</td>
+</tr>
+<tr class="odd">
+<td><code>root</code> (VPS)</td>
+<td>—</td>
+<td><code>$6$…</code> (sha512crypt)</td>
+<td>Con contraseña solo por la consola de recuperación (VNC):
+<code>PermitRootLogin no</code> lo bloquea por SSH</td>
+</tr>
+<tr class="even">
+<td><code>miguel</code> (VPS)</td>
+<td>—</td>
+<td><code>$y$j9T$…</code></td>
+<td>Sí</td>
+</tr>
+</tbody>
+</table>
+<p>Otras cuentas de servicio del portátil: <code>mail</code>,
+<code>ftp</code>, <code>http</code> (UID 33), <code>nobody</code>
+(65534), <code>dbus</code>, <code>systemd-network</code>… todas con
+<code>nologin</code>. Cada demonio corre con la suya.</p>
+<p>En el VPS, <code>root</code> <strong>sí tiene contraseña</strong>: la
+entregada por el proveedor al crear la máquina. Que no pueda usarse por
+SSH no significa que no exista.</p>
+<h3 id="sudoers-alargar-la-caché-de-contraseña"><code>sudoers</code>:
+alargar la caché de contraseña</h3>
+<p>Línea añadida al final de <code>/etc/sudoers</code> (con
+<code>visudo</code>) en el portátil:</p>
+<pre><code>Defaults timestamp_timeout=60</code></pre>
+<p>Primer intento, sin editor definido:</p>
+<pre><code>❯ sudo visudo
+visudo: no editor found (editor path = /usr/bin/vi)</code></pre>
+<p><code>/usr/bin/vi</code> no existe en esa instalación (hay
+<code>vim</code>, pero no el enlace <code>vi</code>). Se soluciona
+indicando el editor solo para esa ejecución:</p>
+<pre><code>sudo EDITOR=vim visudo</code></pre>
+<p>Dentro de Vim: <code>G</code> (última línea), <code>o</code> (línea
+nueva e inserción), escribir la línea, <code>Esc</code>,
+<code>:wq</code>. Si <code>visudo</code> detecta un error de sintaxis
+pregunta <code>What now?</code>: <code>e</code> vuelve a editar,
+<code>x</code> sale sin guardar.</p>
+<p>Verificación:</p>
+<pre><code>sudo -k          # invalida la caché
+sudo whoami      # pide contraseña, responde root
+sudo ls /root    # ya no la pide durante los 60 minutos siguientes, en esa terminal</code></pre>
+<h3 id="discos-del-portátil">Discos del portátil</h3>
+<p><code>sudo parted -l</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Disco</th>
+<th>Partición</th>
+<th>Sistema de ficheros</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/dev/nvme0n1</code> (Windows)</td>
+<td>1 · 16,8 MB</td>
+<td>—</td>
+<td>Reservada de Windows (<code>msftres</code>)</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>2 · 999 GB</td>
+<td><code>ntfs</code></td>
+<td>Datos de Windows</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>3 · 900 MB</td>
+<td><code>ntfs</code></td>
+<td>Recuperación (<code>hidden</code>, <code>diag</code>)</td>
+</tr>
+<tr class="even">
+<td><code>/dev/nvme1n1</code> (Linux)</td>
+<td>1 · 2,1 GB</td>
+<td><code>fat32</code>, banderas <code>boot, esp</code></td>
+<td>La ESP</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>2 · 998 GB</td>
+<td><code>btrfs</code></td>
+<td>Todo el sistema Linux</td>
+</tr>
+<tr class="even">
+<td><code>/dev/zram0</code></td>
+<td>1 · 32,6 GB</td>
+<td><code>linux-swap</code></td>
+<td>Swap en RAM comprimida; tabla de particiones <code>loop</code> (no
+es un disco real)</td>
+</tr>
+</tbody>
+</table>
+<p>Los dos discos con tabla <code>gpt</code> confirman el arranque dual:
+cada sistema tiene su disco y su bootloader.</p>
+<p><code>mount</code> sobre esa máquina, resumido:</p>
+<pre><code>/dev/nvme1n1p2 on /         type btrfs (rw,noatime,compress=zstd:1,ssd,discard=async,subvolid=256,subvol=/@)
+/dev/nvme1n1p2 on /home     type btrfs (rw,noatime,compress=zstd:1,ssd,discard=async,subvolid=257,subvol=/@home)
+/dev/nvme1n1p2 on /var/log  type btrfs (rw,noatime,compress=zstd:1,ssd,discard=async,subvolid=262,subvol=/@log)
+/dev/nvme1n1p1 on /boot     type vfat  (rw,relatime,fmask=0077,dmask=0077,...)
+tmpfs          on /tmp      type tmpfs (rw,noatime,...)
+proc           on /proc     type proc  (rw,nosuid,nodev,noexec,relatime)
+overlay        on /var/lib/docker/rootfs/overlayfs/... type overlay (rw,relatime,lowerdir=...,upperdir=...,workdir=...)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Línea</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>nvme1n1p2</code> repetida</td>
+<td>Una sola partición física, montada varias veces: subvolúmenes
+<code>@</code>, <code>@home</code>, <code>@log</code>…</td>
+</tr>
+<tr class="even">
+<td><code>nvme1n1p1</code> en <code>/boot</code></td>
+<td>La ESP, en <code>vfat</code> (<code>fat32</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>tmpfs</code>, <code>proc</code></td>
+<td>Virtuales; no ocupan disco</td>
+</tr>
+<tr class="even">
+<td><code>overlay</code></td>
+<td>Un contenedor Docker en marcha, con sus capas</td>
+</tr>
+</tbody>
+</table>
+<p>La salida completa es larga porque hay un <code>overlay</code> por
+contenedor y un <code>nsfs</code> por cada red aislada de Docker.</p>
+<h3 id="salud-del-vps-en-top">Salud del VPS en <code>top</code></h3>
+<pre><code>top - 17:09:11 up 12 days, 12:09,  1 user,  load average: 0.00, 0.00, 0.00
+Tasks: 118 total,   1 running, 117 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.2 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :   3910.4 total,   1931.0 free,    563.3 used,   1752.5 buff/cache
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.   3347.1 avail Mem</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Dato</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>up 12 days</code></td>
+<td>Lleva 12 días sin reiniciar</td>
+</tr>
+<tr class="even">
+<td><code>load average: 0.00</code></td>
+<td>El VPS tiene 2 núcleos; carga nula, sin cola de espera</td>
+</tr>
+<tr class="odd">
+<td><code>1 running, 117 sleeping, 0 zombie</code></td>
+<td>El único proceso activo es el propio <code>top</code>; no hay
+zombies</td>
+</tr>
+<tr class="even">
+<td><code>99.8 id</code>, <code>0.0 wa</code></td>
+<td>CPU ociosa, sin esperas de disco</td>
+</tr>
+<tr class="odd">
+<td><code>3910.4 total</code></td>
+<td>Los 4 GB del plan</td>
+</tr>
+<tr class="even">
+<td><code>buff/cache 1752.5</code></td>
+<td>Caché de disco, liberable; el dato real es <code>avail Mem</code>
+3347.1</td>
+</tr>
+<tr class="odd">
+<td><code>Swap 0.0</code></td>
+<td>No hay swap en el VPS</td>
+</tr>
+</tbody>
+</table>
+<p>Dos filas de la tabla de procesos:</p>
+<pre><code> PID USER  PR  NI    VIRT   RES   SHR S  %CPU %MEM    TIME+ COMMAND
+   1 root  20   0   22528 13812  9560 S   0.0  0.3  0:26.18 systemd
+   4 root   0 -20       0     0     0 I   0.0  0.0  0:00.00 kworker/R-rcu_g</code></pre>
+<p>La primera es un proceso normal: PID 1, prioridad 20 (nice 0),
+dormido, con memoria real asignada, y 26 s de CPU acumulada en 12 días.
+La segunda es un hilo del kernel: nice −20 (máxima prioridad), memoria
+0, estado <code>I</code>.</p>
+<h3 id="la-cadena-ssh-en-ps-aux">La cadena SSH en
+<code>ps aux</code></h3>
+<pre><code>miguel@backend-lab ~&gt; ps aux | grep -E &quot;USER|ssh&quot;
+USER   PID   %CPU %MEM  VSZ    RSS    TTY    STAT START  TIME COMMAND
+root   800   0.0  0.2   12024  8300   ?      Ss   Sep12  0:22 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+root   117406 0.0 0.2   14740  10616  ?      Ss   17:07   0:00 sshd: miguel [priv]
+miguel 117523 0.0 0.1   14996  7260   ?      S    17:07   0:00 sshd: miguel@pts/0
+miguel 117655 0.0 0.0   6904   2436   pts/0  S+   17:13   0:00 grep --color=auto ssh</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Línea</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>El <code>sshd</code> principal, root, sin terminal, líder de sesión,
+activo desde el 12 de septiembre. Solo escucha</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Hijo de root creado para esta conexión: verifica la identidad
+(<code>[priv]</code>)</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Ya con el usuario <code>miguel</code>: gestiona la sesión</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>El propio <code>grep</code>, que se captura a sí mismo; en
+<code>pts/0</code>, en primer plano (<code>+</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Cada conexión nueva añade su pareja <code>[priv]</code> +
+<code>usuario@pts/N</code>; la primera línea sigue ahí.</p>
+<h3 id="qué-cuenta-el-journal-de-postgresql-en-el-vps">Qué cuenta el
+journal de PostgreSQL en el VPS</h3>
+<p><code>sudo journalctl -b -u postgresql --no-pager</code>, combinado
+con la búsqueda de <code>postgresql</code> en todo el journal:</p>
+<pre><code>Sep 13 13:47:19 backend-lab sudo[9792]: miguel : TTY=pts/0 ; PWD=/home/miguel ; USER=root ; COMMAND=/usr/bin/apt install postgresql
+Sep 13 13:47:27 backend-lab useradd[11256]: new user: name=postgres, UID=105, GID=110, home=/var/lib/postgresql, shell=/bin/bash, from=none
+Sep 13 13:47:28 backend-lab systemd[1]: Starting postgresql.service - PostgreSQL RDBMS...
+Sep 13 13:47:28 backend-lab systemd[1]: Finished postgresql.service - PostgreSQL RDBMS.
+Sep 13 13:47:30 backend-lab systemd[1]: Starting postgresql@16-main.service - PostgreSQL Cluster 16-main...
+Sep 13 13:47:32 backend-lab systemd[1]: Started postgresql@16-main.service - PostgreSQL Cluster 16-main.
+Sep 22 06:27:20 backend-lab systemd[1]: Stopping postgresql@16-main.service - PostgreSQL Cluster 16-main...
+Sep 22 06:27:20 backend-lab systemd[1]: postgresql@16-main.service: Deactivated successfully.
+Sep 22 06:27:20 backend-lab systemd[1]: postgresql@16-main.service: Consumed 1min 28.980s CPU time, 27.3M memory peak, 0B memory swap peak.
+Sep 22 06:27:22 backend-lab systemd[1]: Started postgresql@16-main.service - PostgreSQL Cluster 16-main.</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Línea</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo[9792]</code></td>
+<td><code>sudo</code> anota quién instaló el paquete, desde qué terminal
+y con qué comando</td>
+</tr>
+<tr class="even">
+<td><code>useradd … UID=105</code></td>
+<td>El paquete crea la cuenta de servicio <code>postgres</code> (UID
+bajo 1000)</td>
+</tr>
+<tr class="odd">
+<td><code>postgresql.service</code> → <code>Finished</code> al
+instante</td>
+<td>La unit «paraguas»: no hace trabajo por sí sola</td>
+</tr>
+<tr class="even">
+<td><code>postgresql@16-main.service</code></td>
+<td>La unit que ejecuta el clúster. <code>@16-main</code> es la
+instancia de una plantilla</td>
+</tr>
+<tr class="odd">
+<td><code>Stopping</code> + <code>Deactivated successfully</code> +
+<code>Started</code></td>
+<td>Una parada y un arranque <strong>limpios</strong>, dos segundos de
+diferencia: no es un fallo (un fallo diría <code>Failed</code>)</td>
+</tr>
+<tr class="even">
+<td><code>Consumed 1min 28.980s CPU time, 27.3M memory peak</code></td>
+<td>Resumen del consumo de esa vida del servicio, del 13 al 22 de
+septiembre</td>
+</tr>
+</tbody>
+</table>
+<h3 id="arranque-vps-frente-a-portátil">Arranque: VPS frente a
+portátil</h3>
+<p><code>systemd-analyze</code> en los dos:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Fase</th>
+<th>VPS</th>
+<th>Portátil</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>firmware</td>
+<td>—</td>
+<td>12,621 s</td>
+</tr>
+<tr class="even">
+<td>loader</td>
+<td>—</td>
+<td>1,583 s</td>
+</tr>
+<tr class="odd">
+<td>kernel</td>
+<td>1,952 s</td>
+<td>1,638 s</td>
+</tr>
+<tr class="even">
+<td>initrd</td>
+<td>—</td>
+<td>2,676 s</td>
+</tr>
+<tr class="odd">
+<td>userspace</td>
+<td>4,902 s</td>
+<td>5,346 s</td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td><strong>6,854 s</strong></td>
+<td><strong>23,866 s</strong></td>
+</tr>
+</tbody>
+</table>
+<p>En el portátil, la mayor parte la consume el firmware comprobando
+hardware físico. <code>blame</code> en el portátil lista sobre todo
+<code>.device</code>: <code>tpm0</code>,
+<code>ttyS0</code>–<code>ttyS3</code> y el disco con sus rutas
+<code>by-id</code>, <code>by-partuuid</code>, <code>by-path</code>,
+<code>by-diskseq</code>.</p>
+<p><code>systemd-analyze blame</code> en el VPS (primeras líneas):</p>
+<pre><code>35.447s apt-daily-upgrade.service
+ 2.201s postgresql@16-main.service
+ 1.638s systemd-networkd-wait-online.service
+ 1.243s dev-vda3.device
+ 1.092s apparmor.service
+ 1.004s snapd.seeded.service
+  912ms snapd.service
+  614ms systemd-networkd.service</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Línea</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>apt-daily-upgrade.service</code>, 35 s</td>
+<td>Más que el arranque entero (6,8 s): corre de fondo, en paralelo; no
+retrasa el login</td>
+</tr>
+<tr class="even">
+<td><code>postgresql@16-main</code></td>
+<td>El clúster de la base de datos</td>
+</tr>
+<tr class="odd">
+<td><code>systemd-networkd-wait-online</code></td>
+<td>Espera a que la red tenga conectividad
+(<code>network-online.target</code>)</td>
+</tr>
+<tr class="even">
+<td><code>dev-vda3.device</code></td>
+<td>El disco virtual <code>vda</code> del VPS</td>
+</tr>
+<tr class="odd">
+<td><code>snapd.*</code></td>
+<td>Servicios de <code>snap</code>, que en un servidor sin aplicaciones
+de escritorio no se usan</td>
+</tr>
+</tbody>
+</table>
+<p><code>systemctl list-units --type=target</code> en el VPS mostró 25
+targets activos, todos <code>loaded active active</code>, incluidos
+<code>graphical.target</code> y <code>snapd.mounts.target</code>: señal
+de un sistema sano, pero con un target gráfico que un servidor no
+necesita.</p>
+<h3 id="quitar-el-target-gráfico-y-snapd-del-vps">Quitar el target
+gráfico y <code>snapd</code> del VPS</h3>
+<pre><code>sudo systemctl set-default multi-user.target
+systemctl get-default                         # multi-user.target
+
+snap list                                      # sin paquetes instalados
+sudo systemctl stop snapd
+sudo systemctl disable snapd
+sudo apt purge snapd -y
+sudo rm -rf /var/cache/snapd/
+rm -rf ~/snap
+snap list                                      # fish: Unknown command: snap</code></pre>
+<p>Tras la purga quedó un resto:</p>
+<pre><code>systemctl list-units --type=target | grep -i snap
+● snapd.mounts-pre.target not-found active active snapd.mounts-pre.target</code></pre>
+<p><code>not-found</code> con el punto <code>●</code>: el fichero de la
+unit ya no existe, pero systemd la sigue teniendo cargada en memoria.
+<code>daemon-reload</code> <strong>no</strong> la quitó, porque la unit
+seguía <strong>activa</strong>; hubo que pararla:</p>
+<pre><code>sudo systemctl stop snapd.mounts-pre.target snapd.mounts.target
+# Failed to stop snapd.mounts.target: Unit snapd.mounts.target not loaded.
+sudo systemctl daemon-reload
+systemctl list-units --type=target | grep -i snap     # sin salida</code></pre>
+<p>El error del segundo target es correcto: ya no estaba cargado. Tras
+<code>sudo reboot</code>:</p>
+<pre><code>systemctl get-default
+multi-user.target
+systemd-analyze
+Startup finished in 2.195s (kernel) + 6.335s (userspace) = 8.531s
+multi-user.target reached after 6.199s in userspace.</code></pre>
+<p>La diferencia de tiempo con la medición anterior (6,854 s) está
+dentro de la variación normal entre arranques de una VM; para comparar
+con rigor habría que repetir la medición varias veces.</p>
+<h3 id="fallos-típicos-y-cómo-se-ven">Fallos típicos y cómo se ven</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Situación</th>
+<th>Qué se ve</th>
+<th>Causa y salida</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ls /noexiste &gt; f</code></td>
+<td>El error sigue en pantalla; <code>f</code> queda vacío</td>
+<td><code>&gt;</code> solo redirige stdout; el error va por stderr. Usar
+<code>2&gt;</code> o <code>2&gt;&amp;1</code></td>
+</tr>
+<tr class="even">
+<td><code>rm -rf ./</code></td>
+<td><code>rm: refusing to remove '.' or '..' directory: skipping './'</code></td>
+<td><code>rm</code> protege <code>.</code> y <code>..</code>. Para
+vaciar la carpeta sin borrarla: <code>rm -rf ./*</code> (sin red de
+seguridad: comprobar antes con <code>ls -la ./*</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>sudo visudo</code> sin editor</td>
+<td><code>visudo: no editor found (editor path = /usr/bin/vi)</code></td>
+<td>Indicar el editor: <code>sudo EDITOR=vim visudo</code></td>
+</tr>
+<tr class="even">
+<td><code>journalctl -b</code> sin <code>sudo</code></td>
+<td><code>Hint: You are currently not seeing messages from other users and the system</code></td>
+<td>Solo ves tus mensajes. Usar <code>sudo</code> o el grupo
+<code>systemd-journal</code></td>
+</tr>
+<tr class="odd">
+<td><code>ps aux | grep sleep</code></td>
+<td>Aparecen dos filas: el proceso y el propio <code>grep</code></td>
+<td>El <code>grep</code> se captura a sí mismo. El PID a usar es el de
+la fila cuyo <code>COMMAND</code> es el programa real</td>
+</tr>
+<tr class="even">
+<td><code>ps aux | grep ssh</code></td>
+<td>Se pierde la fila de cabecera con los nombres de columna</td>
+<td><code>ps aux | grep -E "USER|ssh"</code> la conserva</td>
+</tr>
+<tr class="odd">
+<td><code>purge</code> de un paquete con units activas</td>
+<td><code>●</code> y <code>not-found</code> en
+<code>list-units</code></td>
+<td>La unit sigue cargada: <code>systemctl stop</code> y después
+<code>daemon-reload</code></td>
+</tr>
+<tr class="even">
+<td>Comando cuyo paquete se purgó</td>
+<td><code>fish: Unknown command: snap</code></td>
+<td>Confirma que ya no está</td>
+</tr>
+<tr class="odd">
+<td><code>chmod</code> sobre un directorio sin <code>x</code></td>
+<td><code>Permission denied</code> al entrar</td>
+<td>Un directorio sin <code>x</code> no se puede atravesar aunque se
+pueda listar</td>
+</tr>
+<tr class="even">
+<td><code>sudo</code> deja de pedir contraseña</td>
+<td>No es un fallo</td>
+<td>Está en la caché (<code>timestamp_timeout</code>);
+<code>sudo -k</code> la invalida</td>
+</tr>
+</tbody>
+</table>
+<h3 id="preguntas-frecuentes">Preguntas frecuentes</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Pregunta</th>
+<th>Comando</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>¿Está sano el servidor ahora mismo?</td>
+<td><code>top</code> y leer la cabecera: <code>load average</code>,
+<code>id</code>, <code>wa</code>, <code>avail Mem</code>,
+<code>zombie</code></td>
+</tr>
+<tr class="even">
+<td>¿Quién ejecuta este programa y cuál es su PID?</td>
+<td><code>ps aux | grep -E "USER|NOMBRE"</code></td>
+</tr>
+<tr class="odd">
+<td>¿Quién puede leer o escribir este fichero?</td>
+<td><code>ls -l FICHERO</code></td>
+</tr>
+<tr class="even">
+<td>¿A qué grupos pertenezco?</td>
+<td><code>id</code></td>
+</tr>
+<tr class="odd">
+<td>¿Una cuenta puede entrar con contraseña?</td>
+<td><code>sudo cat /etc/shadow | grep -E "^root:|^$(whoami):"</code> —
+<code>!</code> o <code>*</code> = no</td>
+</tr>
+<tr class="even">
+<td>¿Qué disco, partición y sistema de ficheros tengo?</td>
+<td><code>sudo parted -l</code></td>
+</tr>
+<tr class="odd">
+<td>¿Dónde está montado esto y con qué opciones?</td>
+<td><code>findmnt</code> o <code>mount</code></td>
+</tr>
+<tr class="even">
+<td>¿Cuánto espacio queda en disco?</td>
+<td><code>df -h</code></td>
+</tr>
+<tr class="odd">
+<td>¿Qué target alcanza el arranque?</td>
+<td><code>systemctl get-default</code></td>
+</tr>
+<tr class="even">
+<td>¿Qué servicio es el más lento al arrancar?</td>
+<td><code>systemd-analyze blame | head -15</code></td>
+</tr>
+<tr class="odd">
+<td>¿Cuánto tardó el último arranque, y en qué fase?</td>
+<td><code>systemd-analyze</code></td>
+</tr>
+<tr class="even">
+<td>¿Qué ha hecho un servicio desde el arranque?</td>
+<td><code>sudo journalctl -b -u SERVICIO --no-pager</code></td>
+</tr>
+<tr class="odd">
+<td>¿Quién ejecutó un comando con <code>sudo</code>?</td>
+<td><code>sudo journalctl -b | grep "COMMAND="</code></td>
+</tr>
+<tr class="even">
+<td>¿Qué recibirá <code>rm</code> si uso un asterisco?</td>
+<td><code>echo ./*</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-3--comandos-útiles-del-bloque">Parte 3 · Comandos útiles
+del bloque</h2>
+<h3 id="leer-y-buscar-en-ficheros">Leer y buscar en ficheros</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cat FICHERO</code></td>
+<td>Volcar un fichero entero</td>
+<td>Ficheros pequeños. En uno largo, se te escapa por arriba de la
+pantalla</td>
+</tr>
+<tr class="even">
+<td><code>less FICHERO</code></td>
+<td>Recorrer un fichero largo. <code>Espacio</code> avanza,
+<code>b</code> retrocede, <code>/TEXTO</code> busca, <code>n</code>
+siguiente, <code>q</code> sale</td>
+<td>Logs y configuraciones largas</td>
+</tr>
+<tr class="odd">
+<td><code>grep "PATRÓN" FICHERO</code></td>
+<td>Mostrar solo las líneas que contienen el patrón. <code>-i</code>
+ignora mayúsculas, <code>-n</code> numera líneas, <code>-v</code>
+invierte (las que <strong>no</strong> coinciden), <code>-r</code>
+recursivo en un directorio, <code>-E</code> permite <code>|</code> como
+«o»</td>
+<td>Sin fichero, lee la entrada estándar y se queda esperando:
+<code>Ctrl-C</code>. <code>grep -E "USER|ssh"</code> conserva la
+cabecera de <code>ps</code></td>
+</tr>
+<tr class="even">
+<td><code>head -N</code></td>
+<td>Las primeras N líneas de la entrada</td>
+<td>Limitar salidas largas:
+<code>systemd-analyze blame | head -15</code>. Sin número, son 10</td>
+</tr>
+<tr class="odd">
+<td><code>column -t</code></td>
+<td>Alinear en columnas la entrada</td>
+<td><code>mount | column -t</code></td>
+</tr>
+<tr class="even">
+<td><code>vim FICHERO</code></td>
+<td>Editar. <code>i</code> inserta, <code>Esc</code> vuelve al modo
+normal, <code>:wq</code> guarda y sale, <code>:q!</code> sale sin
+guardar</td>
+<td>Con <code>sudo</code> para ficheros de sistema. Si no sabes salir:
+<code>Esc</code>, luego <code>:q!</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="redirección-y-tuberías">Redirección y tuberías</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>COMANDO &gt; FICHERO</code></td>
+<td>stdout al fichero (lo sobrescribe)</td>
+<td>Los errores no se redirigen</td>
+</tr>
+<tr class="even">
+<td><code>COMANDO 2&gt; FICHERO</code></td>
+<td>Solo stderr al fichero</td>
+<td>Separar errores de la salida normal</td>
+</tr>
+<tr class="odd">
+<td><code>COMANDO &gt; FICHERO 2&gt;&amp;1</code></td>
+<td>stdout y stderr al mismo fichero</td>
+<td>El orden importa; el <code>&amp;</code> es necesario</td>
+</tr>
+<tr class="even">
+<td><code>COMANDO &gt; /dev/null</code></td>
+<td>Descartar la salida normal</td>
+<td><code>apt update &gt; /dev/null</code>: los errores siguen
+visibles</td>
+</tr>
+<tr class="odd">
+<td><code>COMANDO1 | COMANDO2</code></td>
+<td>Pasar la salida de uno como entrada del otro</td>
+<td><code>ps aux | grep ssh</code>,
+<code>journalctl ... | head</code></td>
+</tr>
+<tr class="even">
+<td><code>COMANDO &amp;</code></td>
+<td>Lanzar en segundo plano</td>
+<td>Muere con la shell que lo lanzó (ver Bloque 2: no sustituye a un
+servicio)</td>
+</tr>
+<tr class="odd">
+<td><code>echo ./*</code></td>
+<td>Ver en qué se expande un asterisco antes de usarlo</td>
+<td>Antes de cualquier <code>rm</code> con comodín</td>
+</tr>
+</tbody>
+</table>
+<h3 id="discos-y-sistemas-de-ficheros">Discos y sistemas de
+ficheros</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo parted -l</code></td>
+<td>Discos, tablas de particiones, particiones, tipos y banderas.
+<code>-l</code> lista todos</td>
+<td>Averiguar la estructura de una máquina. Requiere
+<code>sudo</code></td>
+</tr>
+<tr class="even">
+<td><code>mount</code></td>
+<td>Todo lo montado, con tipo y opciones</td>
+<td>Salida enorme con Docker (un <code>overlay</code> por
+contenedor)</td>
+</tr>
+<tr class="odd">
+<td><code>mount | column -t</code></td>
+<td>Lo mismo, alineado</td>
+<td>Más legible</td>
+</tr>
+<tr class="even">
+<td><code>findmnt</code></td>
+<td>Lo montado, en forma de árbol</td>
+<td>Ver qué cuelga de qué</td>
+</tr>
+<tr class="odd">
+<td><code>df -h</code></td>
+<td>Espacio usado y libre por sistema de ficheros. <code>-h</code> en
+unidades legibles (G, M)</td>
+<td>Primera comprobación cuando algo falla por falta de espacio</td>
+</tr>
+<tr class="even">
+<td><code>ls -la /</code></td>
+<td>Contenido de la raíz. <code>-l</code> formato largo, <code>-a</code>
+incluye ocultos</td>
+<td>Ver la jerarquía y los permisos de los directorios principales</td>
+</tr>
+</tbody>
+</table>
+<h3 id="empaquetar-y-comprimir">Empaquetar y comprimir</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>tar -cf PAQUETE.tar CARPETA/</code></td>
+<td>Juntar varios ficheros en uno solo, <strong>sin comprimir</strong>.
+<code>-c</code> crear, <code>-f</code> nombre del fichero (siempre
+seguido del nombre)</td>
+<td><code>tar</code> agrupa; no reduce tamaño</td>
+</tr>
+<tr class="even">
+<td><code>tar -czf PAQUETE.tar.gz CARPETA/</code></td>
+<td>Agrupar y comprimir a la vez. <code>-z</code> pasa el resultado por
+<code>gzip</code></td>
+<td>Copias de seguridad</td>
+</tr>
+<tr class="odd">
+<td><code>tar -xzf PAQUETE.tar.gz</code></td>
+<td>Extraer. <code>-x</code> extraer, <code>-z</code> descomprimir gzip,
+<code>-f</code> fichero de entrada</td>
+<td>Extrae en el directorio actual</td>
+</tr>
+<tr class="even">
+<td><code>gzip FICHERO</code></td>
+<td>Comprimir <strong>un</strong> fichero; crea <code>FICHERO.gz</code>
+y <strong>borra el original</strong></td>
+<td>No sabe comprimir carpetas: por eso se usa dentro de
+<code>tar</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="permisos-y-propietarios">Permisos y propietarios</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ls -l FICHERO</code></td>
+<td>Tipo, permisos, dueño, grupo, tamaño y fecha</td>
+<td>Primer paso ante un <code>Permission denied</code></td>
+</tr>
+<tr class="even">
+<td><code>ls -ld DIRECTORIO</code></td>
+<td>Lo mismo, del propio directorio. <code>-d</code> no entra en él</td>
+<td>Sin <code>-d</code> lista su contenido</td>
+</tr>
+<tr class="odd">
+<td><code>touch FICHERO</code></td>
+<td>Crear un fichero vacío (o actualizar su fecha)</td>
+<td>Para practicar permisos</td>
+</tr>
+<tr class="even">
+<td><code>chmod u+x FICHERO</code></td>
+<td>Cambiar permisos en notación simbólica. <code>u</code> dueño,
+<code>g</code> grupo, <code>o</code> resto, <code>a</code> todos;
+<code>+</code> añade, <code>-</code> quita, <code>=</code> fija</td>
+<td><code>u=rw,g=r,o=</code> fija exactamente <code>rw-r-----</code>;
+<code>=</code> borra lo que hubiera</td>
+</tr>
+<tr class="odd">
+<td><code>chmod 640 FICHERO</code></td>
+<td>Cambiar permisos en octal</td>
+<td><code>666</code> deja escribir a todos</td>
+</tr>
+<tr class="even">
+<td><code>chmod 4755 FICHERO</code></td>
+<td>Con un cuarto dígito: 4 setuid, 2 setgid, 1 sticky</td>
+<td>Raro de necesitar</td>
+</tr>
+<tr class="odd">
+<td><code>sudo chown USUARIO:GRUPO FICHERO</code></td>
+<td>Cambiar dueño y grupo</td>
+<td>Requiere root. Con <code>-R</code> actúa recursivamente</td>
+</tr>
+<tr class="even">
+<td><code>umask</code></td>
+<td>Ver los permisos que se restan a lo que se cree</td>
+<td>Solo afecta a lo creado después</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usuarios-grupos-y-privilegios">Usuarios, grupos y
+privilegios</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>id</code></td>
+<td>Tu UID, GID primario y todos tus grupos</td>
+<td>Comprobar si estás en <code>sudo</code>, <code>docker</code>…</td>
+</tr>
+<tr class="even">
+<td><code>groups</code></td>
+<td>Solo la lista de grupos</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>cat /etc/passwd | head</code></td>
+<td>Cuentas del sistema: 7 campos por <code>:</code></td>
+<td>Legible por todos</td>
+</tr>
+<tr class="even">
+<td><code>sudo cat /etc/shadow | head -3</code></td>
+<td>Contraseñas cifradas. <code>head -3</code> limita a 3 líneas</td>
+<td>Solo root. Nunca copiar los hashes a documentos o repositorios</td>
+</tr>
+<tr class="odd">
+<td><code>sudo COMANDO</code></td>
+<td>Ejecutar un comando con privilegios</td>
+<td>Pide <strong>tu</strong> contraseña; cacheada unos minutos por
+terminal</td>
+</tr>
+<tr class="even">
+<td><code>sudo -k</code></td>
+<td>Invalidar la caché de <code>sudo</code></td>
+<td>Probar de cero si te pide contraseña</td>
+</tr>
+<tr class="odd">
+<td><code>su</code> / <code>su USUARIO</code></td>
+<td>Sesión completa como root / como otro usuario</td>
+<td>Pide la contraseña del <strong>destino</strong>. En Ubuntu, root
+suele no tener contraseña utilizable</td>
+</tr>
+<tr class="even">
+<td><code>sudo su</code></td>
+<td>Sesión de root usando tu contraseña</td>
+<td>El prompt pasa a <code>#</code>. Se sale con <code>exit</code></td>
+</tr>
+<tr class="odd">
+<td><code>sudo visudo</code></td>
+<td>Editar <code>/etc/sudoers</code> con validación</td>
+<td>Nunca con un editor directo. Sin editor:
+<code>sudo EDITOR=vim visudo</code></td>
+</tr>
+<tr class="even">
+<td><code>whoami</code></td>
+<td>Con qué usuario estás</td>
+<td>Dentro de <code>$(whoami)</code> para usarlo en otro comando</td>
+</tr>
+</tbody>
+</table>
+<h3 id="procesos-y-señales">Procesos y señales</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ps aux</code></td>
+<td>Foto fija de todos los procesos. <code>a</code> de todos los
+usuarios, <code>u</code> formato con usuario y memoria, <code>x</code>
+incluye los que no tienen terminal</td>
+<td>Lista larga: filtrar con <code>grep</code>. <code>ps</code> sin
+flags solo muestra los de tu terminal</td>
+</tr>
+<tr class="even">
+<td><code>ps aux | head -1</code></td>
+<td>Solo la cabecera de columnas</td>
+<td>Recordar qué es cada columna</td>
+</tr>
+<tr class="odd">
+<td><code>ps aux | grep -E "USER|NOMBRE"</code></td>
+<td>Buscar un proceso conservando la cabecera</td>
+<td>El propio <code>grep</code> aparece en el resultado; el PID correcto
+es el de la fila del programa real</td>
+</tr>
+<tr class="even">
+<td><code>top</code></td>
+<td>Procesos y recursos en vivo. <code>q</code> sale</td>
+<td>Mirar primero la cabecera; ignorar los <code>kworker</code> con
+memoria 0</td>
+</tr>
+<tr class="odd">
+<td><code>kill -15 PID</code></td>
+<td>Pedir que termine (<code>SIGTERM</code>)</td>
+<td>Siempre primero. Solo acepta PID. Con procesos de otro usuario hace
+falta <code>sudo</code></td>
+</tr>
+<tr class="even">
+<td><code>kill -9 PID</code></td>
+<td>Matar sin aviso (<code>SIGKILL</code>)</td>
+<td>Solo si <code>-15</code> no funcionó; puede dejar datos
+corruptos</td>
+</tr>
+<tr class="odd">
+<td><code>kill -l</code></td>
+<td>Lista de señales y sus números</td>
+<td>Consulta</td>
+</tr>
+<tr class="even">
+<td><code>sleep 300 &amp;</code></td>
+<td>Proceso de prueba que no hace nada durante 300 s, en segundo
+plano</td>
+<td>Para practicar <code>ps</code> y <code>kill</code>; muestra su PID
+al lanzarlo</td>
+</tr>
+<tr class="odd">
+<td><code>rm -rf RUTA</code></td>
+<td>Borrar. <code>-r</code> recursivo, <code>-f</code> sin preguntar ni
+avisar si no existe</td>
+<td><strong>Irreversible, sin papelera.</strong> <code>rm -rf ./</code>
+es rechazado; <code>rm -rf ./*</code> no. Comprobar antes con
+<code>ls -la ./*</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="arranque-systemd-y-journal">Arranque, systemd y journal</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>systemd-analyze</code></td>
+<td>Tiempo total de arranque, por fase</td>
+<td>En una VM no aparecen <code>firmware</code>, <code>loader</code> ni
+<code>initrd</code></td>
+</tr>
+<tr class="even">
+<td><code>systemd-analyze blame</code></td>
+<td>Units ordenadas por tiempo de activación</td>
+<td>No mide el retraso real: arrancan en paralelo.
+<code>| head -15</code></td>
+</tr>
+<tr class="odd">
+<td><code>systemctl get-default</code></td>
+<td>Target que alcanza el arranque</td>
+<td>Comprobar si un servidor arranca en
+<code>graphical.target</code></td>
+</tr>
+<tr class="even">
+<td><code>sudo systemctl set-default multi-user.target</code></td>
+<td>Cambiar el target por defecto</td>
+<td>Se aplica en el próximo arranque</td>
+</tr>
+<tr class="odd">
+<td><code>systemctl list-units --type=target</code></td>
+<td>Targets activos. <code>--type=</code> filtra por tipo</td>
+<td>Columnas <code>LOAD</code>, <code>ACTIVE</code>, <code>SUB</code>;
+<code>not-found</code> = la unit ya no existe</td>
+</tr>
+<tr class="even">
+<td><code>sudo journalctl -b</code></td>
+<td>Log del arranque actual. <code>-b</code> limita a ese arranque</td>
+<td>Sin <code>sudo</code>, solo ves tus mensajes. Con muchos días
+encendido es enorme: filtrar</td>
+</tr>
+<tr class="odd">
+<td><code>sudo journalctl -b -u UNIT --no-pager</code></td>
+<td>Solo el log de una unit (<code>-u</code>). <code>--no-pager</code>
+imprime todo sin abrir <code>less</code></td>
+<td><code>UNIT</code> puede ser un nombre parcial
+(<code>postgresql</code>)</td>
+</tr>
+<tr class="even">
+<td><code>sudo systemctl stop UNIT</code> /
+<code>disable UNIT</code></td>
+<td>Parar ahora / evitar que arranque en el próximo arranque</td>
+<td>Una unit activa con el fichero borrado sigue cargada hasta
+pararla</td>
+</tr>
+<tr class="odd">
+<td><code>sudo systemctl daemon-reload</code></td>
+<td>Hacer que systemd relea las fichas de disco</td>
+<td>Tras editar o borrar units. No para las que ya están activas</td>
+</tr>
+<tr class="even">
+<td><code>sudo apt purge PAQUETE -y</code></td>
+<td>Desinstalar el paquete <strong>y su configuración</strong>.
+<code>-y</code> confirma sin preguntar</td>
+<td><code>remove</code> dejaría la configuración. <code>purge</code> no
+limpia directorios de datos fuera de <code>apt</code>
+(<code>/var/cache/snapd</code>, <code>~/snap</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>sudo reboot</code></td>
+<td>Reiniciar</td>
+<td>Corta tu sesión SSH; reconectar con <code>ssh vps</code> tras unos
+segundos</td>
+</tr>
+</tbody>
+</table>
+<h1 id="linuxvps--bloque-2--systemd-de-verdad">Linux/VPS · Bloque 2 —
+systemd de verdad</h1>
+<p>Unit files escritos a mano, targets, dependencias,
+<code>journalctl</code> con filtros y timers frente a cron.</p>
+<p><strong>Entorno de referencia:</strong> Ubuntu 24.04 · systemd 255.
+Las directivas y valores de este documento existen en esa versión; con
+otra, confírmalos en la documentación de la versión instalada
+(<code>systemctl --version</code>).</p>
+<hr />
+<h2 id="parte-1--teoría-1">Parte 1 · Teoría</h2>
+<h3 id="1-procesos-sesiones-y-servicios">1. Procesos, sesiones y
+servicios</h3>
+<p><strong>Proceso.</strong> Un programa en ejecución. El kernel le
+asigna un número, el <strong>PID</strong>. Todo proceso lo crea otro
+proceso, su <strong>padre</strong>; el número del padre es el
+<strong>PPID</strong>.</p>
+<p><strong>Huérfano.</strong> Si el padre muere antes que el hijo, el
+kernel asigna el hijo al <strong>PID 1</strong>. Que el PID 1 sea su
+padre no implica que nadie lo gestione: solo lo ha adoptado.</p>
+<p><strong>PID 1.</strong> El primer proceso del sistema. En Ubuntu es
+<strong>systemd</strong>; <code>/sbin/init</code> es un enlace simbólico
+a él.</p>
+<p><strong>Sesión.</strong> Al entrar por SSH se crea una cadena de
+procesos: <code>sshd</code> de la conexión → shell de login (aparece con
+guion: <code>-fish</code>, <code>-bash</code>) → los programas que
+lances. Todo lo lanzado a mano pertenece a esa sesión.</p>
+<p><strong>Señales.</strong> Avisos cortos que el kernel entrega a un
+proceso. Ante cada una, el proceso hace la acción por defecto, la
+captura para hacer otra cosa, o la ignora (salvo
+<code>SIGKILL</code>).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Señal</th>
+<th>Número</th>
+<th>Quién la envía</th>
+<th>Acción por defecto</th>
+<th>Uso habitual</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>SIGHUP</code></td>
+<td>1</td>
+<td>La shell, al cerrarse la terminal</td>
+<td>Terminar</td>
+<td>Muchos servicios la capturan para releer su configuración
+(<code>sshd</code>)</td>
+</tr>
+<tr class="even">
+<td><code>SIGINT</code></td>
+<td>2</td>
+<td><code>Ctrl-C</code></td>
+<td>Terminar</td>
+<td>En Python provoca <code>KeyboardInterrupt</code></td>
+</tr>
+<tr class="odd">
+<td><code>SIGTERM</code></td>
+<td>15</td>
+<td><code>kill</code>, <code>systemctl stop</code></td>
+<td>Terminar</td>
+<td>La forma normal de pedir que un programa pare</td>
+</tr>
+<tr class="even">
+<td><code>SIGKILL</code></td>
+<td>9</td>
+<td><code>kill -9</code>, el kernel sin memoria (<em>OOM
+killer</em>)</td>
+<td>Terminar sin aviso</td>
+<td>No se puede capturar ni ignorar</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>&amp;</code> y <code>nohup</code>.</strong>
+<code>&amp;</code> lanza un programa en segundo plano: libera la
+terminal, pero el proceso sigue siendo hijo de la shell y muere con
+ella. <code>nohup</code> hace que el programa ignore <code>SIGHUP</code>
+y sobreviva al cierre de la sesión, pero queda sin vigilancia: nadie lo
+reinicia si cae, no arranca tras un reinicio y su salida va a
+<code>nohup.out</code>.</p>
+<p><strong>Servicio.</strong> Un programa que gestiona systemd a partir
+de una <strong>unit</strong>: un fichero que dice cómo lanzarlo, con qué
+identidad, cuándo y qué hacer si falla. Un servicio no tiene PID; tiene
+nombre (<code>labweb.service</code>). Su proceso principal sí lo tiene
+(<code>Main PID:</code>), y cambia en cada reinicio. Un servicio no
+tiene terminal.</p>
+<p><strong>Daemon.</strong> Programa que funciona en segundo plano, sin
+terminal, esperando trabajo. Que algo sea un daemon no implica que esté
+gestionado.</p>
+<h3 id="2-systemd-y-las-units">2. systemd y las units</h3>
+<p><strong>systemd</strong> arranca el sistema, lanza y vigila los
+servicios, recoge su salida en el journal y los para al apagar.</p>
+<p><strong>Units.</strong> Cada cosa que gestiona systemd es una unit.
+El tipo lo indica la extensión:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Tipo</th>
+<th>Qué representa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>.service</code></td>
+<td>Un programa que se lanza y se vigila</td>
+</tr>
+<tr class="even">
+<td><code>.socket</code></td>
+<td>Un puerto o socket que systemd abre por adelantado para un
+servicio</td>
+</tr>
+<tr class="odd">
+<td><code>.timer</code></td>
+<td>Un momento en el que arrancar un servicio</td>
+</tr>
+<tr class="even">
+<td><code>.target</code></td>
+<td>Un punto del arranque que agrupa otras units
+(<code>multi-user.target</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>.scope</code></td>
+<td>Procesos que systemd no lanzó pero vigila (las sesiones de usuario:
+<code>session-N.scope</code>)</td>
+</tr>
+<tr class="even">
+<td><code>.slice</code></td>
+<td>Una rama del árbol de grupos de procesos (<code>system.slice</code>,
+<code>user.slice</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>cgroups.</strong> systemd coloca cada unit en un grupo de
+procesos del kernel. Así sabe qué procesos pertenecen a cada unit aunque
+cambien de padre. Los servicios cuelgan de <code>system.slice</code>;
+las sesiones, de <code>user.slice/user-UID.slice</code>.</p>
+<p><strong>Dónde viven las fichas:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Ruta</th>
+<th>De quién</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/etc/systemd/system/</code></td>
+<td>Del administrador</td>
+<td>Gana</td>
+</tr>
+<tr class="even">
+<td><code>/run/systemd/...</code></td>
+<td>Generadas en ejecución, temporales</td>
+<td>Media</td>
+</tr>
+<tr class="odd">
+<td><code>/usr/lib/systemd/system/</code></td>
+<td>De los paquetes; se sobrescriben al actualizar</td>
+<td>Pierde</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Copia en memoria.</strong> systemd lee las fichas una vez y
+trabaja con esa copia. Si editas una, no se entera hasta que ejecutes
+<code>daemon-reload</code>. Mientras tanto, <code>status</code> avisa
+con <code>changed on disk</code>.</p>
+<p><strong>Estados habituales:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Estado</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>active (running)</code></td>
+<td>El proceso principal está funcionando</td>
+</tr>
+<tr class="even">
+<td><code>active (exited)</code></td>
+<td>El proceso terminó con éxito y la unit se considera activa
+(<code>RemainAfterExit=yes</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>active (abandoned)</code></td>
+<td>Un scope cuya sesión se cerró pero conserva procesos</td>
+</tr>
+<tr class="even">
+<td><code>inactive (dead)</code></td>
+<td>Parado. Normal tras un <code>stop</code> limpio o tras un
+<code>oneshot</code></td>
+</tr>
+<tr class="odd">
+<td><code>failed</code></td>
+<td>Terminó con error, o systemd no pudo lanzarlo</td>
+</tr>
+</tbody>
+</table>
+<p>En la línea <code>Loaded:</code> aparece además si la unit está
+<code>enabled</code>, <code>disabled</code> o <code>static</code> (sin
+sección <code>[Install]</code>: no se puede habilitar; la arranca otra
+unit).</p>
+<h3 id="3-el-unit-file-de-un-servicio">3. El unit file de un
+servicio</h3>
+<h4 id="secciones">Secciones</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Sección</th>
+<th>Qué describe</th>
+<th>Cuándo la lee systemd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>[Unit]</code></td>
+<td>Qué es y de qué depende</td>
+<td>Siempre</td>
+</tr>
+<tr class="even">
+<td><code>[Service]</code></td>
+<td>Cómo se ejecuta</td>
+<td>Siempre</td>
+</tr>
+<tr class="odd">
+<td><code>[Install]</code></td>
+<td>En qué target se apunta</td>
+<td>Solo <code>systemctl enable</code> y <code>disable</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="reglas-de-sintaxis">Reglas de sintaxis</h4>
+<ul>
+<li>Una directiva por línea, <code>Nombre=valor</code>, sin espacios
+alrededor del <code>=</code>.</li>
+<li>Los nombres <strong>distinguen mayúsculas</strong>. Una directiva
+desconocida o en la sección equivocada se <strong>ignora</strong> con un
+aviso en el journal, y la unit arranca igual. Es el tipo de error más
+peligroso, porque no se ve.</li>
+<li>Las rutas de <code>ExecStart=</code> van completas: systemd no usa
+el <code>PATH</code> de tu shell. <code>ExecStart=</code> no es una
+shell: <code>&amp;</code>, <code>|</code>, <code>&gt;</code> no
+funcionan.</li>
+</ul>
+<h4 id="directivas-principales">Directivas principales</h4>
+<table>
+<thead>
+<tr class="header">
+<th>Directiva</th>
+<th>Sección</th>
+<th>Qué hace</th>
+<th>Documentación</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Description=</code></td>
+<td><code>[Unit]</code></td>
+<td>Nombre legible en <code>status</code> y en el journal</td>
+<td><code>systemd.unit</code></td>
+</tr>
+<tr class="even">
+<td><code>ExecStart=</code></td>
+<td><code>[Service]</code></td>
+<td>Comando que se ejecuta</td>
+<td><code>systemd.service</code></td>
+</tr>
+<tr class="odd">
+<td><code>Type=</code></td>
+<td><code>[Service]</code></td>
+<td>Cuándo se considera arrancado</td>
+<td><code>systemd.service</code></td>
+</tr>
+<tr class="even">
+<td><code>Restart=</code></td>
+<td><code>[Service]</code></td>
+<td>Cuándo volver a arrancarlo</td>
+<td><code>systemd.service</code></td>
+</tr>
+<tr class="odd">
+<td><code>RestartSec=</code></td>
+<td><code>[Service]</code></td>
+<td>Espera antes de cada reinicio (por defecto, 100 ms)</td>
+<td><code>systemd.service</code></td>
+</tr>
+<tr class="even">
+<td><code>ExecReload=</code></td>
+<td><code>[Service]</code></td>
+<td>Qué hacer al recibir <code>reload</code>; sin ella,
+<code>reload</code> no existe</td>
+<td><code>systemd.service</code></td>
+</tr>
+<tr class="odd">
+<td><code>RemainAfterExit=</code></td>
+<td><code>[Service]</code></td>
+<td>Considerarlo activo aunque su proceso haya terminado</td>
+<td><code>systemd.service</code></td>
+</tr>
+<tr class="even">
+<td><code>User=</code>, <code>Group=</code></td>
+<td><code>[Service]</code></td>
+<td>Identidad del proceso; sin <code>User=</code>, corre como root</td>
+<td><code>systemd.exec</code></td>
+</tr>
+<tr class="odd">
+<td><code>Environment=</code></td>
+<td><code>[Service]</code></td>
+<td>Variables de entorno, <code>NOMBRE=valor</code>; puede repetirse o
+llevar varias separadas por espacios</td>
+<td><code>systemd.exec</code></td>
+</tr>
+<tr class="even">
+<td><code>WorkingDirectory=</code></td>
+<td><code>[Service]</code></td>
+<td>Carpeta en la que arranca</td>
+<td><code>systemd.exec</code></td>
+</tr>
+<tr class="odd">
+<td><code>KillMode=</code></td>
+<td><code>[Service]</code></td>
+<td>Qué procesos mata al parar; <code>process</code> solo mata el
+principal</td>
+<td><code>systemd.kill</code></td>
+</tr>
+<tr class="even">
+<td><code>WantedBy=</code></td>
+<td><code>[Install]</code></td>
+<td>Target en cuyo <code>.wants/</code> se crea el enlace al
+habilitar</td>
+<td><code>systemd.unit</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>man systemd.directives</code> es el índice: dice en qué página
+se explica cada directiva.</p>
+<h4 id="type"><code>Type=</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>Valor</th>
+<th>Se considera arrancado cuando…</th>
+<th>Si el ejecutable no existe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>simple</code> (por defecto)</td>
+<td>Se crea el proceso</td>
+<td><code>start</code> no avisa; el fallo aparece después</td>
+</tr>
+<tr class="even">
+<td><code>exec</code></td>
+<td>El programa se ha ejecutado</td>
+<td><code>start</code> falla en el momento</td>
+</tr>
+<tr class="odd">
+<td><code>oneshot</code></td>
+<td>El proceso termina con éxito</td>
+<td><code>start</code> falla</td>
+</tr>
+<tr class="even">
+<td><code>notify</code></td>
+<td>El programa avisa a systemd de que está listo</td>
+<td>Requiere soporte en el propio programa</td>
+</tr>
+</tbody>
+</table>
+<p><code>exec</code> es la opción recomendada para servicios que se
+quedan funcionando. No detecta fallos que ocurren después de ejecutarse
+el programa (un fichero que no puede leer, un puerto ocupado).</p>
+<h4 id="restart"><code>Restart=</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>Cómo termina el proceso</th>
+<th><code>no</code></th>
+<th><code>on-failure</code></th>
+<th><code>always</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Código 0 o
+<code>SIGHUP</code>/<code>SIGINT</code>/<code>SIGTERM</code>/<code>SIGPIPE</code></td>
+<td>—</td>
+<td>—</td>
+<td>Reinicia</td>
+</tr>
+<tr class="even">
+<td>Código distinto de 0</td>
+<td>—</td>
+<td>Reinicia</td>
+<td>Reinicia</td>
+</tr>
+<tr class="odd">
+<td>Otra señal (<code>SIGKILL</code>, falta de memoria)</td>
+<td>—</td>
+<td>Reinicia</td>
+<td>Reinicia</td>
+</tr>
+<tr class="even">
+<td><code>systemctl stop</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><code>on-failure</code> es la recomendada para servicios de larga
+duración.</p>
+<p><strong>Límite de arranques.</strong> Por defecto, si una unit
+arranca más de 5 veces en 10 segundos (<code>StartLimitBurst=</code>,
+<code>StartLimitIntervalSec=</code> en <code>[Unit]</code>), systemd
+deja de intentarlo: <code>Start request repeated too quickly</code>.
+Protege de los bucles de caídas. Se sale con
+<code>reset-failed</code>.</p>
+<h4 id="usuario-dedicado">Usuario dedicado</h4>
+<p>Cada servicio continuo debería correr con su propio usuario de
+sistema (mínimo privilegio): si alguien explota un fallo del programa,
+obtiene los permisos de ese usuario, no los de root. Las cuentas de
+servicio tienen UID por debajo de 1000, shell <code>nologin</code> y
+ninguna contraseña utilizable. El código del servicio conviene que sea
+de root y solo legible por el servicio, para que no pueda modificarse a
+sí mismo.</p>
+<h3 id="4-targets-y-arranque-automático">4. Targets y arranque
+automático</h3>
+<p>Un <strong>target</strong> es una etapa del arranque que agrupa
+units. <code>multi-user.target</code> es el sistema funcionando en modo
+normal sin entorno gráfico; <code>graphical.target</code> lo incluye y
+añade el escritorio; <code>sockets.target</code> y
+<code>timers.target</code> son etapas donde se apuntan sockets y timers.
+<code>systemctl get-default</code> dice qué target alcanza la
+máquina.</p>
+<p><code>WantedBy=multi-user.target</code> no hace nada por sí sola. Al
+ejecutar <code>systemctl enable</code>, se crea un enlace simbólico en
+<code>/etc/systemd/system/multi-user.target.wants/</code>. Al arrancar,
+systemd lanza todo lo que hay en esa carpeta. Si el target nunca se
+alcanza, el servicio nunca arranca solo.</p>
+<p><code>start</code> arranca ahora; <code>enable</code> deja apuntado
+para los próximos arranques. Son independientes.</p>
+<h3 id="5-drop-ins">5. Drop-ins</h3>
+<p>Un <strong>drop-in</strong> es un fichero <code>.conf</code> en
+<code>/etc/systemd/system/&lt;unit&gt;.d/</code> que se suma a la ficha
+sin modificarla. Sirve sobre todo para ajustar units de paquetes, cuyos
+cambios en <code>/usr/lib</code> se perderían al actualizar.</p>
+<ul>
+<li>Debe repetir la cabecera de sección; sin ella, sus líneas se
+ignoran.</li>
+<li>Las directivas de lista (<code>After=</code>, <code>Wants=</code>,
+<code>Environment=</code>) se acumulan. Las de valor único
+(<code>User=</code>, <code>Type=</code>) se sustituyen.</li>
+<li><code>systemctl status</code> muestra la línea <code>Drop-In:</code>
+cuando existe alguno.</li>
+</ul>
+<h3 id="6-dependencias">6. Dependencias</h3>
+<p>Hay dos ejes independientes: <strong>dependencia</strong> (si una
+unit arrastra a otra) y <strong>orden</strong> (cuál arranca antes).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Directiva</th>
+<th>Al arrancar esta unit</th>
+<th>Si la otra se para explícitamente</th>
+<th>Si la otra cae sola</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Wants=</code></td>
+<td>Arranca la otra</td>
+<td>Nada</td>
+<td>Nada</td>
+</tr>
+<tr class="even">
+<td><code>Requires=</code></td>
+<td>Arranca la otra</td>
+<td>Esta se para (y un <code>restart</code> se propaga)</td>
+<td>Nada</td>
+</tr>
+<tr class="odd">
+<td><code>BindsTo=</code></td>
+<td>Arranca la otra</td>
+<td>Esta se para</td>
+<td>Esta se para</td>
+</tr>
+<tr class="even">
+<td><code>PartOf=</code></td>
+<td>—</td>
+<td>Esta se para o reinicia; solo en esa dirección</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong><code>After=</code> / <code>Before=</code></strong> solo
+fijan el orden. Sin <code>After=</code>, systemd arranca las dos a la
+vez. Lo habitual es <code>Wants=</code> o <code>Requires=</code> junto
+con <code>After=</code>.</li>
+<li>Una parada por dependencia es una parada <strong>limpia</strong>
+(<code>SIGTERM</code>), así que <code>Restart=on-failure</code> no
+actúa. Y la unit de la que dependes no arranca a quien depende de ella
+cuando vuelve.</li>
+<li><strong>Dependencias por defecto.</strong> Todo servicio normal
+depende de <code>sysinit.target</code>, <code>basic.target</code>,
+<code>system.slice</code> y <code>systemd-journald.socket</code>, sin
+escribirlas.</li>
+<li><strong>Plantillas.</strong> Una unit con <code>@</code>
+(<code>postgresql@.service</code>) es una plantilla; lo que va entre
+<code>@</code> y la extensión (<code>16-main</code>) es la
+<strong>instancia</strong>, y dentro de la ficha se usa como
+<code>%i</code>.</li>
+</ul>
+<h3 id="7-diagnosticar-un-servicio-que-falla">7. Diagnosticar un
+servicio que falla</h3>
+<p><strong>Orden:</strong> <code>systemctl status</code> →
+<code>journalctl -u</code> → la ficha.</p>
+<p><strong>Quien hace la acción que falla, escribe el error.</strong>
+systemd lee la ficha, prepara el usuario y lanza el programa. La
+aplicación abre ficheros, reserva puertos, conecta a bases de datos.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Quién falla</th>
+<th>Etiqueta en el journal</th>
+<th>Código de salida</th>
+<th>Dónde buscar</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>systemd, al preparar o lanzar</td>
+<td><code>systemd[1]:</code> o <code>(programa)[PID]:</code> entre
+paréntesis</td>
+<td>200 en adelante</td>
+<td>La ficha</td>
+</tr>
+<tr class="even">
+<td>La aplicación, ya lanzada</td>
+<td><code>programa[PID]:</code></td>
+<td>Bajo (1, 2…)</td>
+<td>Lo que usa el programa</td>
+</tr>
+</tbody>
+</table>
+<p>Códigos propios de systemd (<code>man systemd.exec</code>,
+<em>PROCESS EXIT CODES</em>): <code>200/CHDIR</code> (no existe
+<code>WorkingDirectory=</code>), <code>203/EXEC</code> (no pudo ejecutar
+el programa), <code>217/USER</code> (no existe el usuario). Los códigos
+bajos los define cada programa: en <code>curl</code>, 7 es «no pude
+conectar»; en el estado del servicio, systemd les pone un nombre
+(<code>2/INVALIDARGUMENT</code>, <code>7/NOTRUNNING</code>) que no tiene
+por qué corresponder a su significado real.</p>
+<p>En un <strong>bucle de caídas</strong>, la causa está en la primera
+caída de la serie, no en las últimas líneas.</p>
+<p><strong>Errores que no hacen fallar el servicio</strong> (solo los
+detectan <code>systemd-analyze verify</code>, el aviso del journal o
+<code>systemctl show</code>): directivas mal escritas, en la sección
+equivocada, o una ficha editada sin <code>daemon-reload</code>.</p>
+<h3 id="8-el-journal">8. El journal</h3>
+<p>El <strong>journal</strong> es el registro de systemd. Guarda cada
+mensaje con campos (<code>_SYSTEMD_UNIT</code>, <code>_PID</code>,
+<code>_UID</code>, <code>_COMM</code>, <code>PRIORITY</code>,
+arranque…), que son los que permiten filtrar.</p>
+<ul>
+<li><strong>Todo lo que un servicio imprime</strong> (salida normal y de
+errores) llega al journal sin que el programa sepa nada de logs.</li>
+<li><strong>Prioridad.</strong> De más a menos grave:
+<code>emerg</code>, <code>alert</code>, <code>crit</code>,
+<code>err</code>, <code>warning</code>, <code>notice</code>,
+<code>info</code>, <code>debug</code>. Lo que imprime un programa llega
+como <code>info</code>, incluido un traceback: <code>-p err</code>
+encuentra qué servicio falló (lo marca systemd), no por qué.</li>
+<li><strong>Persistencia.</strong> Si existe
+<code>/var/log/journal</code>, el journal conserva los arranques
+anteriores. En Ubuntu es persistente por defecto.</li>
+<li><strong>La hora es la de llegada.</strong> Con el búfer de Python,
+un mensaje puede llegar mucho después de imprimirse. Python retiene su
+salida cuando no escribe en una terminal;
+<code>PYTHONUNBUFFERED=1</code> o <code>python3 -u</code> lo
+desactivan.</li>
+<li><strong>Un log dice lo que el programa cree que pasa.</strong> Si un
+programa anuncia algo antes de hacerlo, el log puede afirmar lo que
+luego falla.</li>
+<li><strong>Permisos.</strong> Para leer los mensajes del sistema sin
+<code>sudo</code>, el usuario tiene que estar en el grupo
+<code>systemd-journal</code>.</li>
+</ul>
+<h3 id="9-activación-por-socket">9. Activación por socket</h3>
+<p>Una unit <code>.socket</code> hace que systemd abra un puerto por
+adelantado y se lo pase al servicio con su mismo nombre. Con
+<code>Accept=no</code>, un único proceso recibe el puerto y atiende
+todas las conexiones; con <code>Accept=yes</code>, se lanza un proceso
+por conexión. Si el servicio está parado y llega una conexión, systemd
+lo arranca (<code>TriggeredBy:</code> en el <code>status</code> del
+servicio).</p>
+<p>Consecuencias: en <code>ss</code>, el puerto aparece en manos de
+<code>systemd</code> (PID 1) y del servicio; y el puerto lo decide la
+unit <code>.socket</code>, no la configuración del programa.</p>
+<h3 id="10-timers-y-cron">10. Timers y cron</h3>
+<p>Un <strong>timer</strong> arranca el servicio con su mismo nombre en
+un momento dado. El timer dice cuándo; el servicio, qué. Para tareas que
+hacen algo y terminan, el servicio usa <code>Type=oneshot</code>, y no
+necesita <code>[Install]</code>: se habilita el timer.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Directiva del timer</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>OnCalendar=</code></td>
+<td>Fecha y hora, formato <code>año-mes-día hora:minuto:segundo</code>
+con <code>*</code> y <code>/</code>. <code>*:0/5</code> = cada 5
+minutos; <code>*-*-* 6:00</code> = cada día a las 6:00</td>
+</tr>
+<tr class="even">
+<td><code>Persistent=true</code></td>
+<td>Si la máquina estaba apagada, ejecuta lo pendiente al arrancar</td>
+</tr>
+<tr class="odd">
+<td><code>RandomizedDelaySec=</code></td>
+<td>Retraso aleatorio, para repartir la carga</td>
+</tr>
+<tr class="even">
+<td><code>WantedBy=timers.target</code></td>
+<td>En <code>[Install]</code>, para habilitar el timer</td>
+</tr>
+</tbody>
+</table>
+<p><strong>cron</strong> lee una tabla de tareas por usuario
+(<code>crontab</code>), con cinco campos de tiempo: minuto, hora, día
+del mes, mes, día de la semana. Envía la salida de cada tarea
+<strong>por correo</strong>; sin servidor de correo (MTA), la descarta.
+No registra si la tarea falló.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>cron</th>
+<th>Timer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Salida de la tarea</td>
+<td>Por correo, o descartada</td>
+<td>En el journal</td>
+</tr>
+<tr class="even">
+<td>Fallo visible</td>
+<td>No</td>
+<td>Sí: <code>failed</code>, <code>systemctl --failed</code></td>
+</tr>
+<tr class="odd">
+<td>Máquina apagada a la hora prevista</td>
+<td>Se pierde</td>
+<td>Se recupera con <code>Persistent=true</code></td>
+</tr>
+<tr class="even">
+<td>Usuario</td>
+<td>El dueño de la tabla</td>
+<td>El de <code>User=</code></td>
+</tr>
+<tr class="odd">
+<td>Dependencias, límites, entorno</td>
+<td>No</td>
+<td>Todo lo de un servicio</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-2--ejemplos-1">Parte 2 · Ejemplos</h2>
+<h3 id="servicio-de-larga-duración">Servicio de larga duración</h3>
+<pre class="ini"><code># /etc/systemd/system/labweb.service
+[Unit]
+Description=Python local web server
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/python3 /opt/labweb/labweb.py
+User=labweb
+Restart=on-failure
+RestartSec=2
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p>Usuario dedicado, fallo inmediato si el programa no se puede lanzar,
+reinicio a los 2 segundos tras un error, salida de Python sin retraso,
+arranque automático. El usuario se crea con
+<code>sudo useradd --system --no-create-home --shell /usr/sbin/nologin labweb</code>.</p>
+<h3 id="tarea-periódica-servicio-oneshot-y-timer">Tarea periódica:
+servicio <code>oneshot</code> y timer</h3>
+<pre class="ini"><code># /etc/systemd/system/labweb-health.service
+[Unit]
+Description=Healthcheck de labweb
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -fsS --max-time 5 http://127.0.0.1:8080/health
+User=labweb</code></pre>
+<pre class="ini"><code># /etc/systemd/system/labweb-health.timer
+[Unit]
+Description=Healthcheck de labweb cada 5 minutos
+
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+
+[Install]
+WantedBy=timers.target</code></pre>
+<p>Se activa con
+<code>sudo systemctl enable --now labweb-health.timer</code>. Si
+<code>curl</code> no conecta, el servicio queda <code>failed</code> y el
+error queda en el journal.</p>
+<p>La misma tarea en cron (<code>crontab -e</code>), sin registro del
+resultado:</p>
+<pre><code>*/5 * * * * curl -fsS --max-time 5 http://127.0.0.1:8080/health</code></pre>
+<h3 id="drop-in-con-dependencia">Drop-in con dependencia</h3>
+<pre class="ini"><code># sudo systemctl edit labweb → /etc/systemd/system/labweb.service.d/override.conf
+[Unit]
+Wants=postgresql@16-main.service
+After=postgresql@16-main.service</code></pre>
+<h3 id="dos-units-de-postgresql-en-ubuntu">Dos units de PostgreSQL en
+Ubuntu</h3>
+<ul>
+<li><code>postgresql@16-main.service</code>, instancia de la plantilla
+<code>postgresql@.service</code>, ejecuta el servidor. Lleva
+<code>PartOf=postgresql.service</code> y
+<code>Before=postgresql.service</code>.</li>
+<li><code>postgresql.service</code> ejecuta <code>/bin/true</code> con
+<code>RemainAfterExit=yes</code>: queda <code>active (exited)</code> y
+sirve para controlar todos los clústeres a la vez.</li>
+<li>Parar <code>postgresql.service</code> para el clúster. Parar el
+clúster no cambia <code>postgresql.service</code>.</li>
+</ul>
+<p>Por tanto, un servicio que necesite la base de datos (Odoo) debe
+depender de <code>postgresql@16-main.service</code>. Si dependiera de
+<code>postgresql.service</code>, seguiría funcionando con el servidor
+caído.</p>
+<h3 id="ssh-en-ubuntu-2404">SSH en Ubuntu 24.04</h3>
+<pre class="ini"><code># ssh.socket (fragmento)
+[Socket]
+ListenStream=22
+Accept=no
+[Install]
+WantedBy=sockets.target</code></pre>
+<pre class="ini"><code># ssh.service (fragmento)
+ExecStartPre=/usr/sbin/sshd -t
+ExecStart=/usr/sbin/sshd -D $SSHD_OPTS
+ExecReload=/usr/sbin/sshd -t
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+Type=notify</code></pre>
+<ul>
+<li><code>ssh.socket</code> abre el puerto 22; <code>ssh.service</code>
+lanza <code>sshd</code> y le pasa el puerto.</li>
+<li><code>reload</code> valida la configuración y envía
+<code>SIGHUP</code> a <code>sshd</code>, que la relee.</li>
+<li><code>KillMode=process</code>: un <code>restart</code> solo mata el
+<code>sshd</code> principal; las sesiones abiertas sobreviven (en el
+journal:
+<code>Unit process ... remains running after unit stopped</code>).</li>
+<li>Cambiar <code>Port</code> en <code>sshd_config</code> no basta: el
+puerto lo fija <code>ssh.socket</code>.</li>
+</ul>
+<h3 id="fallos-típicos-y-cómo-se-ven-1">Fallos típicos y cómo se
+ven</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Causa</th>
+<th><code>status</code></th>
+<th>Línea del journal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>El ejecutable de <code>ExecStart=</code> no existe</td>
+<td><code>status=203/EXEC</code></td>
+<td>Solo el código; la ruta, en la línea <code>Process:</code></td>
+</tr>
+<tr class="even">
+<td>El usuario de <code>User=</code> no existe</td>
+<td><code>status=217/USER</code></td>
+<td><code>(python3)[PID]: Failed to determine user credentials</code></td>
+</tr>
+<tr class="odd">
+<td>El script no existe</td>
+<td><code>status=2</code></td>
+<td><code>python3[PID]: can't open file ...: [Errno 2] No such file or directory</code></td>
+</tr>
+<tr class="even">
+<td>El script no se puede leer</td>
+<td><code>status=2</code></td>
+<td><code>[Errno 13] Permission denied</code></td>
+</tr>
+<tr class="odd">
+<td>Puerto ocupado</td>
+<td><code>status=1</code></td>
+<td><code>OSError: [Errno 98] Address already in use</code></td>
+</tr>
+<tr class="even">
+<td>Ficha editada sin <code>daemon-reload</code></td>
+<td><code>active</code>, sin fallo</td>
+<td><code>Warning: The unit file ... changed on disk</code></td>
+</tr>
+<tr class="odd">
+<td>Directiva mal escrita (<code>user=</code>,
+<code>Restrat=</code>)</td>
+<td><code>active</code>, sin fallo</td>
+<td><code>Unknown key name 'user' in section 'Service', ignoring</code></td>
+</tr>
+<tr class="even">
+<td>Bucle de caídas</td>
+<td><code>failed</code></td>
+<td><code>Start request repeated too quickly</code></td>
+</tr>
+<tr class="odd">
+<td><code>kill -9</code> con <code>Restart=on-failure</code></td>
+<td>Reiniciado</td>
+<td><code>code=killed, status=9/KILL</code> y
+<code>Scheduled restart job</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="preguntas-al-journal">Preguntas al journal</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Pregunta</th>
+<th>Comando</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Qué ha dicho un servicio en los últimos 15 minutos</td>
+<td><code>journalctl -u labweb -S '15 min ago'</code></td>
+</tr>
+<tr class="even">
+<td>Avisos y errores de todo el sistema en este arranque</td>
+<td><code>journalctl -b -p warning</code></td>
+</tr>
+<tr class="odd">
+<td>Qué dijo un servicio en el arranque anterior</td>
+<td><code>journalctl -u labweb -b -1</code></td>
+</tr>
+<tr class="even">
+<td>Si un servicio se recargó o reinició un día concreto</td>
+<td><code>journalctl -u ssh -S '2026-09-11' -U '2026-09-12' | grep -iE 'reload|stopp|start'</code></td>
+</tr>
+<tr class="odd">
+<td>Qué comandos se ejecutaron con <code>sudo</code> en un
+intervalo</td>
+<td><code>journalctl -t sudo -S '...' -U '...'</code></td>
+</tr>
+<tr class="even">
+<td>Con qué usuario se ejecutó un programa</td>
+<td><code>journalctl -u labweb-health _COMM=curl -o verbose | grep _UID</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="parte-3--comandos-útiles-del-bloque-1">Parte 3 · Comandos útiles
+del bloque</h2>
+<h3 id="procesos">Procesos</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ps -o pid,ppid,user,cmd -p PID</code></td>
+<td>Ficha de un proceso: <code>-o</code> elige columnas
+(<code>ppid</code> = padre), <code>-p</code> filtra por PID</td>
+<td>Saber quién lanzó un proceso y con qué usuario corre. Con
+<code>-o unit</code> añade la unit. En fish no uses
+<code>&lt;PID&gt;</code>: los <code>&lt;</code> <code>&gt;</code> son
+redirección</td>
+</tr>
+<tr class="even">
+<td><code>ps -eo user,cmd | sort | uniq -c | sort -rn</code></td>
+<td>Cuántos procesos corre cada usuario; <code>-e</code> todos</td>
+<td>Revisión general de qué hay en marcha</td>
+</tr>
+<tr class="odd">
+<td><code>kill -15 PID</code> / <code>kill -9 PID</code></td>
+<td>Enviar <code>SIGTERM</code> o <code>SIGKILL</code></td>
+<td>Solo acepta PID. Con procesos de otro usuario: <code>sudo</code> (si
+no, <code>Operation not permitted</code>)</td>
+</tr>
+<tr class="even">
+<td><code>comando &amp;</code> / <code>nohup comando &amp;</code></td>
+<td>Segundo plano / ignorar <code>SIGHUP</code></td>
+<td>No sustituyen a un servicio</td>
+</tr>
+<tr class="odd">
+<td><code>jobs</code></td>
+<td>Trabajos en segundo plano de esta shell</td>
+<td>Antes de cerrar una terminal</td>
+</tr>
+<tr class="even">
+<td><code>echo $status</code> (fish) / <code>echo $?</code> (bash)</td>
+<td>Código de salida del último comando</td>
+<td>Scripts y diagnósticos</td>
+</tr>
+</tbody>
+</table>
+<h3 id="servicios">Servicios</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>systemctl status UNIT</code></td>
+<td>Estado, PID, cgroup y últimas líneas del log</td>
+<td>Primer paso de cualquier diagnóstico. <code>--no-pager</code>
+imprime sin <code>less</code>; <code>-l</code> no corta líneas. Mira si
+arriba aparece <code>changed on disk</code></td>
+</tr>
+<tr class="even">
+<td><code>systemctl status PID</code></td>
+<td>A qué unit pertenece un proceso</td>
+<td>Averiguar si algo es un servicio o se lanzó a mano</td>
+</tr>
+<tr class="odd">
+<td><code>sudo systemctl start | stop | restart UNIT</code></td>
+<td>Arrancar, parar, reiniciar</td>
+<td><code>restart</code> sin <code>daemon-reload</code> usa la ficha
+antigua</td>
+</tr>
+<tr class="even">
+<td><code>sudo systemctl reload UNIT</code></td>
+<td>Releer la configuración sin parar</td>
+<td>Solo si la ficha tiene <code>ExecReload=</code></td>
+</tr>
+<tr class="odd">
+<td><code>sudo systemctl enable --now UNIT</code></td>
+<td>Habilitar y arrancar</td>
+<td>Una unit <code>static</code> no se puede habilitar. En timers, se
+habilita el <code>.timer</code></td>
+</tr>
+<tr class="even">
+<td><code>sudo systemctl disable --now UNIT</code></td>
+<td>Deshabilitar y parar</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><code>sudo systemctl daemon-reload</code></td>
+<td>Releer todas las fichas</td>
+<td>Siempre tras editar una ficha a mano</td>
+</tr>
+<tr class="even">
+<td><code>sudo systemctl reset-failed UNIT</code></td>
+<td>Borrar el estado <code>failed</code> y los contadores</td>
+<td>Tras <code>Start request repeated too quickly</code></td>
+</tr>
+<tr class="odd">
+<td><code>systemctl cat UNIT</code></td>
+<td>Ficha y drop-ins, con sus rutas</td>
+<td>Para entender una unit; mejor que <code>cat</code> de la ruta.
+Enseña lo que hay en disco</td>
+</tr>
+<tr class="even">
+<td><code>systemctl show -p Prop1,Prop2 UNIT</code></td>
+<td>Valor que systemd usa de verdad</td>
+<td>Confirmar que un cambio se aplicó. Ej.: <code>NRestarts</code>,
+<code>RestartUSec</code>, <code>After</code>, <code>Requires</code>,
+<code>StartLimitBurst</code></td>
+</tr>
+<tr class="odd">
+<td><code>systemctl list-dependencies UNIT</code></td>
+<td>Árbol de lo que necesita</td>
+<td><code>--reverse</code>: quién depende de ella; antes de parar
+algo</td>
+</tr>
+<tr class="even">
+<td><code>systemctl --failed</code></td>
+<td>Todas las units en <code>failed</code></td>
+<td>Revisión general de salud</td>
+</tr>
+<tr class="odd">
+<td><code>systemctl get-default</code></td>
+<td>Target que alcanza el arranque</td>
+<td>Para elegir <code>WantedBy=</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="unit-files">Unit files</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>systemd-analyze verify FICHERO</code></td>
+<td>Revisar una ficha sin arrancarla</td>
+<td>Siempre antes de arrancar. Detecta los errores que no hacen fallar
+el servicio</td>
+</tr>
+<tr class="even">
+<td><code>sudo systemctl edit UNIT</code></td>
+<td>Crear un drop-in; hace <code>daemon-reload</code> al guardar</td>
+<td>Escribir entre los dos comentarios y con cabecera de sección. Para
+usar vim: <code>sudo SYSTEMD_EDITOR=vim systemctl edit UNIT</code></td>
+</tr>
+<tr class="odd">
+<td><code>sudo systemctl revert UNIT</code></td>
+<td>Borrar todos los drop-ins</td>
+<td>Deshacer ajustes</td>
+</tr>
+<tr class="even">
+<td><code>which PROGRAMA</code></td>
+<td>Ruta completa de un programa</td>
+<td>Para <code>ExecStart=</code></td>
+</tr>
+<tr class="odd">
+<td><code>sudo useradd --system --no-create-home --shell /usr/sbin/nologin NOMBRE</code></td>
+<td>Usuario de servicio</td>
+<td>Cada servicio propio. Crea también el grupo</td>
+</tr>
+<tr class="even">
+<td><code>grep -n TEXTO FICHERO</code></td>
+<td>Buscar en un fichero, con número de línea</td>
+<td>Ver qué variables de entorno lee un programa. Sin fichero, se queda
+esperando: <code>Ctrl-C</code></td>
+</tr>
+<tr class="odd">
+<td><code>man systemd.directives</code></td>
+<td>Índice de directivas y su página</td>
+<td>Cuando no sabes dónde está documentada una directiva</td>
+</tr>
+</tbody>
+</table>
+<h3 id="journal">Journal</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>journalctl -u UNIT</code></td>
+<td>Log de una unit</td>
+<td>Sin <code>-u</code>, el nombre se interpreta como filtro:
+<code>Failed to add match</code></td>
+</tr>
+<tr class="even">
+<td><code>-n N</code></td>
+<td>Las N líneas más recientes</td>
+<td>Sin comas (<code>-n 5</code>). Pueden ser todas ruido: filtra por
+fecha o con <code>grep</code></td>
+</tr>
+<tr class="odd">
+<td><code>-b</code> / <code>-b -1</code></td>
+<td>Arranque actual / anterior</td>
+<td><code>-b -2</code> es el de antes del anterior</td>
+</tr>
+<tr class="even">
+<td><code>-S '...'</code> / <code>-U '...'</code></td>
+<td>Desde / hasta: <code>'15 min ago'</code>, <code>today</code>,
+<code>'2026-09-11 20:30'</code></td>
+<td>Reconstruir un incidente pasado</td>
+</tr>
+<tr class="odd">
+<td><code>-p PRIORIDAD</code></td>
+<td>Esa prioridad o más grave</td>
+<td>No ve los errores impresos por las aplicaciones</td>
+</tr>
+<tr class="even">
+<td><code>-f</code></td>
+<td>En vivo</td>
+<td>Mientras provocas un fallo en otra terminal. Salir con
+<code>Ctrl-C</code></td>
+</tr>
+<tr class="odd">
+<td><code>-t IDENTIFICADOR</code></td>
+<td>Por quién escribe (<code>sudo</code>, <code>CRON</code>)</td>
+<td>Para programas que no son servicios</td>
+</tr>
+<tr class="even">
+<td><code>-o verbose</code></td>
+<td>Todos los campos de cada mensaje</td>
+<td>Descubrir por qué campo filtrar (<code>_UID</code>,
+<code>_COMM</code>, <code>_PID</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>CAMPO=valor</code></td>
+<td>Filtrar por un campo</td>
+<td><code>_COMM=curl</code>, <code>_UID=999</code></td>
+</tr>
+<tr class="even">
+<td><code>-x</code> / <code>-e</code></td>
+<td>Explicaciones del catálogo / saltar al final</td>
+<td><code>-xeu UNIT</code> con mensajes que no entiendes</td>
+</tr>
+<tr class="odd">
+<td><code>--list-boots</code> / <code>--disk-usage</code></td>
+<td>Arranques guardados / espacio ocupado</td>
+<td>Saber hasta dónde llega el registro</td>
+</tr>
+<tr class="even">
+<td><code>sudo usermod -aG systemd-journal USUARIO</code></td>
+<td>Leer el journal sin <code>sudo</code></td>
+<td>Sin <code>-a</code> se pierden los demás grupos, incluido
+<code>sudo</code>. Hay que volver a iniciar sesión</td>
+</tr>
+</tbody>
+</table>
+<h3 id="red">Red</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo ss -tlnp</code></td>
+<td>Puertos TCP escuchando y su proceso: <code>-t</code> TCP,
+<code>-l</code> escuchando, <code>-n</code> números, <code>-p</code>
+proceso</td>
+<td>Puerto ocupado; revisar qué está abierto a internet
+(<code>0.0.0.0</code>, <code>[::]</code>) y qué solo en local
+(<code>127.0.0.1</code>, <code>[::1]</code>). <code>users:</code> son
+procesos, no usuarios</td>
+</tr>
+<tr class="even">
+<td><code>sudo ss -tlnp 'sport = :PUERTO'</code></td>
+<td>Solo ese puerto</td>
+<td>Las comillas son necesarias</td>
+</tr>
+<tr class="odd">
+<td><code>curl URL</code></td>
+<td>Petición HTTP</td>
+<td><code>(7)</code>: nadie escucha; <code>(52)</code>: el servidor
+murió sin responder</td>
+</tr>
+<tr class="even">
+<td><code>curl -fsS --max-time 5 URL</code></td>
+<td>Petición para scripts: <code>-f</code> error con respuestas HTTP de
+error, <code>-s</code> silencio, <code>-S</code> pero con errores</td>
+<td>Healthchecks</td>
+</tr>
+</tbody>
+</table>
+<h3 id="timers-y-cron">Timers y cron</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>systemctl list-timers</code></td>
+<td>Timers con próxima y última ejecución</td>
+<td>Comprobar tareas programadas (backups, healthchecks)</td>
+</tr>
+<tr class="even">
+<td><code>systemd-analyze calendar 'EXPR'</code></td>
+<td>Traducir una expresión de <code>OnCalendar=</code></td>
+<td>Antes de escribir un timer</td>
+</tr>
+<tr class="odd">
+<td><code>crontab -e</code> / <code>crontab -l</code></td>
+<td>Editar / listar la tabla de cron del usuario</td>
+<td><code>crontab -r</code> borra la tabla entera sin confirmar</td>
+</tr>
+</tbody>
+</table>
+<h3 id="permisos-y-ficheros">Permisos y ficheros</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo chmod 644 FICHERO</code></td>
+<td><code>rw-r--r--</code>: el dueño escribe, los demás leen</td>
+<td>Código de un servicio. <code>666</code> deja escribir a todos</td>
+</tr>
+<tr class="even">
+<td><code>sudo mkdir -p RUTA</code></td>
+<td>Crear carpetas, incluidas las intermedias</td>
+<td>No da error si existen</td>
+</tr>
+<tr class="odd">
+<td><code>sudo mv ORIGEN DESTINO</code></td>
+<td>Mover o renombrar</td>
+<td>Para retirar una ficha sin borrarla</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ssh-y-sistema">SSH y sistema</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Sintaxis</th>
+<th>Para qué</th>
+<th>Cuándo / trampas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sudo sshd -t</code></td>
+<td>Validar la configuración de SSH</td>
+<td>Siempre antes de aplicar un cambio</td>
+</tr>
+<tr class="even">
+<td><code>systemctl cat ssh.service ssh.socket</code></td>
+<td>Ver cómo está montado SSH</td>
+<td>Antes de cambiar el puerto o endurecer SSH</td>
+</tr>
+<tr class="odd">
+<td><code>sudo reboot</code></td>
+<td>Reiniciar</td>
+<td>Es un enlace a <code>systemctl</code>; sin <code>sudo</code>,
+<code>Interactive authentication required</code></td>
+</tr>
+<tr class="even">
+<td><code>infocmp -x xterm-ghostty | sudo tic -x -</code></td>
+<td>Instalar la descripción de la terminal para todo el sistema</td>
+<td>Si <code>sudo less</code> o <code>sudo vim</code> avisan de que la
+terminal no funciona bien</td>
+</tr>
+</tbody>
+</table>
+</main>
+<script>
+// Filtrar índice
+const filtro=document.getElementById('filtro');
+const items=[...document.querySelectorAll('#toc li')];
+filtro.addEventListener('input',()=>{
+  const q=filtro.value.trim().toLowerCase();
+  items.forEach(li=>li.classList.add('oculto'));
+  items.forEach(li=>{
+    const t=li.querySelector(':scope > a').textContent.toLowerCase();
+    if(!q||t.includes(q)){let n=li;while(n&&n.tagName==='LI'){n.classList.remove('oculto');n=n.parentElement.closest('li');}
+      if(q) li.querySelectorAll('li').forEach(c=>c.classList.remove('oculto'));}
+  });
+});
+// Resaltar sección actual
+const enlaces=new Map([...document.querySelectorAll('#toc a')].map(a=>[decodeURIComponent(a.hash.slice(1)),a]));
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  document.querySelectorAll('#toc a.activo').forEach(a=>a.classList.remove('activo'));
+  const a=enlaces.get(e.target.id); if(a){a.classList.add('activo');a.scrollIntoView({block:'nearest'});}}})},
+  {rootMargin:'0px 0px -75% 0px'});
+document.querySelectorAll('main h1[id],main h2[id],main h3[id]').forEach(h=>obs.observe(h));
+// Menú móvil
+document.getElementById('abrir').onclick=()=>document.body.classList.toggle('menu');
+document.querySelectorAll('#toc a').forEach(a=>a.onclick=()=>document.body.classList.remove('menu'));
+</script>
+</body>
+</html>
