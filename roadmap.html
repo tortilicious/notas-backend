@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roadmap Backend + Infra · Año 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E6E5E0;
+  --paper-2:#DEDDD7;
+  --ink:#161C24;
+  --ink-soft:#4A5460;
+  --rule:#BCBAB2;
+  --blue:#26406B;
+  --ochre:#B07B14;
+  --green:#3D6A50;
+  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.55;
+  font-variant-numeric:tabular-nums;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px 100px}
+
+/* ---------- hero ---------- */
+header{padding:48px 0 0}
+.kicker{font-family:var(--mono);font-size:.8rem;font-weight:500;color:var(--ink-soft);margin:0;letter-spacing:-.01em}
+h1{font-family:var(--mono);font-weight:700;font-size:clamp(1.7rem,4.2vw,2.5rem);line-height:1.14;margin:.4em 0 .5em;letter-spacing:-.035em;max-width:17em}
+
+.meter{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin:28px 0 10px}
+.meter button{
+  all:unset;cursor:pointer;display:block;position:relative;
+  background:var(--paper-2);border-top:2px solid var(--ink);
+  padding:10px 10px 14px;min-height:92px;
+}
+.meter button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.meter .q{font-family:var(--mono);font-weight:700;font-size:1.25rem;line-height:1;letter-spacing:-.04em}
+  .meter .rng{font-family:var(--mono);font-size:.68rem;color:var(--ink-soft);display:block;margin-top:2px}
+.meter .pct{font-size:.78rem;font-weight:600;margin-top:8px;display:block}
+.bar{position:absolute;left:0;bottom:0;height:6px;width:100%;background:var(--rule)}
+.bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .9s cubic-bezier(.2,.7,.3,1)}
+.meter button[data-state="now"]{background:#E9E3D2;border-top-color:var(--ochre)}
+.meter button[data-state="now"] .bar i{background:var(--ochre)}
+.meter button[data-state="done"] .bar i{background:var(--green)}
+
+.tally{font-size:.9rem;color:var(--ink-soft);margin:0 0 4px}
+.tally b{color:var(--ink);font-weight:600}
+.reset{all:unset;cursor:pointer;font-size:.8rem;color:var(--ink-soft);border-bottom:1px solid var(--rule)}
+.reset:hover{color:var(--ink)}
+.reset:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.lede{font-size:1.1rem;line-height:1.6;max-width:36em;margin:32px 0 0;color:var(--ink)}
+
+/* ---------- generic sections ---------- */
+section{margin-top:64px}
+h2{font-family:var(--mono);font-weight:700;font-size:1.3rem;margin:0 0 18px;letter-spacing:-.035em}
+h3{font-size:.95rem;font-weight:700;margin:26px 0 8px;letter-spacing:.01em}
+p,li{max-width:38em}
+hr{border:0;border-top:1px solid var(--rule);margin:0}
+
+table{border-collapse:collapse;width:100%;max-width:600px;font-size:.92rem}
+th,td{text-align:left;padding:9px 12px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;font-size:.78rem;color:var(--ink-soft)}
+td:first-child{font-weight:600;white-space:nowrap}
+td:nth-child(2){color:var(--ink-soft);white-space:nowrap;padding-right:20px}
+
+.rota{list-style:none;padding:0;margin:16px 0 0;max-width:600px}
+.rota li{display:flex;gap:16px;padding:7px 0;border-bottom:1px solid var(--rule);font-size:.93rem}
+.rota b{flex:0 0 92px;font-weight:600}
+
+ol.rules{counter-reset:r;list-style:none;padding:0;margin:0}
+ol.rules li{counter-increment:r;position:relative;padding:12px 0 12px 44px;border-bottom:1px solid var(--rule)}
+ol.rules li::before{
+  content:counter(r);position:absolute;left:0;top:12px;
+  font-family:var(--mono);font-weight:700;font-size:1.05rem;color:var(--blue);line-height:1.2
+}
+
+/* ---------- quarters ---------- */
+.quarter{display:grid;grid-template-columns:78px 1fr;gap:0;border-top:2px solid var(--ink);margin-top:52px;scroll-margin-top:16px}
+.spine{padding:18px 0 0;border-right:1px solid var(--rule)}
+.spine .q{font-family:var(--mono);font-weight:700;font-size:2rem;line-height:.95;display:block;letter-spacing:-.05em}
+.spine .rng{font-family:var(--mono);font-size:.7rem;color:var(--ink-soft);display:block;margin-top:8px;padding-right:14px}
+.qbody{padding:18px 0 28px 26px}
+.qtheme{font-family:var(--mono);font-weight:700;font-size:1.15rem;line-height:1.35;margin:0 0 8px;max-width:26em;letter-spacing:-.03em}
+.qgoal{color:var(--ink-soft);font-size:.95rem;margin:0}
+.quarter[data-state="now"]{border-top-color:var(--ochre)}
+.quarter[data-state="now"] .spine .q{color:var(--ochre)}
+
+.track{margin-top:24px}
+.track > b{display:block;font-size:.78rem;letter-spacing:.04em;color:var(--blue);font-weight:700;margin-bottom:5px}
+.track p{margin:0;font-size:.94rem}
+.track ul{margin:6px 0 0;padding-left:18px;font-size:.94rem}
+.track ul li{margin-bottom:3px}
+
+.plan{margin-top:10px;border-top:1px solid var(--rule)}
+.plan summary{
+  cursor:pointer;font-family:var(--mono);font-size:.76rem;font-weight:500;
+  color:var(--blue);padding:8px 0;list-style:none;letter-spacing:-.01em;
+}
+.plan summary::-webkit-details-marker{display:none}
+.plan summary::before{content:"+ ";font-weight:700}
+.plan[open] summary::before{content:"\2212 "}
+.plan summary:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.plan dl{margin:2px 0 0;padding:0 0 12px}
+.plan dt{font-family:var(--mono);font-weight:500;font-size:.82rem;margin-top:14px;letter-spacing:-.02em}
+.plan dd{margin:3px 0 0;font-size:.92rem;color:var(--ink-soft);max-width:38em}
+.plan dd.ref{margin-top:6px;font-size:.85rem;border-left:2px solid var(--rule);padding-left:12px}
+.plan dd.ref b{display:block;font-family:var(--mono);font-size:.7rem;font-weight:500;letter-spacing:.02em;color:var(--blue);margin-bottom:2px}
+.plan .books{margin:18px 0 0;font-size:.88rem;color:var(--ink-soft);border-left:2px solid var(--rule);padding-left:14px;max-width:38em}
+.deliver{margin-top:30px;border-top:1px solid var(--rule);padding-top:16px}
+.deliver > b{display:block;font-size:.78rem;letter-spacing:.04em;color:var(--ink-soft);font-weight:700;margin-bottom:10px}
+.deliver label{display:flex;gap:12px;align-items:flex-start;padding:9px 0;cursor:pointer;font-size:.95rem;border-bottom:1px solid rgba(188,186,178,.5)}
+.deliver label:last-child{border-bottom:0}
+.deliver input{
+  appearance:none;flex:0 0 17px;width:17px;height:17px;margin:3px 0 0;
+  border:1.5px solid var(--ink);background:transparent;cursor:pointer;
+}
+.deliver input:checked{background:var(--green);border-color:var(--green)}
+.deliver input:checked::after{content:"";display:block;width:5px;height:10px;margin:1px 0 0 5px;border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(42deg)}
+.deliver input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.deliver input:checked + span{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--rule)}
+
+.note{border-left:3px solid var(--ochre);padding:2px 0 2px 16px;margin:20px 0 0;font-size:.93rem;color:var(--ink-soft);max-width:36em}
+
+footer{margin-top:72px;border-top:2px solid var(--ink);padding-top:20px;font-size:.9rem;color:var(--ink-soft)}
+footer h2{font-size:1.4rem;margin-bottom:12px}
+footer ul{padding-left:18px}
+.stamp{margin-top:28px;font-family:var(--mono);font-weight:500;font-size:.92rem;color:var(--ink);letter-spacing:-.02em}
+
+@media (max-width:620px){
+  .wrap{padding:0 18px 80px}
+  .meter{grid-template-columns:repeat(2,1fr)}
+  .quarter{grid-template-columns:1fr}
+  .spine{border-right:0;border-bottom:1px solid var(--rule);padding-bottom:12px;display:flex;align-items:baseline;gap:14px}
+  .spine .rng{margin-top:0}
+  .qbody{padding:18px 0 28px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">plan de cinco años / fase uno</p>
+  <h1>De consultor Odoo a backend con criterio de infraestructura</h1>
+
+  <nav class="meter" id="meter" aria-label="Progreso por trimestre"></nav>
+  <p class="tally" id="tally">Cargando progreso…</p>
+  <button class="reset" id="reset" type="button">Reiniciar progreso</button>
+
+  <p class="lede">Odoo es un gimnasio disfrazado de jaula: Python, PostgreSQL exigido al límite y despliegues Linux de verdad. El material es bueno. El riesgo es que, pasados cinco años, el mercado no vea un ingeniero backend sino un consultor Odoo. Este año decide cuál de las dos cosas eres.</p>
+</header>
+
+<section>
+  <h2>La jornada</h2>
+  <p style="font-size:.95rem;color:var(--ink-soft);margin:0">Cuatro horas al día, de lunes a viernes. Unas 900 horas al año. Los fines de semana no se estudia: el descanso es parte del plan.</p>
+  <table>
+    <thead><tr><th>Bloque</th><th>Tiempo</th><th>Contenido</th></tr></thead>
+    <tbody>
+      <tr><td>Fondo</td><td>2 h</td><td>Boot.dev, sin móvil delante</td></tr>
+      <tr><td>Carril</td><td>1 h</td><td>Rota según el día de la semana</td></tr>
+      <tr><td>Inglés</td><td>45 min</td><td>Escucha y vocabulario activo</td></tr>
+      <tr><td>Repaso</td><td>15 min</td><td>Explicar en voz alta lo de ayer</td></tr>
+    </tbody>
+  </table>
+
+  <h3>El carril rota cada día</h3>
+  <ul class="rota">
+    <li><b>Lunes</b><span>Linux y el VPS</span></li>
+    <li><b>Martes</b><span>Redes</span></li>
+    <li><b>Miércoles</b><span>PostgreSQL con casos reales de clientes</span></li>
+    <li><b>Jueves</b><span>Proyecto propio</span></li>
+    <li><b>Viernes</b><span>Proyecto propio y lectura del código fuente de Odoo</span></li>
+  </ul>
+
+  <p class="note">Los últimos quince minutos parecen prescindibles y son los que deciden si estas 900 horas se convierten en conocimiento o solo en horas. Cierra todo y explica en voz alta lo de ayer. Si no puedes, no lo sabes.</p>
+</section>
+
+<section>
+  <h2>Cinco reglas que no se negocian</h2>
+  <ol class="rules">
+    <li>Pelea veinte minutos antes de preguntar a la IA. La frustración es la señal de que algo se está aprendiendo.</li>
+    <li>Usa la IA para preguntar, no para responder. «Critica mi diseño», «hazme preguntas hasta que falle», «explícame por qué esto no funciona». Nunca «escríbeme el código».</li>
+    <li>Si no lo puedes explicar sin notas a alguien que no sabe del tema, no lo sabes. Ese es el criterio, no el porcentaje de curso completado.</li>
+    <li>Lo que construyas tiene que estar corriendo en internet. Lo que vive en localhost no cuenta como experiencia.</li>
+    <li>Inglés todos los días. Es lo único de este plan que no se recupera acelerando después.</li>
+  </ol>
+  <p class="note">Estudiar con IA es como ver a alguien levantar pesas: lo entiendes todo y no ganas un gramo de músculo. Genera una sensación de comprensión que va muy por delante de la comprensión real, y no lo notas hasta una entrevista técnica o un incidente en producción.</p>
+</section>
+
+<section id="quarters"></section>
+
+<footer>
+  <h2>Revisión al cerrar cada trimestre</h2>
+  <ul>
+    <li>¿Puedo explicar lo aprendido en voz alta, sin notas, a alguien de fuera?</li>
+    <li>¿Hay algo funcionando en internet que lo demuestre?</li>
+    <li>¿Qué he aprendido en el trabajo que no estaba en el plan?</li>
+    <li>¿Qué he ido postergando y por qué?</li>
+  </ul>
+  <p>Si la respuesta a las dos primeras es «no», frena y consolida antes de seguir. Ir rápido sin retener es la forma más cara de perder un año.</p>
+
+  <h2 style="margin-top:36px">Lo que viene después</h2>
+  <ul>
+    <li><b>2027–2028</b> · AWS en profundidad, certificación CKA, sistemas distribuidos y colas. Cambio de empresa a finales de 2028: de consultoría a producto. Salto esperado hacia 38–45 k.</li>
+    <li><b>2029</b> · Prácticas SRE, diseño de sistemas, arquitectura, contribuciones open source.</li>
+    <li><b>2030–2031</b> · Mercado remoto europeo y estadounidense desde España. Rango realista 60–90 k.</li>
+  </ul>
+  <p class="stamp">El año 1 es el que decide si los otros cuatro son posibles.</p>
+</footer>
+
+</div>
+
+<script>
+const QUARTERS = [
+  {
+    id:"q1", q:"Q1", range:"Sep – Nov 2026", state:"now",
+    theme:"Cerrar Python y poner los pies en el suelo",
+    goal:"Tu punto flojo declarado es Linux y redes, y ese es justo el suelo del perfil que quieres.",
+    tracks:[
+      {t:"Boot.dev", body:"Terminar programación funcional (closures, decoradores, recursión, inmutabilidad), orientación a objetos completa y arranque de algoritmos."},
+      {t:"Linux y VPS", body:"Un servidor propio de 7,38 € al mes, de cero a operado.",
+        plan:[
+          ["Bloque 0 · El servidor existe","Netcup VPS 500 G12 (2 vCore, 4 GB DDR5 ECC, 128 GB NVMe) en Núremberg, 7,38 €/mes sin permanencia. Sistema: Ubuntu LTS, que es lo que te vas a encontrar en producción. Se cierra cuando entras por clave SSH con un usuario sin root, el login por contraseña está deshabilitado y root no puede entrar por SSH.","How Linux Works: cap. 1 (el panorama general) y 10.3 (SSH). The Linux Command Line: caps. 1 a 5, para moverte por la shell sin pelearte con ella."],
+          ["Bloque 1 · El sistema por dentro","Jerarquía de ficheros, permisos y propietarios, usuarios y grupos, procesos y señales, /proc. Cómo arranca un Linux moderno. Se cierra cuando entiendes qué pasa entre encender la máquina y tener un login.","How Linux Works: caps. 2 (comandos y jerarquía de ficheros), 4 (discos y sistemas de ficheros), 5 y 6 (arranque del kernel y del espacio de usuario), 7 (logging, hora, usuarios) y 8 (procesos y recursos). The Linux Command Line: caps. 9 (permisos) y 10 (procesos)."],
+          ["Bloque 2 · systemd de verdad","Unit files escritos a mano, no copiados. Targets, dependencias, journalctl con filtros, timers frente a cron. Se cierra cuando escribes un servicio propio desde cero y sabes depurarlo cuando no arranca.","How Linux Works: cap. 6 (systemd, el núcleo del bloque) y 7.1 (el journal). A partir de ahí las manpages, que aquí ganan al libro: man systemd.unit, man systemd.service y man systemd.timer."],
+          ["Bloque 3 · Odoo 18 desplegado a mano","Sin Docker, deliberadamente. PostgreSQL, entorno Python, servicio systemd propio, nginx como reverse proxy, TLS con Let's Encrypt. Se cierra cuando puedes reinstalarlo entero en una máquina nueva siguiendo tus propias notas.","How Linux Works: caps. 9 (la red y su configuración) y 10 (servicios de red). The Linux Command Line: caps. 14 (gestión de paquetes) y 16 (herramientas de red). La documentación de despliegue de Odoo, como referencia y no como receta."],
+          ["Bloque 4 · Que no se lo lleve nadie","ufw, fail2ban, SSH endurecido, actualizaciones desatendidas y backup automatizado. Se cierra cuando has restaurado un backup en una máquina limpia. Un backup no probado no es un backup.","How Linux Works: cap. 7 (usuarios, cron y timers) y 10.7 en adelante (seguridad de red). The Linux Command Line: cap. 18 (archivado y copias con tar y rsync). Después, man ufw y el jail.conf de fail2ban."],
+          ["Bloque 5 · Romperlo","Llena el disco, mata el servicio, corrompe la config de nginx, borra un índice de Postgres. Diagnostica con logs, no reinstalando. Se cierra cuando tienes un documento con cinco incidentes: síntoma, diagnóstico y solución.","How Linux Works: caps. 8 (monitorizar procesos y recursos) y 4 (cuando el problema es el disco). El UNIX and Linux System Administration Handbook aquí sí gana, porque está escrito desde el incidente."]
+        ],
+        books:"How Linux Works (Brian Ward) como columna vertebral y The Linux Command Line (Shotts, gratis online) para la shell. De referencia, el UNIX and Linux System Administration Handbook. man systemd.service y man systemd.unit son mejores que cualquier tutorial. Los capítulos citados por bloque son de How Linux Works 3.ª ed. y de The Linux Command Line 3.ª ed. (febrero de 2026); la numeración de capítulos no cambió respecto a la 2.ª, así que sirve igual si tienes la anterior o la edición gratuita de linuxcommand.org. Ubuntu trae snap y netplan preconfigurados: entiende qué hacen en vez de dejarlos como magia."},
+      {t:"Redes", body:"De la capa de transporte al reverse proxy que tienes delante de Odoo.",
+        plan:[
+          ["Bloque 1 · El modelo y las capas","TCP/IP, direccionamiento, subredes, puertos, NAT. TCP frente a UDP y por qué existe el handshake.","Computer Networking (Kurose y Ross): cap. 1 (capas y encapsulación), cap. 4 (direccionamiento IPv4, CIDR, subredes y NAT) y cap. 3 (multiplexación y puertos, UDP, establecimiento de conexión). Control de congestión, no: ese es otro bloque."],
+          ["Bloque 2 · DNS","Tipos de registro, resolución recursiva, TTL, propagación. Practícalo contra tus propios dominios con dig. Se cierra cuando puedes explicar por qué un cambio de DNS «tarda» y qué controla ese tiempo.","Computer Networking (Kurose y Ross): 2.4, la explicación canónica. High Performance Browser Networking (Grigorik): cap. 1, para ver por qué la latencia del DNS se paga en cada carga. Después, man dig."],
+          ["Bloque 3 · HTTP","Métodos, códigos, cabeceras, keep-alive, HTTP/1.1 frente a HTTP/2 y qué problema resolvió el multiplexado. Todo con curl -v.","Computer Networking (Kurose y Ross): 2.2, el modelo petición/respuesta. High Performance Browser Networking (Grigorik): caps. 9 (historia), 11 (HTTP/1.x y sus límites) y 12 (HTTP/2 y el multiplexado); el cap. 10 si quieres el marco de rendimiento."],
+          ["Bloque 4 · TLS","Handshake paso a paso, cadena de certificados, autoridades, SNI. Se cierra cuando entiendes exactamente qué hace certbot por debajo.","High Performance Browser Networking (Grigorik): cap. 4 entero, el mejor texto que hay sobre el handshake TLS. Computer Networking (Kurose y Ross): cap. 8, si te falta el fondo criptográfico."],
+          ["Bloque 5 · El reverse proxy","Qué añade nginx delante de Odoo: terminación TLS, cabeceras X-Forwarded-*, buffering, websockets. Configúralo entendiendo cada directiva.","High Performance Browser Networking (Grigorik): caps. 13 (entrega de aplicación, proxies y buffering) y 17 (WebSockets). Lo demás es documentación de nginx: la guía de administración y la referencia de módulos."],
+          ["Hito final","Explicar en voz alta, sin notas y durante diez minutos, todo lo que ocurre entre teclear tu dominio y ver Odoo. DNS, TCP, TLS, nginx, gunicorn, Postgres, vuelta."]
+        ],
+        books:"High Performance Browser Networking (Grigorik, gratis en hpbn.co) es lo mejor que hay para HTTP y TLS. Computer Networking: A Top-Down Approach (Kurose y Ross) para los fundamentos. Los capítulos citados por bloque son de la 8.ª ed. de Kurose y de la edición online de hpbn.co. Cuando dudes, la RFC."},
+      {t:"PostgreSQL", body:"SQL de adulto y capacidad de diagnosticar por qué algo va lento.",
+        plan:[
+          ["Bloque 1 · SQL sólido","Joins, agregaciones, subconsultas, CTEs y window functions. Escríbelo contra una base con datos, no solo leyendo.","Documentación oficial de PostgreSQL: Parte II, The SQL Language — capítulo 7 (Queries), que cubre joins, subconsultas, CTEs y window functions."],
+          ["Bloque 2 · El modelo relacional","Normalización, claves, integridad referencial. En paralelo: cómo lo traduce el ORM de Odoo. Ahí verás por qué ciertos modelos van lentos.","Documentación oficial de PostgreSQL: capítulo 5 (Data Definition), para constraints y claves ajenas."],
+          ["Bloque 3 · Índices","B-tree, índices compuestos, parciales, cardinalidad y selectividad. Por qué a veces Postgres ignora tu índice.","Documentación oficial de PostgreSQL: capítulo 11 (Indexes), excelente y suficiente. Complemento: Use The Index, Luke! (use-the-index-luke.com), gratis y entero online."],
+          ["Bloque 4 · Leer planes de ejecución","EXPLAIN ANALYZE. Seq scan frente a index scan, nested loop frente a hash join, estimaciones frente a filas reales. Se cierra cuando optimizas una query lenta y justificas la mejora con el plan, no con la intuición.","Documentación oficial de PostgreSQL: capítulo 14 (Performance Tips). PostgreSQL 14 Internals (Rogov), PDF gratuito, para entender el planner por dentro."],
+          ["Bloque 5 · El ORM de Odoo bajo el capó","Activa el log de queries y mira qué genera realmente search(). El problema N+1, prefetch, read_group. Este bloque es tu ventaja injusta frente a otros juniors."]
+        ],
+        books:"Carril sin coste: la documentación oficial (postgresql.org/docs/current) es la fuente principal y es de las mejores que existen. PostgreSQL 14 Internals (Rogov), PDF gratuito, para el planner. Use The Index, Luke! para índices. Opcional de pago: The Art of PostgreSQL (Fontaine), que enseña a pensar en SQL más que a conocer la sintaxis."},
+      {t:"Proyecto y scripts", body:"No hay proyecto grande este trimestre. Hay tres artefactos pequeños y reales.",
+        plan:[
+          ["Artefacto 1 · Script de backup","Vuelca la base de datos y el filestore de una instancia Odoo, rota copias antiguas y verifica que el dump no está corrupto. Argumentos, logging, códigos de salida, set -euo pipefail si es bash."],
+          ["Artefacto 2 · Healthcheck","Comprueba cada N minutos que un Odoo responde y avisa por Telegram si no. Timeouts, reintentos y evitar spam de alertas. Corriendo con un timer de systemd en tu VPS."],
+          ["Artefacto 3 · Lo que te dé rabia hacer a mano","Cualquier tarea repetitiva de tu trabajo. Este es el que más te va a enseñar porque el problema es tuyo."],
+          ["Git en serio","Ramas, commits con mensaje decente, historial legible. Los tres artefactos en GitHub con README que explique el problema, no solo el uso."],
+          ["Viernes · Código fuente de Odoo","Empieza por odoo/api.py y busca cómo están implementados @api.depends y @api.model: vas a ver closures reales resolviendo un problema real. Después, odoo/models.py para entender search y browse."]
+        ],
+        books:"Pro Git (gratis en git-scm.com), un par de sesiones bastan para lo que necesitas ahora."}
+    ],
+    note:"Una closure es una mochila: una función que se lleva puesto el contexto donde nació. Es el mecanismo de los decoradores, y los decoradores son media base de Odoo. Ese es el mejor ejercicio de consolidación que tienes, porque une lo que estudias con lo que cobras.",
+    deliverables:[
+      "Python completado en boot.dev",
+      "VPS operativo con Odoo desplegado a mano, HTTPS y backups automatizados",
+      "Capaz de explicar en voz alta qué ocurre entre teclear una URL y ver la página",
+      "Dos o tres scripts propios en GitHub con README decente",
+      "Al menos una query de cliente optimizada con evidencia de antes y después"
+    ]
+  },
+  {
+    id:"q2", q:"Q2", range:"Dic 2026 – Feb 2027", state:"todo",
+    theme:"Algoritmos, entrada en Go y nacimiento del proyecto",
+    goal:"Es el trimestre donde la mayoría abandona. Si llegas entero a marzo de 2027, llegas a 2031.",
+    tracks:[
+      {t:"Boot.dev", body:"Estructuras de datos y algoritmos completos: listas enlazadas, árboles, hash maps, grafos y complejidad. Después, inicio de Go: sintaxis, punteros, structs, interfaces y manejo de errores."},
+      {t:"Linux", body:"Bash serio (funciones, trap, manejo de errores), rotación de logs, cron frente a timers de systemd. Primer contacto con Docker: qué problema resuelve, no solo qué comandos tiene."},
+      {t:"Redes", body:"Cadenas de certificados, CORS, cookies y sesiones, autenticación por sesión frente a JWT, rate limiting y cabeceras de seguridad."},
+      {t:"PostgreSQL", body:"Transacciones y niveles de aislamiento, locks y deadlocks (Odoo te dará ejemplos reales), índices GIN y GiST, vacuum y bloat, y por qué existe pgbouncer."},
+      {t:"Proyecto propio", body:"Arranca aquí. Una idea tuya, pequeña pero real, algo que tú usarías. No un clon de Twitter.", items:[
+        "Mes 1 · Diseño: modelo de datos, endpoints y decisiones de arquitectura escritas en un documento. Repositorio creado.",
+        "Mes 2 · API funcionando en local, en Python con FastAPI o en Go según dónde estés en el curso.",
+        "Mes 3 · Desplegado en tu VPS con dominio propio, HTTPS, servicio systemd y PostgreSQL de verdad."
+      ]}
+    ],
+    note:"Los algoritmos aburren y casi no se usan en el día a día, pero son el filtro de entrada de prácticamente toda entrevista técnica seria. No los saltes.",
+    deliverables:[
+      "Algoritmos y estructuras de datos completados",
+      "Go básico: capaz de escribir un programa no trivial sin copiar",
+      "Proyecto propio accesible públicamente en tu dominio",
+      "Documento de diseño del proyecto escrito por ti",
+      "Inglés: conversación técnica de diez minutos sin bloquearte"
+    ]
+  },
+  {
+    id:"q3", q:"Q3", range:"Mar – May 2027", state:"todo",
+    theme:"Go en serio y calidad de código profesional",
+    goal:"Aquí dejas de escribir código que funciona y empiezas a escribir código que otro puede mantener.",
+    tracks:[
+      {t:"Boot.dev", body:"Go avanzado: goroutines, channels, context, sync y patrones de concurrencia. Servidores HTTP desde cero, diseño de APIs REST, autenticación y acceso a datos desde Go."},
+      {t:"Contenedores", body:"Docker a fondo: imágenes multi-stage, redes, volúmenes y seguridad. Docker Compose. Contenerizar tu proyecto propio y también una instancia de Odoo."},
+      {t:"Redes", body:"Balanceo de carga, DNS en despliegues reales, CDN, WebSockets y gRPC: qué es y cuándo tiene sentido frente a REST."},
+      {t:"PostgreSQL", body:"Migraciones y versionado de esquema, backups lógicos frente a físicos, PITR, replicación básica y monitorización con pg_stat_statements."},
+      {t:"Proyecto propio", body:"Deja de ser un prototipo:", items:[
+        "Suite de tests real, unitarios y de integración, no tres tests de adorno.",
+        "CI con GitHub Actions: tests y linting en cada push.",
+        "Logging estructurado y manejo de errores serio.",
+        "Documentación de la API con OpenAPI.",
+        "Reescribir un componente en Go si nació en Python: te obliga a pensar en interfaces y concurrencia."
+      ]},
+      {t:"Presencia pública", body:"Empieza a escribir. Un post al mes sobre un problema real que resolviste: por qué esta query de Odoo tardaba cuarenta segundos y cómo bajó a doscientos milisegundos. No hace falta audiencia, hace falta el artefacto."}
+    ],
+    deliverables:[
+      "Go sólido, incluyendo concurrencia",
+      "Proyecto con tests, CI en verde y documentación de API",
+      "Todo contenerizado",
+      "Dos o tres posts técnicos publicados",
+      "Inglés funcional en entrevista"
+    ]
+  },
+  {
+    id:"q4", q:"Q4", range:"Jun – Ago 2027", state:"todo",
+    theme:"Operar lo que construyes",
+    goal:"El salto de desarrollador a desarrollador con criterio de infraestructura. Es lo que la IA hace peor y lo que mejor se paga.",
+    tracks:[
+      {t:"Boot.dev", body:"Cerrar los módulos de despliegue, Docker, CI/CD y Kubernetes. Con un año de VPS a la espalda, te van a resultar mucho más fáciles que a quien empieza por aquí."},
+      {t:"Kubernetes", body:"Pods, deployments, services, ingress, configmaps y secrets. Un clúster propio con k3s en tu VPS o kind en local, y tu proyecto desplegado en él."},
+      {t:"Infraestructura como código", body:"Terraform con un proveedor real y Ansible para configuración. Nada de tutoriales: aplícalo a infraestructura que ya tienes."},
+      {t:"Observabilidad", body:"Prometheus y Grafana con métricas de tu propio proyecto, alertas que se disparen de verdad y logs centralizados con Loki."},
+      {t:"PostgreSQL", body:"Diseñar el esquema de un sistema desde cero justificando cada decisión. Tuning de configuración y un plan de recuperación ante desastres probado, no escrito."},
+      {t:"Preparar el salto", body:"El objetivo de cambio es finales de 2028, pero el material se prepara ahora:", items:[
+        "CV en inglés y en español, orientado a logros medibles y no a tecnologías listadas.",
+        "LinkedIn y GitHub coherentes con el perfil que quieres, no con el que tienes.",
+        "Practicar entrevistas técnicas: algoritmos y diseño de sistemas básico.",
+        "Mapear empresas objetivo: producto y scale-ups en España, más empresas europeas con remoto."
+      ]}
+    ],
+    deliverables:[
+      "Ruta de boot.dev terminada",
+      "Proyecto propio en Kubernetes, con CI/CD y observabilidad",
+      "Terraform y Ansible usados sobre infraestructura real",
+      "Postmortem escrito de un incidente simulado",
+      "CV y perfil público listos",
+      "Inglés C1 funcional"
+    ]
+  }
+];
+
+const KEY = "roadmap-y1-v1";
+let store = {};
+let persists = true;
+try { store = JSON.parse(localStorage.getItem(KEY) || "{}"); }
+catch(e){ persists = false; store = {}; }
+
+function save(){
+  if(!persists) return;
+  try { localStorage.setItem(KEY, JSON.stringify(store)); }
+  catch(e){ persists = false; }
+}
+
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ---- render quarters ---- */
+document.getElementById("quarters").innerHTML = QUARTERS.map(q => `
+  <article class="quarter" id="${q.id}" data-state="${q.state}">
+    <div class="spine">
+      <span class="q">${q.q}</span>
+      <span class="rng">${esc(q.range)}</span>
+    </div>
+    <div class="qbody">
+      <h2 class="qtheme">${esc(q.theme)}</h2>
+      <p class="qgoal">${esc(q.goal)}</p>
+      ${q.tracks.map(t => `
+        <div class="track">
+          <b>${esc(t.t)}</b>
+          <p>${esc(t.body)}</p>
+          ${t.items ? `<ul>${t.items.map(i => `<li>${esc(i)}</li>`).join("")}</ul>` : ""}
+          ${t.plan ? `<details class="plan">
+            <summary>Plan detallado</summary>
+            <dl>${t.plan.map(([b,d,r]) => `<dt>${esc(b)}</dt><dd>${esc(d)}</dd>${r ? `<dd class="ref"><b>Bibliografía</b>${esc(r)}</dd>` : ""}`).join("")}</dl>
+            ${t.books ? `<p class="books">${esc(t.books)}</p>` : ""}
+          </details>` : ""}
+        </div>`).join("")}
+      ${q.note ? `<p class="note">${esc(q.note)}</p>` : ""}
+      <div class="deliver">
+        <b>Entregables del trimestre</b>
+        ${q.deliverables.map((d,i) => {
+          const k = q.id + ":" + i;
+          return `<label><input type="checkbox" data-k="${k}" ${store[k] ? "checked" : ""}><span>${esc(d)}</span></label>`;
+        }).join("")}
+      </div>
+    </div>
+  </article>`).join("");
+
+/* ---- meter ---- */
+const meter = document.getElementById("meter");
+meter.innerHTML = QUARTERS.map(q => `
+  <button type="button" data-q="${q.id}" data-state="${q.state}">
+    <span class="q">${q.q}</span>
+    <span class="rng">${esc(q.range)}</span>
+    <span class="pct" data-pct="${q.id}">0 / ${q.deliverables.length}</span>
+    <span class="bar"><i data-fill="${q.id}"></i></span>
+  </button>`).join("");
+
+meter.addEventListener("click", e => {
+  const b = e.target.closest("button[data-q]");
+  if(b) document.getElementById(b.dataset.q).scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+function refresh(animate){
+  let done = 0, total = 0;
+  QUARTERS.forEach(q => {
+    const n = q.deliverables.filter((_,i) => store[q.id+":"+i]).length;
+    done += n; total += q.deliverables.length;
+    document.querySelector(`[data-pct="${q.id}"]`).textContent = `${n} / ${q.deliverables.length}`;
+    const fill = document.querySelector(`[data-fill="${q.id}"]`);
+    const pct = (n / q.deliverables.length * 100) + "%";
+    animate ? requestAnimationFrame(() => { fill.style.width = pct; }) : fill.style.width = pct;
+    const complete = n === q.deliverables.length;
+    const st = complete ? "done" : q.state;
+    document.querySelector(`[data-q="${q.id}"]`).dataset.state = st;
+    document.getElementById(q.id).dataset.state = st;
+  });
+  const tally = document.getElementById("tally");
+  tally.innerHTML = `<b>${done} de ${total}</b> entregables completados` +
+    (persists ? "" : " · el progreso no se guardará al cerrar esta página");
+}
+
+document.addEventListener("change", e => {
+  if(e.target.matches("input[data-k]")){
+    store[e.target.dataset.k] = e.target.checked;
+    save();
+    refresh(false);
+  }
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  store = {};
+  save();
+  document.querySelectorAll("input[data-k]").forEach(i => i.checked = false);
+  refresh(false);
+});
+
+refresh(true);
+</script>
+</body>
+</html>

@@ -82,78 +82,26 @@ En la línea `Loaded:` aparece además si la unit está `enabled`, `disabled` o 
 | `[Service]` | Cómo se ejecuta | Siempre |
 | `[Install]` | En qué target se apunta | Solo `systemctl enable` y `disable` |
 
+`[Unit]` e `[Install]` son comunes a todos los tipos de unit (servicio, timer, socket). La sección central cambia según el tipo: `[Service]`, `[Timer]`, `[Socket]`.
+
 ### Reglas de sintaxis
 
 - Una directiva por línea, `Nombre=valor`, sin espacios alrededor del `=`.
 - Los nombres **distinguen mayúsculas**. Una directiva desconocida o en la sección equivocada se **ignora** con un aviso en el journal, y la unit arranca igual. Es el tipo de error más peligroso, porque no se ve.
 - Las rutas de `ExecStart=` van completas: systemd no usa el `PATH` de tu shell. `ExecStart=` no es una shell: `&`, `|`, `>` no funcionan.
 
-### Directivas principales
-
-| Directiva | Sección | Qué hace | Documentación |
-|---|---|---|---|
-| `Description=` | `[Unit]` | Nombre legible en `status` y en el journal | `systemd.unit` |
-| `ExecStart=` | `[Service]` | Comando que se ejecuta | `systemd.service` |
-| `Type=` | `[Service]` | Cuándo se considera arrancado | `systemd.service` |
-| `Restart=` | `[Service]` | Cuándo volver a arrancarlo | `systemd.service` |
-| `RestartSec=` | `[Service]` | Espera antes de cada reinicio (por defecto, 100 ms) | `systemd.service` |
-| `ExecReload=` | `[Service]` | Qué hacer al recibir `reload`; sin ella, `reload` no existe | `systemd.service` |
-| `RemainAfterExit=` | `[Service]` | Considerarlo activo aunque su proceso haya terminado | `systemd.service` |
-| `User=`, `Group=` | `[Service]` | Identidad del proceso; sin `User=`, corre como root | `systemd.exec` |
-| `Environment=` | `[Service]` | Variables de entorno, `NOMBRE=valor`; puede repetirse o llevar varias separadas por espacios | `systemd.exec` |
-| `WorkingDirectory=` | `[Service]` | Carpeta en la que arranca | `systemd.exec` |
-| `KillMode=` | `[Service]` | Qué procesos mata al parar; `process` solo mata el principal | `systemd.kill` |
-| `WantedBy=` | `[Install]` | Target en cuyo `.wants/` se crea el enlace al habilitar | `systemd.unit` |
-
 `man systemd.directives` es el índice: dice en qué página se explica cada directiva.
 
-### `Type=`
+### `[Unit]`: qué es y de qué depende
 
-| Valor | Se considera arrancado cuando… | Si el ejecutable no existe |
+| Directiva | Qué hace | Documentación |
 |---|---|---|
-| `simple` (por defecto) | Se crea el proceso | `start` no avisa; el fallo aparece después |
-| `exec` | El programa se ha ejecutado | `start` falla en el momento |
-| `oneshot` | El proceso termina con éxito | `start` falla |
-| `notify` | El programa avisa a systemd de que está listo | Requiere soporte en el propio programa |
+| `Description=` | Nombre legible en `status` y en el journal | `systemd.unit` |
+| `Wants=`, `Requires=`, `BindsTo=`, `PartOf=` | Dependencia: si esta unit arrastra a otra (tabla más abajo) | `systemd.unit` |
+| `After=`, `Before=` | Orden: cuál arranca antes | `systemd.unit` |
+| `StartLimitBurst=`, `StartLimitIntervalSec=` | Límite de arranques seguidos | `systemd.unit` |
 
-`exec` es la opción recomendada para servicios que se quedan funcionando. No detecta fallos que ocurren después de ejecutarse el programa (un fichero que no puede leer, un puerto ocupado).
-
-### `Restart=`
-
-| Cómo termina el proceso | `no` | `on-failure` | `always` |
-|---|---|---|---|
-| Código 0 o `SIGHUP`/`SIGINT`/`SIGTERM`/`SIGPIPE` | — | — | Reinicia |
-| Código distinto de 0 | — | Reinicia | Reinicia |
-| Otra señal (`SIGKILL`, falta de memoria) | — | Reinicia | Reinicia |
-| `systemctl stop` | — | — | — |
-
-`on-failure` es la recomendada para servicios de larga duración.
-
-**Límite de arranques.** Por defecto, si una unit arranca más de 5 veces en 10 segundos (`StartLimitBurst=`, `StartLimitIntervalSec=` en `[Unit]`), systemd deja de intentarlo: `Start request repeated too quickly`. Protege de los bucles de caídas. Se sale con `reset-failed`.
-
-### Usuario dedicado
-
-Cada servicio continuo debería correr con su propio usuario de sistema (mínimo privilegio): si alguien explota un fallo del programa, obtiene los permisos de ese usuario, no los de root. Las cuentas de servicio tienen UID por debajo de 1000, shell `nologin` y ninguna contraseña utilizable. El código del servicio conviene que sea de root y solo legible por el servicio, para que no pueda modificarse a sí mismo.
-
-## 4. Targets y arranque automático
-
-Un **target** es una etapa del arranque que agrupa units. `multi-user.target` es el sistema funcionando en modo normal sin entorno gráfico; `graphical.target` lo incluye y añade el escritorio; `sockets.target` y `timers.target` son etapas donde se apuntan sockets y timers. `systemctl get-default` dice qué target alcanza la máquina.
-
-`WantedBy=multi-user.target` no hace nada por sí sola. Al ejecutar `systemctl enable`, se crea un enlace simbólico en `/etc/systemd/system/multi-user.target.wants/`. Al arrancar, systemd lanza todo lo que hay en esa carpeta. Si el target nunca se alcanza, el servicio nunca arranca solo.
-
-`start` arranca ahora; `enable` deja apuntado para los próximos arranques. Son independientes.
-
-## 5. Drop-ins
-
-Un **drop-in** es un fichero `.conf` en `/etc/systemd/system/<unit>.d/` que se suma a la ficha sin modificarla. Sirve sobre todo para ajustar units de paquetes, cuyos cambios en `/usr/lib` se perderían al actualizar.
-
-- Debe repetir la cabecera de sección; sin ella, sus líneas se ignoran.
-- Las directivas de lista (`After=`, `Wants=`, `Environment=`) se acumulan. Las de valor único (`User=`, `Type=`) se sustituyen.
-- `systemctl status` muestra la línea `Drop-In:` cuando existe alguno.
-
-## 6. Dependencias
-
-Hay dos ejes independientes: **dependencia** (si una unit arrastra a otra) y **orden** (cuál arranca antes).
+**Dependencias.** Hay dos ejes independientes: **dependencia** (si una unit arrastra a otra) y **orden** (cuál arranca antes).
 
 | Directiva | Al arrancar esta unit | Si la otra se para explícitamente | Si la otra cae sola |
 |---|---|---|---|
@@ -167,7 +115,68 @@ Hay dos ejes independientes: **dependencia** (si una unit arrastra a otra) y **o
 - **Dependencias por defecto.** Todo servicio normal depende de `sysinit.target`, `basic.target`, `system.slice` y `systemd-journald.socket`, sin escribirlas.
 - **Plantillas.** Una unit con `@` (`postgresql@.service`) es una plantilla; lo que va entre `@` y la extensión (`16-main`) es la **instancia**, y dentro de la ficha se usa como `%i`.
 
-## 7. Diagnosticar un servicio que falla
+**Límite de arranques.** Por defecto, si una unit arranca más de 5 veces en 10 segundos (`StartLimitBurst=`, `StartLimitIntervalSec=`), systemd deja de intentarlo: `Start request repeated too quickly`. Protege de los bucles de caídas. Se sale con `reset-failed`. Van en `[Unit]` aunque afecten a `Restart=`, que está en `[Service]`.
+
+### `[Service]`: cómo se ejecuta
+
+| Directiva | Qué hace | Documentación |
+|---|---|---|
+| `ExecStart=` | Comando que se ejecuta | `systemd.service` |
+| `Type=` | Cuándo se considera arrancado | `systemd.service` |
+| `Restart=` | Cuándo volver a arrancarlo | `systemd.service` |
+| `RestartSec=` | Espera antes de cada reinicio (por defecto, 100 ms) | `systemd.service` |
+| `ExecReload=` | Qué hacer al recibir `reload`; sin ella, `reload` no existe | `systemd.service` |
+| `RemainAfterExit=` | Considerarlo activo aunque su proceso haya terminado | `systemd.service` |
+| `User=`, `Group=` | Identidad del proceso; sin `User=`, corre como root | `systemd.exec` |
+| `Environment=` | Variables de entorno, `NOMBRE=valor`; puede repetirse o llevar varias separadas por espacios | `systemd.exec` |
+| `WorkingDirectory=` | Carpeta en la que arranca | `systemd.exec` |
+| `KillMode=` | Qué procesos mata al parar; `process` solo mata el principal | `systemd.kill` |
+
+**`Type=`**
+
+| Valor | Se considera arrancado cuando… | Si el ejecutable no existe |
+|---|---|---|
+| `simple` (por defecto) | Se crea el proceso | `start` no avisa; el fallo aparece después |
+| `exec` | El programa se ha ejecutado | `start` falla en el momento |
+| `oneshot` | El proceso termina con éxito | `start` falla |
+| `notify` | El programa avisa a systemd de que está listo | Requiere soporte en el propio programa |
+
+`exec` es la opción recomendada para servicios que se quedan funcionando. No detecta fallos que ocurren después de ejecutarse el programa (un fichero que no puede leer, un puerto ocupado).
+
+**`Restart=`**
+
+| Cómo termina el proceso | `no` | `on-failure` | `always` |
+|---|---|---|---|
+| Código 0 o `SIGHUP`/`SIGINT`/`SIGTERM`/`SIGPIPE` | — | — | Reinicia |
+| Código distinto de 0 | — | Reinicia | Reinicia |
+| Otra señal (`SIGKILL`, falta de memoria) | — | Reinicia | Reinicia |
+| `systemctl stop` | — | — | — |
+
+`on-failure` es la recomendada para servicios de larga duración. El límite de arranques que la frena está en `[Unit]`.
+
+**Usuario dedicado.** Cada servicio continuo debería correr con su propio usuario de sistema (mínimo privilegio): si alguien explota un fallo del programa, obtiene los permisos de ese usuario, no los de root. Las cuentas de servicio tienen UID por debajo de 1000, shell `nologin` y ninguna contraseña utilizable. El código del servicio conviene que sea de root y solo legible por el servicio, para que no pueda modificarse a sí mismo.
+
+### `[Install]`: en qué target se apunta
+
+| Directiva | Qué hace | Documentación |
+|---|---|---|
+| `WantedBy=` | Target en cuyo `.wants/` se crea el enlace al habilitar | `systemd.unit` |
+
+**Targets.** Un **target** es una etapa del arranque que agrupa units. `multi-user.target` es el sistema funcionando en modo normal sin entorno gráfico; `graphical.target` lo incluye y añade el escritorio; `sockets.target` y `timers.target` son etapas donde se apuntan sockets y timers. `systemctl get-default` dice qué target alcanza la máquina.
+
+`WantedBy=multi-user.target` no hace nada por sí sola. Al ejecutar `systemctl enable`, se crea un enlace simbólico en `/etc/systemd/system/multi-user.target.wants/`. Al arrancar, systemd lanza todo lo que hay en esa carpeta. Si el target nunca se alcanza, el servicio nunca arranca solo.
+
+`start` arranca ahora; `enable` deja apuntado para los próximos arranques. Son independientes. Una unit sin `[Install]` es `static`: no se puede habilitar, solo arrancar a mano o como dependencia de otra.
+
+## 4. Drop-ins
+
+Un **drop-in** es un fichero `.conf` en `/etc/systemd/system/<unit>.d/` que se suma a la ficha sin modificarla. Sirve sobre todo para ajustar units de paquetes, cuyos cambios en `/usr/lib` se perderían al actualizar.
+
+- Debe repetir la cabecera de sección; sin ella, sus líneas se ignoran.
+- Las directivas de lista (`After=`, `Wants=`, `Environment=`) se acumulan. Las de valor único (`User=`, `Type=`) se sustituyen.
+- `systemctl status` muestra la línea `Drop-In:` cuando existe alguno.
+
+## 5. Diagnosticar un servicio que falla
 
 **Orden:** `systemctl status` → `journalctl -u` → la ficha.
 
@@ -184,7 +193,7 @@ En un **bucle de caídas**, la causa está en la primera caída de la serie, no 
 
 **Errores que no hacen fallar el servicio** (solo los detectan `systemd-analyze verify`, el aviso del journal o `systemctl show`): directivas mal escritas, en la sección equivocada, o una ficha editada sin `daemon-reload`.
 
-## 8. El journal
+## 6. El journal
 
 El **journal** es el registro de systemd. Guarda cada mensaje con campos (`_SYSTEMD_UNIT`, `_PID`, `_UID`, `_COMM`, `PRIORITY`, arranque…), que son los que permiten filtrar.
 
@@ -195,13 +204,13 @@ El **journal** es el registro de systemd. Guarda cada mensaje con campos (`_SYST
 - **Un log dice lo que el programa cree que pasa.** Si un programa anuncia algo antes de hacerlo, el log puede afirmar lo que luego falla.
 - **Permisos.** Para leer los mensajes del sistema sin `sudo`, el usuario tiene que estar en el grupo `systemd-journal`.
 
-## 9. Activación por socket
+## 7. Activación por socket
 
 Una unit `.socket` hace que systemd abra un puerto por adelantado y se lo pase al servicio con su mismo nombre. Con `Accept=no`, un único proceso recibe el puerto y atiende todas las conexiones; con `Accept=yes`, se lanza un proceso por conexión. Si el servicio está parado y llega una conexión, systemd lo arranca (`TriggeredBy:` en el `status` del servicio).
 
 Consecuencias: en `ss`, el puerto aparece en manos de `systemd` (PID 1) y del servicio; y el puerto lo decide la unit `.socket`, no la configuración del programa.
 
-## 10. Timers y cron
+## 8. Timers y cron
 
 Un **timer** arranca el servicio con su mismo nombre en un momento dado. El timer dice cuándo; el servicio, qué. Para tareas que hacen algo y terminan, el servicio usa `Type=oneshot`, y no necesita `[Install]`: se habilita el timer.
 
@@ -381,6 +390,7 @@ Type=notify
 | `systemctl show -p Prop1,Prop2 UNIT` | Valor que systemd usa de verdad | Confirmar que un cambio se aplicó. Ej.: `NRestarts`, `RestartUSec`, `After`, `Requires`, `StartLimitBurst` |
 | `systemctl list-dependencies UNIT` | Árbol de lo que necesita | `--reverse`: quién depende de ella; antes de parar algo |
 | `systemctl --failed` | Todas las units en `failed` | Revisión general de salud |
+| `systemctl list-units --type=TIPO --state=ESTADO` | Units cargadas en memoria y su estado. `--type` filtra por tipo (`service`, `timer`, `socket`); `--state` por estado (`running`, `failed`, `inactive`) | Inventario del VPS: `--type=service --state=running` dice qué servicios corren ahora. Solo enseña las cargadas: `--all` añade las inactivas. No indica si arranca con el sistema (`enable`) |
 | `systemctl get-default` | Target que alcanza el arranque | Para elegir `WantedBy=` |
 
 ## Unit files
