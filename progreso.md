@@ -1,8 +1,8 @@
 # Progreso · Roadmap Backend + Infra · Año 1
 
-**Última actualización:** 08/10/2026
+**Última actualización:** 12/10/2026
 
-> **Para Claude:** este archivo es la fuente de verdad sobre dónde estoy. Léelo al empezar cada conversación. Si pregunto algo que corresponde a un bloque posterior al que está «en curso» en su carril, avísame y recuérdame cuándo lo veremos. Al cerrar un bloque o una sesión relevante, ofréceme la versión actualizada de este archivo.
+> **Para Claude:** este archivo es la fuente de verdad sobre dónde estoy. Léelo al empezar cada conversación. Si pregunto algo que corresponde a un bloque posterior al que está «en curso» en su carril, avísame y recuérdame cuándo lo veremos. Al cerrar un bloque o una sesión relevante, ofréceme la versión actualizada de este archivo. La sección «Aplicación en el trabajo» solo registra el estado de cada revisión: los resultados van al diario privado, nunca aquí.
 
 **Horario:** lunes Linux y VPS · martes Redes · miércoles PostgreSQL · jueves y viernes proyecto propio y código de Odoo.
 
@@ -115,6 +115,27 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⬜ sin empezar · ❓ por confirmar
 - Contenido trabajado: joins, agregaciones, subconsultas, CTEs y window functions.
 - **Siguiente paso:** repaso en voz alta del criterio de cierre (`WHERE` frente a `HAVING`, `GROUP BY` frente a `PARTITION BY`, por qué `HAVING` no ve los alias del `SELECT`).
 - Practicar `LAG()` y `LEAD()`, mencionados pero no ejercitados.
+
+---
+
+## Aplicación en el trabajo
+
+Revisión de cada bloque cerrado con la pregunta «¿qué de esto puedo aplicar en el trabajo?», clasificando cada tema en observar, proponer o no aplica. Un chat por bloque. **Aquí solo va el estado:** los resultados viven en el diario privado (fuera del repo). Cada bloque que se cierre en adelante se añade a esta tabla.
+
+| Carril | Bloque | Revisión | Fecha |
+|---|---|---|---|
+| Linux | 0 · El servidor existe | ⬜ | |
+| Linux | 1 · El sistema por dentro | ⬜ | |
+| Linux | 2 · systemd de verdad | ⬜ | |
+| Redes | 1 · El modelo y las capas | ⬜ | |
+| Redes | 2 · DNS | ⬜ | |
+| Redes | 3 · HTTP | ⬜ | |
+| PostgreSQL | 0 · Que la base de datos exista | ⬜ | |
+
+- **Orden:** primero la revisión retroactiva de los bloques ya cerrados, empezando por Linux 0. Después, cada bloque al cerrarse.
+- **Antes de empezar las revisiones:**
+  - Diario privado creado y subido al conocimiento del proyecto (plantilla en un chat aparte).
+  - Avisar al jefe de que voy a mirar, en solo lectura, cómo se gestionan los backups.
 
 ---
 
