@@ -24,7 +24,7 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⬜ sin empezar · ❓ por confirmar
 
 | Bloque | Estado | Fecha de cierre | Apuntes |
 |---|---|---|---|
-| 0 · El servidor existe | ✅ | 11/09/2026 | `README.md` (vps-setup) |
+| 0 · El servidor existe | ✅ | 11/09/2026 | `linux-bloque-0.md` |
 | 1 · El sistema por dentro | ✅ | 24/09/2026 | `linux-bloque-1.md` |
 | 2 · systemd de verdad | ✅ | 03/10/2026 | `linux-bloque-2.md` |
 | 3 · Odoo 18 desplegado a mano | ⬜ | | |
@@ -59,7 +59,7 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⬜ sin empezar · ❓ por confirmar
 - Criterio de cierre superado y verificado con `ssh -v`: `Authentications that can continue: publickey` y `Authenticated ... using "publickey"`.
 - Usuario propio en el grupo `sudo`; `PermitRootLogin no`, `PasswordAuthentication no` y `KbdInteractiveAuthentication no` en `sshd_config`.
 - Par ed25519 generado en local, clave pública en `authorized_keys`, alias `vps` en `~/.ssh/config` con `IdentityFile` e `IdentitiesOnly`.
-- Procedimiento completo documentado en `README.md` del repo `vps-setup`.
+- Procedimiento completo documentado en `README.md` del repo `vps-setup`. Apuntes del bloque en `linux-bloque-0.md`.
 - Aprendizajes con coste: `sudo sshd -t` falla sin privilegios con un error engañoso sobre hostkeys. ~~`systemctl reload ssh` no bastó para aplicar el cambio de métodos de autenticación~~ **Corregido en el Bloque 2:** el `reload` nunca llegó a ejecutarse (el journal lo demuestra); el cambio se aplicó con el `restart` de las 20:43.
 - **Pendientes sueltos del bloque (no bloquean):** verificar la consola VNC del SCP (vía de recuperación, documentada pero no probada); confirmar en el `README.md` que los comandos de creación de usuario y copia de clave (`adduser`, `usermod -aG sudo`, `ssh-copy-id`) son los realmente usados.
 
