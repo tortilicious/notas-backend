@@ -161,37 +161,34 @@ footer ul{padding-left:18px}
 
 <section>
   <h2>La jornada</h2>
-  <p style="font-size:.95rem;color:var(--ink-soft);margin:0">Cuatro horas al día, de lunes a viernes. Unas 900 horas al año. Los fines de semana no se estudia: el descanso es parte del plan.</p>
+  <p style="font-size:.95rem;color:var(--ink-soft);margin:0">Cuatro horas al día, todos los días que estés en casa. Sin día fijo de descanso: un día fuera no se recupera, y saltarse uno por cansancio no es un retraso. Inglés, aplazado para más adelante.</p>
   <table>
     <thead><tr><th>Bloque</th><th>Tiempo</th><th>Contenido</th></tr></thead>
     <tbody>
       <tr><td>Fondo</td><td>2 h</td><td>Boot.dev, sin móvil delante</td></tr>
-      <tr><td>Carril</td><td>1 h</td><td>Rota según el día de la semana</td></tr>
-      <tr><td>Inglés</td><td>45 min</td><td>Escucha y vocabulario activo</td></tr>
-      <tr><td>Repaso</td><td>15 min</td><td>Explicar en voz alta lo de ayer</td></tr>
+      <tr><td>Carril</td><td>2 h</td><td>Alterna por sesión</td></tr>
     </tbody>
   </table>
 
-  <h3>El carril rota cada día</h3>
+  <h3>El carril alterna por sesión</h3>
   <ul class="rota">
-    <li><b>Lunes</b><span>Linux y el VPS</span></li>
-    <li><b>Martes</b><span>Redes</span></li>
-    <li><b>Miércoles</b><span>PostgreSQL con casos reales de clientes</span></li>
-    <li><b>Jueves</b><span>Proyecto propio</span></li>
-    <li><b>Viernes</b><span>Proyecto propio y lectura del código fuente de Odoo</span></li>
+    <li><b>Regla</b><span>El carril de hoy es el que no se hizo en la última sesión</span></li>
+    <li><b>Ahora</b><span>Linux y el VPS ↔ Redes</span></li>
+    <li><b>Después</b><span>Al terminar el SQL de Boot.dev entra PostgreSQL: rotación de tres</span></li>
+    <li><b>Jueves y viernes</b><span>Días de carril hasta que un hito los pase a proyectos</span></li>
   </ul>
 
-  <p class="note">Los últimos quince minutos parecen prescindibles y son los que deciden si estas 900 horas se convierten en conocimiento o solo en horas. Cierra todo y explica en voz alta lo de ayer. Si no puedes, no lo sabes.</p>
+  <p class="note">No hay repaso aparte: cada bloque se construye sobre el anterior, así que se repasa haciendo. Cada sesión termina con un ritual corto de preguntas y tus dudas. Pasada la 1 h 45 no se empieza nada nuevo.</p>
 </section>
 
 <section>
   <h2>Cinco reglas que no se negocian</h2>
   <ol class="rules">
-    <li>Pelea veinte minutos antes de preguntar a la IA. La frustración es la señal de que algo se está aprendiendo.</li>
+    <li>Un intento propio, con la referencia delante, antes de pedir la respuesta. La frustración es la señal de que algo se está aprendiendo.</li>
     <li>Usa la IA para preguntar, no para responder. «Critica mi diseño», «hazme preguntas hasta que falle», «explícame por qué esto no funciona». Nunca «escríbeme el código».</li>
     <li>Si no lo puedes explicar sin notas a alguien que no sabe del tema, no lo sabes. Ese es el criterio, no el porcentaje de curso completado.</li>
     <li>Lo que construyas tiene que estar corriendo en internet. Lo que vive en localhost no cuenta como experiencia.</li>
-    <li>Inglés todos los días. Es lo único de este plan que no se recupera acelerando después.</li>
+    <li>Cuando suena el temporizador, se cierra en un punto limpio. El entusiasmo no es motivo para alargar: lo que queda pasa a la siguiente sesión.</li>
   </ol>
   <p class="note">Estudiar con IA es como ver a alguien levantar pesas: lo entiendes todo y no ganas un gramo de músculo. Genera una sensación de comprensión que va muy por delante de la comprensión real, y no lo notas hasta una entrevista técnica o un incidente en producción.</p>
 </section>
@@ -226,7 +223,7 @@ const QUARTERS = [
     theme:"Cerrar Python y poner los pies en el suelo",
     goal:"Tu punto flojo declarado es Linux y redes, y ese es justo el suelo del perfil que quieres.",
     tracks:[
-      {t:"Boot.dev", body:"Terminar programación funcional (closures, decoradores, recursión, inmutabilidad), orientación a objetos completa y arranque de algoritmos."},
+      {t:"Boot.dev", body:"Terminar programación funcional (closures, decoradores, recursión, inmutabilidad), orientación a objetos completa y arranque de algoritmos. El curso de SQL sustituye los Bloques 1 a 3 del carril de PostgreSQL."},
       {t:"Linux y VPS", body:"Un servidor propio de 7,38 € al mes, de cero a operado.",
         plan:[
           ["Bloque 0 · El servidor existe","Netcup VPS 500 G12 (2 vCore, 4 GB DDR5 ECC, 128 GB NVMe) en Núremberg, 7,38 €/mes sin permanencia. Sistema: Ubuntu LTS, que es lo que te vas a encontrar en producción. Se cierra cuando entras por clave SSH con un usuario sin root, el login por contraseña está deshabilitado y root no puede entrar por SSH.","How Linux Works: cap. 1 (el panorama general) y 10.3 (SSH). The Linux Command Line: caps. 1 a 5, para moverte por la shell sin pelearte con ella."],
@@ -247,7 +244,7 @@ const QUARTERS = [
           ["Hito final","Explicar en voz alta, sin notas y durante diez minutos, todo lo que ocurre entre teclear tu dominio y ver Odoo. DNS, TCP, TLS, nginx, gunicorn, Postgres, vuelta."]
         ],
         books:"High Performance Browser Networking (Grigorik, gratis en hpbn.co) es lo mejor que hay para HTTP y TLS. Computer Networking: A Top-Down Approach (Kurose y Ross) para los fundamentos. Los capítulos citados por bloque son de la 8.ª ed. de Kurose y de la edición online de hpbn.co. Cuando dudes, la RFC."},
-      {t:"PostgreSQL", body:"SQL de adulto y capacidad de diagnosticar por qué algo va lento.",
+      {t:"PostgreSQL", body:"SQL de adulto y capacidad de diagnosticar por qué algo va lento. En pausa hasta terminar el SQL de Boot.dev, que cubre los Bloques 1 a 3; al volver, repaso de índices en PostgreSQL y Bloques 4 y 5.",
         plan:[
           ["Bloque 1 · SQL sólido","Joins, agregaciones, subconsultas, CTEs y window functions. Escríbelo contra una base con datos, no solo leyendo.","Documentación oficial de PostgreSQL: Parte II, The SQL Language — capítulo 7 (Queries), que cubre joins, subconsultas, CTEs y window functions."],
           ["Bloque 2 · El modelo relacional","Normalización, claves, integridad referencial. En paralelo: cómo lo traduce el ORM de Odoo. Ahí verás por qué ciertos modelos van lentos.","Documentación oficial de PostgreSQL: capítulo 5 (Data Definition), para constraints y claves ajenas."],
@@ -256,7 +253,7 @@ const QUARTERS = [
           ["Bloque 5 · El ORM de Odoo bajo el capó","Activa el log de queries y mira qué genera realmente search(). El problema N+1, prefetch, read_group. Este bloque es tu ventaja injusta frente a otros juniors."]
         ],
         books:"Carril sin coste: la documentación oficial (postgresql.org/docs/current) es la fuente principal y es de las mejores que existen. PostgreSQL 14 Internals (Rogov), PDF gratuito, para el planner. Use The Index, Luke! para índices. Opcional de pago: The Art of PostgreSQL (Fontaine), que enseña a pensar en SQL más que a conocer la sintaxis."},
-      {t:"Proyecto y scripts", body:"No hay proyecto grande este trimestre. Hay tres artefactos pequeños y reales.",
+      {t:"Proyecto y scripts", body:"No hay proyecto grande este trimestre. Hay tres artefactos pequeños y reales, que ocupan jueves y viernes según los hitos: H1, cierre de Linux 3 → Artefacto 2; H2, inicio de Linux 4 → Artefacto 1; H3, closures y decoradores en Boot.dev → código de Odoo los viernes; H4, inicio del Q2 → proyecto propio.",
         plan:[
           ["Artefacto 1 · Script de backup","Vuelca la base de datos y el filestore de una instancia Odoo, rota copias antiguas y verifica que el dump no está corrupto. Argumentos, logging, códigos de salida, set -euo pipefail si es bash."],
           ["Artefacto 2 · Healthcheck","Comprueba cada N minutos que un Odoo responde y avisa por Telegram si no. Timeouts, reintentos y evitar spam de alertas. Corriendo con un timer de systemd en tu VPS."],
@@ -295,8 +292,7 @@ const QUARTERS = [
       "Algoritmos y estructuras de datos completados",
       "Go básico: capaz de escribir un programa no trivial sin copiar",
       "Proyecto propio accesible públicamente en tu dominio",
-      "Documento de diseño del proyecto escrito por ti",
-      "Inglés: conversación técnica de diez minutos sin bloquearte"
+      "Documento de diseño del proyecto escrito por ti"
     ]
   },
   {
@@ -321,8 +317,7 @@ const QUARTERS = [
       "Go sólido, incluyendo concurrencia",
       "Proyecto con tests, CI en verde y documentación de API",
       "Todo contenerizado",
-      "Dos o tres posts técnicos publicados",
-      "Inglés funcional en entrevista"
+      "Dos o tres posts técnicos publicados"
     ]
   },
   {
@@ -347,8 +342,7 @@ const QUARTERS = [
       "Proyecto propio en Kubernetes, con CI/CD y observabilidad",
       "Terraform y Ansible usados sobre infraestructura real",
       "Postmortem escrito de un incidente simulado",
-      "CV y perfil público listos",
-      "Inglés C1 funcional"
+      "CV y perfil público listos"
     ]
   }
 ];

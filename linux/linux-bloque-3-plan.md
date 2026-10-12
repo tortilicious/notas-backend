@@ -1,6 +1,6 @@
 # Linux/VPS · Bloque 3 — Odoo 18 desplegado a mano · Plan de sesiones
 
-Carril de Linux y VPS: **lunes, ~1 h por sesión**. Doce sesiones.
+Carril de Linux y VPS, en alternancia por sesión con Redes. Doce sesiones: las 1 a 10 se planificaron a ~1 h; desde la 11, **~2 h por sesión** con objetivos numerados como puntos de control.
 
 **Criterio de cierre:** reinstalar Odoo 18 entero en una máquina nueva siguiendo solo tus propias notas. Sin Docker, deliberadamente.
 
@@ -12,11 +12,11 @@ Carril de Linux y VPS: **lunes, ~1 h por sesión**. Doce sesiones.
 | PostgreSQL | Paquete 16 instalado en el VPS, clúster `16/main`, unit `postgresql@16-main.service` |
 | `labweb` | Servicio de prueba en `127.0.0.1:8080`, se usa para ensayar nginx antes que con Odoo |
 | Portátil | CachyOS, con PostgreSQL 18 y Pagila (carril de PostgreSQL) |
-| Dominio | `mlozano.dev` en Cloudflare, todavía sin registros que apunten al VPS |
+| Dominio | `mlozano.dev` en Cloudflare, sin registros que apunten al VPS al empezar el bloque |
 
-**Decisión de solape con Redes:** nginx y TLS se instalan **funcionales** en este bloque. Se entiende cada línea a nivel de «qué hace», y todo lo que pida más fondo se apunta en la lista de preguntas aparcadas (al final) para Redes · Bloque 4 (TLS) y Bloque 5 (reverse proxy).
+**Decisión de solape con Redes:** nginx y TLS se instalan **funcionales** en este bloque. Se entiende cada línea a nivel de «qué hace», y todo lo que pida más fondo se apunta en los pendientes de `progreso.md` para Redes · Bloque 4 (TLS) y Bloque 5 (reverse proxy).
 
-**Ritual de cada sesión:** al terminar, escribes lo del día con la referencia delante (man, documentación, libro), sin copiar de la conversación.
+**Ritual de cada sesión:** según las instrucciones del proyecto (§7).
 
 ---
 
@@ -34,7 +34,7 @@ Carril de Linux y VPS: **lunes, ~1 h por sesión**. Doce sesiones.
 | 8 | nginx delante de `labweb` | VPS + portátil |
 | 9 | `mlozano.dev` y Odoo detrás de nginx | Cloudflare + VPS + portátil |
 | 10 | HTTPS con certbot | VPS + portátil |
-| 11 | Notas de reinstalación y máquina nueva | Portátil + VPS |
+| 11 | Notas de reinstalación y `vps-setup` | Portátil + VPS |
 | 12 | Reinstalación (criterio de cierre) | Máquina nueva |
 
 ## Bibliografía del bloque y dónde se usa
@@ -46,7 +46,7 @@ Carril de Linux y VPS: **lunes, ~1 h por sesión**. Doce sesiones.
 | *The Linux Command Line*, cap. 14 (gestión de paquetes) | 2, 4, 7, 10 |
 | *The Linux Command Line*, cap. 16 (herramientas de red) | 1, 5, 8 |
 | Documentación de Odoo 18: *Source install*, *Deploying Odoo* y referencia de la CLI | 3 a 7, 9, 10 |
-| Tus apuntes del Bloque 2 y `man systemd.unit/service/exec` | 6 |
+| Tus apuntes del Bloque 2 y `systemd.unit`, `systemd.service`, `systemd.exec` (manpages.ubuntu.com, *noble*) | 6 |
 | Guía de principiante de nginx (nginx.org) | 8, 9 |
 | Documentación de certbot | 10 |
 
@@ -357,15 +357,39 @@ El navegador marca `mlozano.dev` como «No seguro» y tu contraseña de Odoo via
 - Un certificado que no se renueva caduca en 90 días: es un incidente de Bloque 5 esperando a ocurrir si el timer falla.
 - Con esta sesión, el entregable del trimestre «VPS con Odoo desplegado a mano y HTTPS» está cumplido (faltan los backups, Bloque 4).
 
+### Resto de la Sesión 10 · Endurecimiento (urgente)
+
+**1. El problema** (VPS, terminal SSH; portátil, navegador)
+
+El certificado funciona, pero hay tres huecos: la contraseña del administrador de `test-db` viajó por `http` en una prueba previa al certificado; la contraseña maestra quedó escrita en un chat y está en texto plano en `odoo.conf`; y certbot no añadió ni HSTS ni la marca `secure` en la cookie de sesión.
+
+**2. Bibliografía**
+
+- Odoo 18, *Deploying Odoo* → «Security»: contraseña maestra y `admin_passwd` en hash.
+- Odoo 18, *Deploying Odoo* → «HTTPS»: el ejemplo con `Strict-Transport-Security` y `proxy_cookie_flags`.
+- Documentación de nginx, módulo `ngx_http_headers_module` → `add_header` y cuándo se hereda en un `location` (por eso `location /websocket` necesita revisión aparte).
+
+**3. Objetivos para darla por superada**
+
+1. Contraseña del administrador de `test-db` cambiada desde la interfaz de Odoo y anotada en el gestor de contraseñas.
+2. Contraseña maestra nueva guardada en el gestor, `admin_passwd` en hash (copia previa de `odoo.conf`), `odoo` reiniciado y arrancando bien.
+3. `curl -I https://odoo.mlozano.dev/web/login` muestra `Strict-Transport-Security` (copia previa del sitio, `sudo nginx -t`, `reload`) y un inicio de sesión funciona con la cookie `secure`.
+
+**4. Lo más importante**
+
+- Una contraseña que ha pasado por un sitio no controlado se considera comprometida: se cambia, no se vigila.
+- HSTS y la cookie `secure` cierran el paso a que el navegador vuelva a usar `http`. El fondo, en Redes · Bloques 4 y 5.
+- Al terminar, completar «Pendiente de completar» en `vps-setup/odoo.md` y actualizar `vps-inventario.md`.
+
 ---
 
-## Sesión 11 · Notas de reinstalación y máquina nueva
+## Sesión 11 · Notas de reinstalación y `vps-setup`
 
 **1. El problema** (portátil; VPS para contrastar)
 
-Sin esta conversación, ¿podrías repetirlo todo? Escribe la guía de reinstalación y contrástala con lo que de verdad ejecutaste: el journal de `sudo` del VPS guarda cada comando con privilegios (Bloque 2). Cada paso que esté en el journal y no en tus notas es un hueco.
+Sin estas conversaciones, ¿podrías repetirlo todo? `vps-setup/odoo.md` existe, pero es un borrador largo. Contrástalo con lo que de verdad ejecutaste: el journal de `sudo` del VPS guarda cada comando con privilegios (Bloque 2). Cada paso que esté en el journal y no en la receta es un hueco. Además, `vps-setup` es público y parte del portfolio: tiene que servir a cualquiera, no solo a tu máquina.
 
-Decisión de la máquina nueva:
+Decisión de la máquina nueva para la Sesión 12:
 
 | Opción | A favor | En contra |
 |---|---|---|
@@ -374,19 +398,23 @@ Decisión de la máquina nueva:
 
 **2. Bibliografía**
 
-- Ninguna nueva. Tus notas de las sesiones 1 a 10 y el journal de `sudo` del VPS.
+- Ninguna nueva. Tus apuntes del bloque, `linux/vps-inventario.md` y el journal de `sudo` del VPS.
 
 **3. Objetivos para darla por superada**
 
-- Guía de reinstalación en un repositorio (decidir: `vps-setup` o uno nuevo), ordenada por capas, con cada comando acompañado de su porqué.
-- Lista de todos los ficheros creados o modificados en `/etc`, `/opt` y en el directorio de datos, cruzada con el journal de `sudo`.
-- Inventario de secretos (contraseña maestra, etc.): dónde viven y confirmación de que **no** están en el repositorio.
-- Máquina nueva elegida y accesible por SSH con clave.
+1. Huecos localizados: comandos del journal de `sudo` que no están en `vps-setup`, incluidos los ⚠️ de `odoo.md` (comando de instalación de PostgreSQL, si hubo que instalar `git`) y los comandos de creación de usuario y copia de clave del `README.md` (`adduser`, `usermod -aG sudo`, `ssh-copy-id`).
+2. `odoo.md` recortado a receta por capas + comprobación + decisiones de una línea, con la teoría enlazada a `notas-backend`. Incluye que `wkhtmltox` viene de un fichero y no de `apt`, que `phonenumbers` es dependencia de `account_peppol` y el parámetro `report.url`.
+3. `README.md` como portada (qué es, arquitectura navegador → nginx → Odoo → PostgreSQL, estado) e índice. Corregidas la frase de `reload` (§3.9) y la de terminfo (§6); quitada la §7 (el seguimiento vive en `progreso.md`).
+4. `sistema.md` creado con los ajustes de los Bloques 1 y 2 (`multi-user.target`, `snapd` purgado, `miguel` en `systemd-journal`, terminfo de Ghostty). `labweb` no entra: es de laboratorio.
+5. Datos del entorno (IP, dominio, usuario, nombre de la base) como valores a sustituir, con el mismo criterio en todos los ficheros. Revisión de secretos antes del push.
+6. Máquina nueva elegida y accesible por SSH con clave.
+
+Si no cabe en 2 h, los objetivos que queden pasan a la siguiente sesión de Linux.
 
 **4. Lo más importante**
 
-- La guía es el entregable real del bloque y la base del procedimiento de restauración del Bloque 4.
-- Platform engineering: esta guía es lo que después se convierte en un script, en Ansible o en un `Dockerfile`. Primero tiene que existir a mano.
+- La receta es el entregable real del bloque y la base del procedimiento de restauración del Bloque 4.
+- Platform engineering: esta receta es lo que después se convierte en un script, en Ansible o en un `Dockerfile`. Primero tiene que existir a mano.
 
 ---
 
@@ -394,42 +422,24 @@ Decisión de la máquina nueva:
 
 **1. El problema** (máquina nueva, desde el portátil)
 
-Una máquina vacía. Solo tienes tus notas. Cada vez que tengas que buscar algo fuera de ellas, lo apuntas como hueco y lo corriges en la guía al terminar. Puede necesitar dos sesiones.
+Una máquina vacía. Solo tienes `vps-setup`. Cada vez que tengas que buscar algo fuera de él, lo apuntas como hueco y lo corriges al terminar. Puede necesitar dos sesiones.
 
 **2. Bibliografía**
 
-- Tus notas. Nada más.
+- `vps-setup`. Nada más.
 
 **3. Objetivos para darla por superada**
 
-- Odoo 18 responde a través de nginx (con HTTPS si la máquina es pública), en la versión y el commit anotados.
-- El servicio sobrevive a un reinicio y arranca después de PostgreSQL.
-- Un PDF sale con cabecera y pie.
-- Lista de huecos encontrados, y guía corregida y versionada.
-- Máquina temporal destruida (si se usó un VPS por horas).
+1. Odoo 18 responde a través de nginx (con HTTPS si la máquina es pública), en la versión y el commit anotados.
+2. El servicio sobrevive a un reinicio y arranca después de PostgreSQL.
+3. Un PDF sale con cabecera y pie.
+4. Lista de huecos encontrados, y `vps-setup` corregido y subido.
+5. Máquina temporal destruida (si se usó un VPS por horas).
 
 **4. Lo más importante**
 
 - Si lo reinstalas desde tus notas, lo puedes restaurar en el Bloque 4 y diagnosticar en el Bloque 5.
-- `labweb` **no** se borra al cerrar: se mantiene para el Bloque 5 y el Artefacto 2 (ver «Temas aplazados» en `progreso.md`).
+- `labweb` **no** se borra al cerrar: se mantiene para el Bloque 5 y el Artefacto 2 (ver pendientes en `progreso.md`).
+- Al cerrar el bloque se cumple el hito H1: jueves y viernes pasan al Artefacto 2.
 
 ---
-
-## Preguntas aparcadas para Redes
-
-Se rellena durante el bloque. Punto de partida:
-
-| Pregunta | Dónde se responde |
-|---|---|
-| ¿Por qué la aplicación ve `127.0.0.1` y no la IP del cliente? (cabeceras `X-Forwarded-*`) | Redes · Bloque 5 |
-| ¿Qué hacen las cabeceras `Upgrade`/`Connection` en la ruta del websocket? | Redes · Bloque 5 |
-| ¿Qué es el *buffering* de nginx y cuándo estorba? | Redes · Bloque 5 |
-| ¿Qué comprueba Let's Encrypt antes de dar el certificado? (reto HTTP-01) | Redes · Bloque 4 |
-| ¿Qué hay en `fullchain.pem` y por qué no basta con el certificado solo? | Redes · Bloque 4 |
-| Cada línea que certbot añadió a nginx | Redes · Bloques 4 y 5 |
-
-## Apuntado para el Bloque 4
-
-- Firewall: solo deben quedar abiertos 22, 80 y 443; PostgreSQL y Odoo, solo locales.
-- wkhtmltopdf instalado desde fichero: fuera de las actualizaciones automáticas.
-- Backup: base de datos + *filestore* + `odoo.conf` (y decidir sobre `/etc/letsencrypt`).
