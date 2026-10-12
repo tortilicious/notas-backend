@@ -2,7 +2,7 @@
 
 **Última actualización:** 12/10/2026
 
-> **Para Claude:** este archivo es la fuente de verdad sobre dónde estoy. Léelo al empezar cada conversación. Si pregunto algo que corresponde a un bloque posterior al que está «en curso» en su carril, avísame y recuérdame cuándo lo veremos. Al cerrar un bloque o una sesión relevante, ofréceme la versión actualizada de este archivo. La sección «Aplicación en el trabajo» solo registra el estado de cada revisión: los resultados van al diario privado, nunca aquí.
+> **Para Claude:** este archivo es la fuente de verdad sobre dónde estoy. Léelo al empezar cada conversación. Si pregunto algo que corresponde a un bloque posterior al que está «en curso» en su carril, avísame y recuérdame cuándo lo veremos. Al cerrar un bloque o una sesión relevante, ofréceme la versión actualizada de este archivo. La sección «Aplicación en el trabajo» solo registra el estado de cada revisión: los hallazgos van al registro de hallazgos privado (`registro-hallazgos.md`), nunca aquí.
 
 **Horario:** lunes Linux y VPS · martes Redes · miércoles PostgreSQL · jueves y viernes proyecto propio y código de Odoo.
 
@@ -120,7 +120,7 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⬜ sin empezar · ❓ por confirmar
 
 ## Aplicación en el trabajo
 
-Revisión de cada bloque cerrado con la pregunta «¿qué de esto puedo aplicar en el trabajo?», clasificando cada tema en observar, proponer o no aplica. Un chat por bloque. **Aquí solo va el estado:** los resultados viven en el diario privado (fuera del repo). Cada bloque que se cierre en adelante se añade a esta tabla.
+Revisión de cada bloque cerrado con la pregunta «¿qué de esto puedo aplicar en el trabajo?», clasificando cada tema en observar, proponer o no aplica. Lo clasificado como «observar» se revisa en producción en solo lectura y sale como ficha del registro de hallazgos. Un chat por bloque. **Aquí solo va el estado:** los hallazgos viven en `registro-hallazgos.md`, privado y fuera del repo. Cada bloque que se cierre en adelante se añade a esta tabla.
 
 | Carril | Bloque | Revisión | Fecha |
 |---|---|---|---|
@@ -133,9 +133,11 @@ Revisión de cada bloque cerrado con la pregunta «¿qué de esto puedo aplicar 
 | PostgreSQL | 0 · Que la base de datos exista | ⬜ | |
 
 - **Orden:** primero la revisión retroactiva de los bloques ya cerrados, empezando por Linux 0. Después, cada bloque al cerrarse.
+- **Ciclo de cada hallazgo:** observado → propuesto → aprobado → probado en VPS → aplicado (o descartado, con motivo). Como mucho dos o tres en «propuesto» a la vez.
 - **Antes de empezar las revisiones:**
-  - Diario privado creado y subido al conocimiento del proyecto (plantilla en un chat aparte).
-  - Avisar al jefe de que voy a mirar, en solo lectura, cómo se gestionan los backups.
+  - ✅ Registro de hallazgos creado y subido al conocimiento del proyecto. Volver a subirlo después de cada revisión.
+  - ✅ Acceso a los servidores: SSH y sudo en todos, con el visto bueno del jefe. Sudo solo cuando el comando de observar lo necesite.
+  - ⬜ Rellenar el inventario del registro (alias de cada servidor), aprovechando la revisión de Linux 0.
 
 ---
 
