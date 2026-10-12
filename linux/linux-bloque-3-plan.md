@@ -402,12 +402,13 @@ Decisión de la máquina nueva para la Sesión 12:
 
 **3. Objetivos para darla por superada**
 
-1. Huecos localizados: comandos del journal de `sudo` que no están en `vps-setup`, incluidos los ⚠️ de `odoo.md` (comando de instalación de PostgreSQL, si hubo que instalar `git`) y los comandos de creación de usuario y copia de clave del `README.md` (`adduser`, `usermod -aG sudo`, `ssh-copy-id`).
-2. `odoo.md` recortado a receta por capas + comprobación + decisiones de una línea, con la teoría enlazada a `notas-backend`. Incluye que `wkhtmltox` viene de un fichero y no de `apt`, que `phonenumbers` es dependencia de `account_peppol` y el parámetro `report.url`.
-3. `README.md` como portada (qué es, arquitectura navegador → nginx → Odoo → PostgreSQL, estado) e índice. Corregidas la frase de `reload` (§3.9) y la de terminfo (§6); quitada la §7 (el seguimiento vive en `progreso.md`).
-4. `sistema.md` creado con los ajustes de los Bloques 1 y 2 (`multi-user.target`, `snapd` purgado, `miguel` en `systemd-journal`, terminfo de Ghostty). `labweb` no entra: es de laboratorio.
-5. Datos del entorno (IP, dominio, usuario, nombre de la base) como valores a sustituir, con el mismo criterio en todos los ficheros. Revisión de secretos antes del push.
-6. Máquina nueva elegida y accesible por SSH con clave.
+1. Estructura de `vps-setup` decidida: ficheros sueltos por capa, o carpetas con ficheros de configuración listos para copiar y valores a sustituir (`nginx/`, `systemd/`, `firewall/`…) enlazados desde la receta.
+2. Huecos localizados: comandos del journal de `sudo` que no están en `vps-setup`, incluidos los ⚠️ de `odoo.md` (comando de instalación de PostgreSQL, si hubo que instalar `git`) y los comandos de creación de usuario y copia de clave del `README.md` (`adduser`, `usermod -aG sudo`, `ssh-copy-id`).
+3. `odoo.md` recortado a receta por capas + comprobación + decisiones de una línea, con la teoría enlazada a `notas-backend`. Incluye que `wkhtmltox` viene de un fichero y no de `apt`, que `phonenumbers` es dependencia de `account_peppol` y el parámetro `report.url`.
+4. `README.md` como portada (qué es, arquitectura navegador → nginx → Odoo → PostgreSQL, estado) e índice. Corregidas la frase de `reload` (§3.9) y la de terminfo (§6); quitada la §7 (el seguimiento vive en `progreso.md`).
+5. `sistema.md` creado con los ajustes de los Bloques 1 y 2 (`multi-user.target`, `snapd` purgado, `miguel` en `systemd-journal`, terminfo de Ghostty). `labweb` no entra: es de laboratorio.
+6. Datos del entorno (IP, dominio, usuario, nombre de la base) como valores a sustituir, con el mismo criterio en todos los ficheros. Revisión de secretos antes del push.
+7. Máquina nueva elegida y accesible por SSH con clave.
 
 Si no cabe en 2 h, los objetivos que queden pasan a la siguiente sesión de Linux.
 

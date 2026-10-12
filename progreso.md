@@ -12,7 +12,7 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⏸ en pausa · ⬜ sin empezar · ❓ 
 
 | | |
 |---|---|
-| Última sesión de carril | Linux y VPS · Bloque 3, Sesión 10 (11–12/10/2026) |
+| Última sesión de carril | Linux y VPS · Bloque 3, Sesión 10 cerrada (endurecimiento, 12/10/2026) |
 | Siguiente carril | Redes · Bloque 4 (sin plan todavía: se genera al empezar) |
 | Rotación | Linux y VPS ↔ Redes. PostgreSQL entra al terminar Learn SQL de Boot.dev |
 | Boot.dev | Ruta backend (Python), capítulo 9: Learn Data Structures and Algorithms (86/127). Siguiente: capítulo 16, Learn SQL (95 lecciones), adelantado; después se retoma el orden en el capítulo 10 |
@@ -49,7 +49,7 @@ El Artefacto 3 (algo del trabajo que dé rabia hacer a mano) queda libre desde H
 | Sesión | Estado |
 |---|---|
 | 1 a 9 | ✅ |
-| 10 · HTTPS con certbot | 🟡 Certificado, redirección, renovación y websocket hechos. Falta el endurecimiento (ver «Urgente») |
+| 10 · HTTPS con certbot | ✅ 12/10/2026, con endurecimiento: `admin_passwd` en hash, contraseñas cambiadas, HSTS y cookie `secure` |
 | 11 · Notas de reinstalación y `vps-setup` | ⬜ |
 | 12 · Reinstalación (criterio de cierre) | ⬜ |
 
@@ -98,13 +98,10 @@ Del roadmap: en `api.py`, cómo están implementados `@api.depends` y `@api.mode
 
 Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 
-### Urgente (antes de seguir con cualquier carril)
-
-- **Resto de la Sesión 10 de Linux** (detalle en el plan del Bloque 3): contraseña del administrador de `test-db` (viajó por `http`), contraseña maestra nueva (la actual quedó escrita en un chat) con `admin_passwd` en hash, y HSTS más cookie `secure` en nginx. Al terminar, completar «Pendiente de completar» en `vps-setup/odoo.md`.
-
 ### Linux · Bloque 3
 
 - Para los apuntes: el nombre exacto del error de conexión durante el corte de PostgreSQL no se anotó (`journalctl -u odoo` con filtro de tiempo y `grep -i error`). Las cabeceras del gestor y el `303` del selector sin `dbfilter` constan como descripción, sin reproducir.
+- Para los apuntes (Parte 3): `grep` sin `-E` trata `|` como literal, así que `grep -i 'critical|error'` no encuentra nada aunque haya errores. Para la Parte 2: el `psycopg2.InterfaceError: connection already closed` que aparece al reiniciar `odoo` es del proceso antiguo al pararse (se distingue por el PID y la hora frente al `Main PID` y el `since` de `systemctl status`).
 - Opcional: notificaciones en vivo con dos usuarios en dos navegadores (el `101` ya prueba el websocket).
 - Opcional: con una sesión iniciada en Odoo, ver con `sudo ss -tnp` el par `sshd` ↔ `python` en `127.0.0.1:8069`.
 
@@ -135,6 +132,7 @@ Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 
 - Antes de empezar: terminar Grigorik cap. 12 (*Binary Framing Layer*, *Streams, Messages, and Frames*, *Request and Response Multiplexing*, *Header Compression*), pendiente del Bloque 3.
 - Preguntas del `diff` de certbot: qué pasa al abrir una conexión TLS (`ssl`); qué hay en `fullchain.pem` frente a `cert.pem` y `chain.pem`; qué elige `options-ssl-nginx.conf`; para qué sirve `ssl_dhparam`; qué comprueba Let's Encrypt (reto HTTP-01); qué significan los campos de TLS que muestra el navegador (`TLS_AES_128_GCM_SHA256`, TLS 1.3, Certificate Transparency).
+- HSTS a fondo: por qué la primera visita sin HSTS es el punto débil, la lista de precarga (`.dev` entero) y el `307 Internal Redirect` del navegador (F12 → *Network*, con *Preserve log*, al cargar `http://odoo.mlozano.dev`). La parte práctica quedó hecha en Linux · Bloque 3.
 - Caso pixeldrain por HTTPS: la conexión TCP se abre y el corte (`Connection reset by peer`, código 35 de `curl`) llega justo después del `Client hello`. Apunta a inspección del SNI y corrige la conclusión del Bloque 2.
 
 ### Redes · Bloque 5
