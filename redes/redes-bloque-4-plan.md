@@ -1,6 +1,8 @@
 # Redes · Bloque 4 — TLS · Plan de sesiones
 
-Carril de Redes, en alternancia por sesión con Linux y VPS. Ocho sesiones de **~2 h** con objetivos numerados como puntos de control.
+Carril de Redes, en alternancia por sesión con Linux y VPS. Seis sesiones de **~2 h** con objetivos numerados como puntos de control.
+
+**Enfoque (acordado el 13/10/2026):** nivel de quien configura, diagnostica y explica incidencias en sus servidores (platform engineering / DevOps), no de quien diseña protocolos. Lo interno del protocolo (formato de los mensajes, orden exacto del *handshake*, diferencias finas entre versiones) se ve solo a nivel de idea. Lo que pesa: la cadena de certificados, SNI, ACME y medir el coste de TLS.
 
 **Criterio de cierre:** explicar, sin notas, qué hace certbot por debajo: cómo demuestra a Let's Encrypt que controlas `odoo.mlozano.dev`, qué recibe, dónde lo deja, qué cambia en nginx y qué ocurre en cada conexión de un navegador con ese certificado.
 
@@ -9,7 +11,7 @@ Carril de Redes, en alternancia por sesión con Linux y VPS. Ocho sesiones de **
 | Pieza | Estado |
 |---|---|
 | VPS | `backend-lab`, Ubuntu 24.04, shell `fish`, alias `vps` |
-| nginx | Delante de Odoo (`127.0.0.1:8069`) y de `labweb` (`127.0.0.1:8080`), en 80 y 443 |
+| nginx | Delante de Odoo (`127.0.0.1:8069`) y de `labweb` (`127.0.0.1:8080`), en 80 y 443; HTTP/2 activo en el 443 |
 | Certificado | Let's Encrypt para `odoo.mlozano.dev`, obtenido con el plugin de nginx de certbot; renovación por `certbot.timer` |
 | Endurecimiento | HSTS y cookie `secure` activos (Linux · Bloque 3, Sesión 10) |
 | Portátil | CachyOS, `curl` 8.22.0 |
@@ -23,28 +25,28 @@ Carril de Redes, en alternancia por sesión con Linux y VPS. Ocho sesiones de **
 
 | # | Sesión | Dónde se trabaja |
 |---|---|---|
-| 1 | Cierre de HTTP/2 y la puerta de TLS (ALPN) | Portátil + VPS |
-| 2 | Qué protege TLS: cifrado, autenticación e integridad | Portátil |
-| 3 | El *handshake* paso a paso | Portátil |
-| 4 | La cadena de certificados | VPS + portátil |
-| 5 | SNI y el caso pixeldrain | Portátil |
-| 6 | Qué hace certbot por debajo: ACME y el reto HTTP-01 | VPS |
-| 7 | HSTS, precarga y Certificate Transparency | Portátil (navegador) |
-| 8 | Criterio de cierre | Portátil + VPS |
+| 1 | Cierre de HTTP/2 y la puerta de TLS (ALPN) ✅ | Portátil + VPS |
+| 2 | Qué protege TLS y cuánto cuesta | Portátil |
+| 3 | La cadena de certificados | VPS + portátil |
+| 4 | SNI: varios dominios en una IP | Portátil |
+| 5 | Qué hace certbot por debajo: ACME y el reto HTTP-01 | VPS |
+| 6 | HSTS, Certificate Transparency y criterio de cierre | Portátil (navegador) + VPS |
 
 ## Bibliografía del bloque y dónde se usa
 
 | Fuente | Sesiones |
 |---|---|
 | Kurose y Ross, 8.ª ed., 2.2.6 (HTTP/2) | 1 |
-| Kurose y Ross, 8.ª ed., cap. 8: 8.1 a 8.3 (criptografía, integridad, firmas y certificados) y 8.6 (TLS) | 2 a 5 |
-| Cloudflare Learning Center, *What is SNI?* | 5 |
-| MDN, cabecera `Strict-Transport-Security` | 7 |
-| Documentación de Let's Encrypt (*How It Works*, *Challenge Types*, *Chain of Trust*) | 4, 6 |
-| Documentación de certbot y de nginx (`ngx_http_ssl_module`, `ngx_http_v2_module`) en la versión instalada | 1, 6 |
-| `man openssl-s_client`, `man openssl-x509`, `man openssl-verify` (man.archlinux.org en el portátil; manpages.ubuntu.com, *noble*, en el VPS) | 3, 4, 5 |
+| Kurose y Ross, 8.ª ed., 8.1, 8.2 y 8.6 a nivel de idea (qué garantiza TLS y cómo arranca) | 2 |
+| Kurose y Ross, 8.ª ed., 8.3.3 (firmas y certificados) | 3 |
+| `man curl` → `--write-out` (`time_connect`, `time_appconnect`) y `--resolve` | 2, 4 |
+| Cloudflare Learning Center, *What is SNI?* | 4 |
+| Documentación de Let's Encrypt (*How It Works*, *Challenge Types*, *Chain of Trust*) | 3, 5 |
+| Documentación de certbot y de nginx (`ngx_http_ssl_module`, `ngx_http_v2_module`) en la versión instalada | 1, 5 |
+| `man openssl-s_client`, `man openssl-x509`, `man openssl-verify` (man.archlinux.org en el portátil; manpages.ubuntu.com, *noble*, en el VPS) | 3, 4 |
+| MDN, cabecera `Strict-Transport-Security`; certificate.transparency.dev | 6 |
 
-**Lectura principal: Kurose.** El nivel que pide el bloque es el de quien administra su servidor, no el de quien diseña protocolos. Grigorik (*High Performance Browser Networking*, caps. 4 y 12) queda como **consulta opcional** cuando haga falta un detalle concreto; es más técnico. Kurose describe TLS 1.2 en parte: tus conexiones usan TLS 1.3, que ahorra un viaje de ida y vuelta en el *handshake*. Para el detalle exacto, el RFC 8446 (opcional).
+**Lectura principal: Kurose.** Grigorik (*High Performance Browser Networking*, caps. 4 y 12) y el RFC 8446 quedan como **consulta opcional** para un detalle concreto.
 
 ---
 
@@ -75,58 +77,35 @@ En el Bloque 3 viste que algunos sitios responden con `HTTP/2`. Pide la portada 
 
 ---
 
-## Sesión 2 · Qué protege TLS: cifrado, autenticación e integridad
+## Sesión 2 · Qué protege TLS y cuánto cuesta
 
 **1. El problema** (portátil, terminal y navegador)
 
-Cuando inicias sesión en `https://odoo.mlozano.dev`, `curl -v` muestra una línea con `TLSv1.3` y `TLS_AES_128_GCM_SHA256`, y el navegador enseña algo parecido en la información del certificado. ¿Qué significa cada trozo de ese nombre, y qué ve alguien conectado a tu misma wifi?
+`curl -v` contra `odoo.mlozano.dev` muestra `TLSv1.3` y `TLS_AES_128_GCM_SHA256`, y varias líneas `TLS handshake, …` antes de la primera petición. Dos preguntas de administrador: ¿qué ve alguien conectado a tu misma wifi?, y si un usuario dice «Odoo va lento», ¿cuánto de ese tiempo es TLS y no Odoo?
 
 **2. Bibliografía**
 
-- Kurose 8.1 → qué significa comunicación segura: confidencialidad, integridad y autenticación.
-- Kurose 8.2 → criptografía de clave simétrica y de clave pública: por qué TLS usa las dos.
-- Kurose 8.3.1 y 8.3.2 → funciones *hash* y MAC: la integridad.
-- Grigorik cap. 4, *Encryption, Authentication, and Integrity*: consulta opcional.
+- Kurose 8.1 → las tres garantías: confidencialidad, integridad y autenticación.
+- Kurose 8.2, a nivel de idea → por qué TLS usa clave pública al empezar y clave simétrica para los datos.
+- Kurose 8.6, solo la visión general del *handshake* → qué se negocia antes del primer byte de HTTP.
+- `man curl` → `--write-out` con `time_connect` y `time_appconnect`.
+- Formato de cada mensaje del *handshake* y diferencias finas entre TLS 1.2 y 1.3: consulta opcional (RFC 8446 §2, Grigorik cap. 4).
 
 **3. Objetivos para darla por superada**
 
-1. Descompones `TLS_AES_128_GCM_SHA256` en sus partes y dices qué garantía cubre cada una.
-2. Explicas con tus palabras por qué el intercambio inicial usa clave pública y los datos, clave simétrica.
-3. Sabes qué partes de una conexión a `odoo.mlozano.dev` son visibles para un tercero en la red (IP, puerto, nombre) y cuáles no (ruta, cabeceras, cookies, cuerpo).
+1. Dices qué garantía cubre cada parte de `TLS_AES_128_GCM_SHA256` (una línea por parte, a nivel de idea).
+2. Sabes qué partes de una conexión a `odoo.mlozano.dev` son visibles para un tercero en la red (IP, puerto, nombre) y cuáles no (ruta, cabeceras, cookies, cuerpo).
+3. Mides con `curl` el tiempo de la conexión TCP y el de TLS por separado, y los comparas con el RTT de `ping` al VPS: cuántos viajes de ida y vuelta añade TLS 1.3.
 
 **4. Lo más importante**
 
-- Cifrar sin autenticar no sirve: estarías hablando en secreto con quien no es. Esa autenticación es el certificado (Sesión 4).
-- Lo que queda visible en el objetivo 3 es la base del caso pixeldrain (Sesión 5).
+- Cifrar sin autenticar no sirve: estarías hablando en secreto con quien no es. Esa autenticación es el certificado (Sesión 3).
+- Separar el tiempo de TCP, TLS y la respuesta del servidor es diagnóstico real; es la misma medida que usará el healthcheck (Artefacto 2).
+- Lo visible del objetivo 2 (el nombre) es la base de SNI (Sesión 4).
 
 ---
 
-## Sesión 3 · El *handshake* paso a paso
-
-**1. El problema** (portátil, terminal)
-
-`curl -v` contra `odoo.mlozano.dev` escribe varias líneas `TLS handshake, …` entre `Connected to` y la primera petición. Cada una cuesta tiempo antes de que Odoo reciba nada. ¿Qué mensaje es cada línea y cuántos viajes de ida y vuelta añade TLS a la carga?
-
-**2. Bibliografía**
-
-- Kurose 8.6 → TLS en su conjunto: *handshake*, intercambio de claves y registros.
-- `man openssl-s_client` → conectarse a mano y ver el *handshake* sin HTTP encima.
-- RFC 8446 §2 (TLS 1.3) y Grigorik cap. 4, *TLS Handshake*: consulta opcional para la diferencia entre 1.2 y 1.3.
-
-**3. Objetivos para darla por superada**
-
-1. Asocias cada línea `TLS handshake` de `curl -v` con su mensaje (*ClientHello*, *ServerHello*, certificado, *Finished*…).
-2. Mides con `curl` el tiempo de la conexión TCP y el del *handshake* TLS por separado, y lo comparas con el RTT de `ping` al VPS.
-3. Repites la medida forzando TLS 1.2 y explicas la diferencia en viajes de ida y vuelta.
-
-**4. Lo más importante**
-
-- El coste de TLS se paga en cada conexión nueva: por eso importan las conexiones persistentes del Bloque 3 y el multiplexado de HTTP/2.
-- Saber aislar el tiempo de TLS es diagnóstico real: «Odoo va lento» puede no ser Odoo.
-
----
-
-## Sesión 4 · La cadena de certificados
+## Sesión 3 · La cadena de certificados
 
 **1. El problema** (VPS, terminal SSH; portátil, terminal)
 
@@ -153,11 +132,11 @@ En `/etc/letsencrypt/live/odoo.mlozano.dev/` hay `cert.pem`, `chain.pem` y `full
 
 ---
 
-## Sesión 5 · SNI y el caso pixeldrain
+## Sesión 4 · SNI: varios dominios en una IP
 
 **1. El problema** (portátil, terminal)
 
-En el Bloque 2, la conexión HTTPS a pixeldrain se abría y se cortaba justo después del *Client hello* (`Connection reset by peer`, código 35 de `curl`). Ese bloque lo atribuyó a otra causa. Y en tu propio VPS: si un día sirve dos dominios en la misma IP, ¿cómo sabe nginx qué certificado enviar antes de ver ninguna cabecera `Host`?
+Si un día tu VPS sirve dos dominios en la misma IP, ¿cómo sabe nginx qué certificado enviar antes de ver ninguna cabecera `Host`? Es la misma pregunta que resuelve cualquier *ingress* de Kubernetes. (Caso aparte y opcional: el corte de pixeldrain del Bloque 2 justo después del *Client hello*.)
 
 **2. Bibliografía**
 
@@ -171,7 +150,7 @@ En el Bloque 2, la conexión HTTPS a pixeldrain se abría y se cortaba justo des
 
 1. Conectas al VPS con y sin SNI, y con un nombre que no es tuyo, y explicas qué certificado devuelve nginx en cada caso.
 2. Confirmas que el nombre viaja sin cifrar en el *ClientHello*.
-3. Pruebas la hipótesis del corte por SNI en pixeldrain: misma IP con el nombre real y con otro nombre. Anotas la conclusión corregida del Bloque 2.
+3. *(Opcional, solo si sobra tiempo)* Pruebas la hipótesis del corte por SNI en pixeldrain: misma IP con el nombre real y con otro nombre. Anotas la conclusión corregida del Bloque 2.
 
 **4. Lo más importante**
 
@@ -180,7 +159,7 @@ En el Bloque 2, la conexión HTTPS a pixeldrain se abría y se cortaba justo des
 
 ---
 
-## Sesión 6 · Qué hace certbot por debajo: ACME y el reto HTTP-01
+## Sesión 5 · Qué hace certbot por debajo: ACME y el reto HTTP-01
 
 **1. El problema** (VPS, terminal SSH)
 
@@ -202,52 +181,32 @@ Ejecutaste `certbot --nginx` y apareció un certificado válido. Let's Encrypt n
 **4. Lo más importante**
 
 - HTTP-01 necesita el puerto 80 abierto y respondiendo: el cortafuegos de Linux · Bloque 4 no puede cerrarlo.
-- Con esta sesión está casi todo el criterio de cierre; la Sesión 8 lo une.
+- Con esta sesión está casi todo el criterio de cierre; la Sesión 6 lo une.
 
 ---
 
-## Sesión 7 · HSTS, precarga y Certificate Transparency
+## Sesión 6 · HSTS, Certificate Transparency y criterio de cierre
 
-**1. El problema** (portátil, navegador con F12)
+**1. El problema** (portátil, navegador con F12; VPS)
 
-Con HSTS activo, cargar `http://odoo.mlozano.dev` en el navegador produce un `307 Internal Redirect` que no sale de tu servidor. Y cualquiera puede ver todos los certificados emitidos para `mlozano.dev`: ¿qué revela eso de tus subdominios?
+Con HSTS activo, cargar `http://odoo.mlozano.dev` produce un `307 Internal Redirect` que no sale de tu servidor. Cualquiera puede ver todos los certificados emitidos para `mlozano.dev`. Y para cerrar el bloque: explicar, sin notas, todo lo que ocurre desde que `certbot.timer` lanza una renovación hasta que un navegador abre `https://odoo.mlozano.dev` con el certificado nuevo.
 
 **2. Bibliografía**
 
-- MDN, cabecera `Strict-Transport-Security` → qué hace, `max-age`, `includeSubDomains` y la precarga.
-- hstspreload.org → qué es la lista de precarga y por qué `.dev` entero está en ella.
-- Documentación de Certificate Transparency (certificate.transparency.dev) → qué son los logs públicos.
+- MDN, cabecera `Strict-Transport-Security` → `max-age`, `includeSubDomains` y precarga.
+- hstspreload.org → por qué `.dev` entero está en la lista de precarga.
+- certificate.transparency.dev → qué son los logs públicos.
+- Tus notas de las Sesiones 1 a 5, solo para repasar antes del recorrido; el recorrido, sin ellas.
 
 **3. Objetivos para darla por superada**
 
-1. Capturas el `307 Internal Redirect` (F12 → *Network*, con *Preserve log*) y explicas por qué no llega al VPS.
-2. Explicas por qué la primera visita sin HSTS es el punto débil y por qué en `.dev` ese punto no existe.
-3. Buscas `mlozano.dev` en un buscador de logs de CT y explicas qué subdominios aparecen y por qué.
+1. Capturas el `307 Internal Redirect` (F12 → *Network*, con *Preserve log*) y explicas por qué no llega al VPS y por qué en `.dev` no existe la primera visita sin HSTS.
+2. Buscas `mlozano.dev` en un buscador de logs de CT y explicas qué subdominios aparecen y por qué.
+3. Recorrido en voz alta de la renovación (timer, ACME, HTTP-01, ficheros en `/etc/letsencrypt`, recarga de nginx) y de una conexión (TCP, *ClientHello* con SNI y ALPN, cadena, primera petición HTTP/2), con una salida real que demuestre cada paso.
 
 **4. Lo más importante**
 
+- Con HSTS, un certificado caducado tumba el acceso por completo: no se puede saltar el aviso.
 - CT hace públicos todos tus nombres con certificado: no publiques un subdominio pensando que nadie lo encontrará.
-- Con HSTS, un error de certificado deja de poder saltarse en el navegador: un certificado caducado tumba el acceso por completo.
-
----
-
-## Sesión 8 · Criterio de cierre
-
-**1. El problema** (portátil + VPS)
-
-Explicar, sin notas, todo lo que ocurre desde que `certbot.timer` lanza una renovación hasta que un navegador abre `https://odoo.mlozano.dev` con el certificado nuevo.
-
-**2. Bibliografía**
-
-- Tus notas de las Sesiones 1 a 7, solo para repasar antes; la explicación, sin ellas.
-
-**3. Objetivos para darla por superada**
-
-1. Recorrido en voz alta de la renovación: timer, ACME, HTTP-01, ficheros en `/etc/letsencrypt`, recarga de nginx.
-2. Recorrido en voz alta de una conexión: TCP, *ClientHello* con SNI y ALPN, cadena de certificados, claves, primera petición HTTP/2.
-3. Para cada paso, una salida real que lo demuestra (un comando o una línea de log).
-
-**4. Lo más importante**
-
-- Es la mitad del hito final de Redes («qué ocurre entre teclear tu dominio y ver Odoo»).
-- Al cerrar: apuntes `redes-bloque-4.md`, línea en `progreso.md` y borrar este plan del repo.
+- Si los objetivos 1 y 2 se comen la sesión, el objetivo 3 pasa a una sesión corta propia.
+- Es la mitad del hito final de Redes («qué ocurre entre teclear tu dominio y ver Odoo»). Al cerrar: apuntes `redes-bloque-4.md`, línea en `progreso.md` y borrar este plan del repo.

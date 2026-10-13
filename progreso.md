@@ -67,18 +67,18 @@ Entregable del trimestre «VPS con Odoo desplegado a mano y HTTPS»: cumplido. F
 | 4 · TLS | 🟡 | | |
 | 5 · El reverse proxy | ⬜ | | |
 
-**Bloque en curso: 4 · TLS.** Plan en `redes/redes-bloque-4-plan.md`. Lectura principal: Kurose (2.2.6 y cap. 8); Grigorik, solo consulta opcional (acordado el 13/10/2026: demasiado técnico para el objetivo).
+**Bloque en curso: 4 · TLS.** Plan en `redes/redes-bloque-4-plan.md`. Lectura principal: Kurose (2.2.6 y cap. 8); Grigorik, solo consulta opcional (acordado el 13/10/2026: demasiado técnico para el objetivo). Plan reducido de 8 a 6 sesiones el 13/10/2026 con el criterio de la rama (abajo).
+
+**Criterio de profundidad de la rama (acordado el 13/10/2026):** se profundiza en lo que se va a configurar, diagnosticar o explicar en una incidencia (nivel platform engineering / DevOps). Lo interno del protocolo (formatos, orden exacto de mensajes, diferencias finas entre versiones), solo a nivel de idea. Vale también para el Bloque 5.
 
 | Sesión | Estado |
 |---|---|
 | 1 · Cierre de HTTP/2 y ALPN | ✅ 13/10/2026: `http2` en los `listen` del 443, ALPN `h2` comprobado y websocket en `101`. HPACK, solo a nivel de idea. Cap. 12 de Grigorik sustituido por Kurose 2.2.6 |
-| 2 · Qué protege TLS | ⬜ |
-| 3 · El *handshake* | ⬜ |
-| 4 · La cadena de certificados | ⬜ |
-| 5 · SNI y pixeldrain | ⬜ |
-| 6 · certbot por debajo (ACME, HTTP-01) | ⬜ |
-| 7 · HSTS, precarga y CT | ⬜ |
-| 8 · Criterio de cierre | ⬜ |
+| 2 · Qué protege TLS y cuánto cuesta | ⬜ |
+| 3 · La cadena de certificados | ⬜ |
+| 4 · SNI: varios dominios en una IP | ⬜ |
+| 5 · certbot por debajo (ACME, HTTP-01) | ⬜ |
+| 6 · HSTS, CT y criterio de cierre | ⬜ |
 
 ---
 
@@ -146,7 +146,7 @@ Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 
 - Preguntas del `diff` de certbot: qué pasa al abrir una conexión TLS (`ssl`); qué hay en `fullchain.pem` frente a `cert.pem` y `chain.pem`; qué elige `options-ssl-nginx.conf`; para qué sirve `ssl_dhparam`; qué comprueba Let's Encrypt (reto HTTP-01); qué significan los campos de TLS que muestra el navegador (`TLS_AES_128_GCM_SHA256`, TLS 1.3, Certificate Transparency).
 - HSTS a fondo: por qué la primera visita sin HSTS es el punto débil, la lista de precarga (`.dev` entero) y el `307 Internal Redirect` del navegador (F12 → *Network*, con *Preserve log*, al cargar `http://odoo.mlozano.dev`). La parte práctica quedó hecha en Linux · Bloque 3.
-- Caso pixeldrain por HTTPS: la conexión TCP se abre y el corte (`Connection reset by peer`, código 35 de `curl`) llega justo después del `Client hello`. Apunta a inspección del SNI y corrige la conclusión del Bloque 2.
+- *(Opcional, Sesión 4)* Caso pixeldrain por HTTPS: la conexión TCP se abre y el corte (`Connection reset by peer`, código 35 de `curl`) llega justo después del `Client hello`. Apunta a inspección del SNI y corrige la conclusión del Bloque 2.
 
 ### Redes · Bloque 5
 
@@ -171,7 +171,7 @@ Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 
 ### Plan del año
 
-- `roadmap.html`: en Redes · Bloque 4, Kurose como lectura principal y Grigorik como consulta (acordado el 13/10/2026). Decidir al llegar al Bloque 5 si se aplica lo mismo a las lecturas de Grigorik de ese bloque.
+- `roadmap.html`: en Redes · Bloques 4 y 5, Kurose como lectura principal y Grigorik como consulta, y añadir el criterio de profundidad de la rama (acordado el 13/10/2026).
 
 ### Casa y cuentas
 
