@@ -1,6 +1,6 @@
 # Progreso · Roadmap Backend + Infra · Año 1
 
-**Última actualización:** 12/10/2026
+**Última actualización:** 13/10/2026
 
 > **Para Claude:** este fichero es la única fuente de verdad sobre dónde estoy. Cómo se lee y cómo se actualiza está en las instrucciones del proyecto.
 
@@ -12,8 +12,8 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⏸ en pausa · ⬜ sin empezar · ❓ 
 
 | | |
 |---|---|
-| Última sesión de carril | Linux y VPS · Bloque 3, Sesión 10 cerrada (endurecimiento, 12/10/2026) |
-| Siguiente carril | Redes · Bloque 4 (sin plan todavía: se genera al empezar) |
+| Última sesión de carril | Redes · Bloque 4, Sesión 1 cerrada (HTTP/2 activado en nginx, 13/10/2026) |
+| Siguiente carril | Linux y VPS · Bloque 3, Sesión 11 (notas de reinstalación y `vps-setup`) |
 | Rotación | Linux y VPS ↔ Redes. PostgreSQL entra al terminar Learn SQL de Boot.dev |
 | Boot.dev | Ruta backend (Python), capítulo 9: Learn Data Structures and Algorithms (86/127). Siguiente: capítulo 16, Learn SQL (95 lecciones), adelantado; después se retoma el orden en el capítulo 10 |
 | Viernes | Código fuente de Odoo (H3 cumplido) |
@@ -64,8 +64,21 @@ Entregable del trimestre «VPS con Odoo desplegado a mano y HTTPS»: cumplido. F
 | 1 · El modelo y las capas | ✅ | | `redes-bloque-1.md` |
 | 2 · DNS | ✅ | 28/09/2026 | `redes-bloque-2.md` |
 | 3 · HTTP | ✅ | 08/10/2026 | `redes-bloque-3.md` |
-| 4 · TLS | ⬜ | | |
+| 4 · TLS | 🟡 | | |
 | 5 · El reverse proxy | ⬜ | | |
+
+**Bloque en curso: 4 · TLS.** Plan en `redes/redes-bloque-4-plan.md`. Lectura principal: Kurose (2.2.6 y cap. 8); Grigorik, solo consulta opcional (acordado el 13/10/2026: demasiado técnico para el objetivo).
+
+| Sesión | Estado |
+|---|---|
+| 1 · Cierre de HTTP/2 y ALPN | ✅ 13/10/2026: `http2` en los `listen` del 443, ALPN `h2` comprobado y websocket en `101`. HPACK, solo a nivel de idea. Cap. 12 de Grigorik sustituido por Kurose 2.2.6 |
+| 2 · Qué protege TLS | ⬜ |
+| 3 · El *handshake* | ⬜ |
+| 4 · La cadena de certificados | ⬜ |
+| 5 · SNI y pixeldrain | ⬜ |
+| 6 · certbot por debajo (ACME, HTTP-01) | ⬜ |
+| 7 · HSTS, precarga y CT | ⬜ |
+| 8 · Criterio de cierre | ⬜ |
 
 ---
 
@@ -127,10 +140,10 @@ Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 - Cuando se configuren *workers* en Odoo: `KillMode=mixed` en `odoo.service` y el `proxy_pass` de `location /websocket` al 8072.
 - Experimentos opcionales del Bloque 2: ver la activación por socket con `ssh.service` parado; comprobar un `reload` con un `Banner` en `/etc/ssh/sshd_config.d/99-lab.conf` y retirarlo.
 - Borrar `~/labweb.service.bak` en el VPS.
+- Al actualizar nginx a 1.25.1 o posterior: pasar el parámetro `http2` de los `listen` del 443 a la directiva `http2 on;` (el parámetro sigue funcionando, pero avisa de obsoleto). Actualizar también `vps-setup`.
 
 ### Redes · Bloque 4
 
-- Antes de empezar: terminar Grigorik cap. 12 (*Binary Framing Layer*, *Streams, Messages, and Frames*, *Request and Response Multiplexing*, *Header Compression*), pendiente del Bloque 3.
 - Preguntas del `diff` de certbot: qué pasa al abrir una conexión TLS (`ssl`); qué hay en `fullchain.pem` frente a `cert.pem` y `chain.pem`; qué elige `options-ssl-nginx.conf`; para qué sirve `ssl_dhparam`; qué comprueba Let's Encrypt (reto HTTP-01); qué significan los campos de TLS que muestra el navegador (`TLS_AES_128_GCM_SHA256`, TLS 1.3, Certificate Transparency).
 - HSTS a fondo: por qué la primera visita sin HSTS es el punto débil, la lista de precarga (`.dev` entero) y el `307 Internal Redirect` del navegador (F12 → *Network*, con *Preserve log*, al cargar `http://odoo.mlozano.dev`). La parte práctica quedó hecha en Linux · Bloque 3.
 - Caso pixeldrain por HTTPS: la conexión TCP se abre y el corte (`Connection reset by peer`, código 35 de `curl`) llega justo después del `Client hello`. Apunta a inspección del SNI y corrige la conclusión del Bloque 2.
@@ -148,12 +161,17 @@ Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 - `labweb` en HTTP/1.1 (`protocol_version`), primero sin `Content-Length` y después con ella, con copia previa de `labweb.py` y revirtiendo al acabar.
 - Experimento de TTL con `prueba.mlozano.dev` → `192.0.2.1`, TTL 300, y cambio posterior, observando al autoritativo, `1.1.1.1` y `8.8.8.8`. No consultar el nombre antes de crearlo (caché negativa).
 - Dos IP locales distintas en casa (`192.168.1.74` y `192.168.17.250`): revisar con `ip a` e `ip r` si hay dos redes (principal e invitados) o un repetidor.
+- IPv6 en casa: `curl` prueba primero la `AAAA` de `odoo.mlozano.dev` y falla con `Network is unreachable` antes de pasar a IPv4. Comprobar si el router o la operadora dan IPv6.
 
 ### PostgreSQL · al volver a la rotación
 
 - Repaso de índices en PostgreSQL (Boot.dev los ve sobre SQLite).
 - Rehacer `postgresql-bloque-0.md` y `postgresql-bloque-1.md` al formato de tres partes, integrando lo de Boot.dev y `00-sql-sintaxis-y-comportamiento.md`.
 - Criterio de cierre del Bloque 1: repaso en voz alta de `WHERE` frente a `HAVING`, `GROUP BY` frente a `PARTITION BY` y por qué `HAVING` no ve los alias del `SELECT`. Practicar `LAG()` y `LEAD()`.
+
+### Plan del año
+
+- `roadmap.html`: en Redes · Bloque 4, Kurose como lectura principal y Grigorik como consulta (acordado el 13/10/2026). Decidir al llegar al Bloque 5 si se aplica lo mismo a las lecturas de Grigorik de ese bloque.
 
 ### Casa y cuentas
 

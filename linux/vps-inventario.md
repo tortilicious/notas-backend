@@ -1,6 +1,6 @@
 # Inventario de `backend-lab`
 
-**Estado a:** 12/10/2026
+**Estado a:** 13/10/2026
 
 > Solo el estado actual de la máquina. Cuando algo cambia, se sobrescribe la línea; sin historial. Cómo se monta está en `vps-setup`; por qué, en los apuntes. Sin secretos: solo dónde viven.
 
@@ -103,9 +103,10 @@ Sin drop-ins. Sin tareas en el crontab de `miguel`.
 |---|---|
 | Versión | 1.24.0 (Ubuntu). Maestro de root y *workers* de `www-data` |
 | Logs | `/var/log/nginx/error.log` y `/var/log/nginx/access.log` |
+| Protocolo con el navegador | HTTP/2 en el 443 (ALPN `h2`); el websocket va por HTTP/1.1. Hacia Odoo, HTTP/1.0, salvo `/websocket` (1.1) |
 | Sitios habilitados | `labweb` (por defecto, sin `server_name`, `proxy_pass http://127.0.0.1:8080`) y `odoo` |
 | Sitio `default` | Desactivado (enlace borrado); `sites-available/default` intacto |
-| Sitio `odoo` | `/etc/nginx/sites-available/odoo`. `map` para el websocket; bloque del 443 con certificado, `location /` y `location /websocket`; bloque del 80 con `301` a `https://`. Sin `Strict-Transport-Security` ni `proxy_cookie_flags` (pendiente) |
+| Sitio `odoo` | `/etc/nginx/sites-available/odoo`. `map` para el websocket; bloque del 443 con certificado y `http2` en sus dos `listen`, `Strict-Transport-Security` (un año, `includeSubDomains`), `proxy_cookie_flags session_id samesite=lax secure`, `location /` y `location /websocket` (`proxy_http_version 1.1`); bloque del 80 con `301` a `https://` |
 
 ## Certificado
 
