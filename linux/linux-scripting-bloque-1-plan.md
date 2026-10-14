@@ -1,26 +1,25 @@
 # Scripting · Bloque 1 · Plan
 
-**Carril:** Linux y VPS (Q1). **Franja:** 30 min diarios con temporizador propio, independiente del carril de 2 h.
+**Carril:** Linux y VPS (Q1). Sesión diaria, independiente del carril.
 **Lenguaje:** bash. Python entra más adelante, cuando la lógica de un script se haga difícil de leer en bash (JSON, peticiones HTTP, procesamiento de datos).
 **Entorno:** `backend-lab` (Ubuntu 24.04, bash 5.2) y portátil (CachyOS). Los scripts llevan `#!/usr/bin/env bash`: aunque tu shell de uso sea `fish`, los scripts se ejecutan con bash.
 
-**Límite de la franja:** a los 25 min no se empieza nada nuevo; a los 30 se cierra en el punto limpio más cercano.
 **Dónde viven los scripts:** repositorio público `scripts-backend-lab` (solo código, con README). El plan y el estado siguen en `notas-backend`.
 
 ---
 
 ## Formato de sesión
 
-| Momento | Paso | Qué se hace |
+| Fase | Paso | Qué se hace |
 |---|---|---|
-| Antes del temporizador | 1 · Presentación | Tabla con la sintaxis nueva de la sesión: elemento, qué hace, un ejemplo mínimo que no resuelve el ejercicio y el capítulo y apartado exactos donde se explica (Shotts, 3.ª ed., o manual de bash) |
-| Antes del temporizador | 2 · Lectura | Los apartados de la tabla, sin límite de tiempo. No cuenta para la franja |
-| Con temporizador (30 min) | 3 · Escenario (~2 min) | Un problema real de `backend-lab` (Odoo, nginx, PostgreSQL, journal, disco, certificados) con el criterio de éxito escrito antes de empezar |
-| Con temporizador | 4 · Intento propio (~15 min) | El script se escribe con la tabla y el libro delante. Correcciones de una en una |
-| Con temporizador | 5 · Revisión (~5 min) | Comprobar el criterio de éxito en la máquina. Desde la sesión 8, `shellcheck` |
-| Con temporizador | 6 · Cierre (~3 min) | Commit en `scripts-backend-lab` y sesión anotada en `progreso.md` |
+| Preparación | 1 · Presentación | Tabla con la sintaxis nueva de la sesión: elemento, qué hace, un ejemplo mínimo que no resuelve el ejercicio y el capítulo y apartado exactos donde se explica (Shotts, 3.ª ed., o manual de bash) |
+| Preparación | 2 · Lectura | Los apartados de la tabla. La sesión empieza cuando digo que empiezo |
+| Sesión | 3 · Escenario | Un problema real de `backend-lab` (Odoo, nginx, PostgreSQL, journal, disco, certificados) con el criterio de éxito escrito antes de empezar |
+| Sesión | 4 · Intento propio | El script se escribe con la tabla y el libro delante. Correcciones de una en una |
+| Sesión | 5 · Revisión | Comprobar el criterio de éxito en la máquina. Desde la sesión 8, `shellcheck` |
+| Sesión | 6 · Cierre | Commit en `scripts-backend-lab` y sesión anotada en `progreso.md` |
 
-En la Fase 2, si el escenario solo reutiliza sintaxis ya vista, la presentación se reduce a indicar en qué sesión se vio y se pasa directamente al temporizador.
+En la Fase 2, si el escenario solo reutiliza sintaxis ya vista, la presentación se reduce a indicar en qué sesión se vio y se pasa directamente al escenario.
 
 ---
 

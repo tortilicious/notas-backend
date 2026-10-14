@@ -161,14 +161,14 @@ footer ul{padding-left:18px}
 
 <section>
   <h2>La jornada</h2>
-  <p style="font-size:.95rem;color:var(--ink-soft);margin:0">Cuatro horas y cuarenta y cinco minutos al día, todos los días que estés en casa. Sin día fijo de descanso: un día fuera no se recupera, y saltarse uno por cansancio no es un retraso. Inglés, aplazado para más adelante.</p>
+  <p style="font-size:.95rem;color:var(--ink-soft);margin:0">Cuatro bloques al día, todos los días que estés en casa. Sin día fijo de descanso: un día fuera no se recupera, y saltarse uno por cansancio no es un retraso. Inglés, aplazado para más adelante.</p>
   <table>
-    <thead><tr><th>Bloque</th><th>Tiempo</th><th>Contenido</th></tr></thead>
+    <thead><tr><th>Bloque</th><th>Contenido</th></tr></thead>
     <tbody>
-      <tr><td>Fondo</td><td>2 h</td><td>Boot.dev, sin móvil delante</td></tr>
-      <tr><td>Carril</td><td>2 h</td><td>Alterna por sesión</td></tr>
-      <tr><td>Scripting</td><td>30 min</td><td>Bash, cada día, en franja propia</td></tr>
-      <tr><td>Terminal</td><td>15 min</td><td>Escenarios de devops, cada día</td></tr>
+      <tr><td>Fondo</td><td>Boot.dev, sin móvil delante</td></tr>
+      <tr><td>Carril</td><td>Alterna por sesión</td></tr>
+      <tr><td>Scripting</td><td>Bash, cada día, fuera del carril</td></tr>
+      <tr><td>Terminal</td><td>Escenarios de devops, cada día</td></tr>
     </tbody>
   </table>
 
@@ -176,12 +176,12 @@ footer ul{padding-left:18px}
   <ul class="rota">
     <li><b>Regla</b><span>El carril de hoy es el que no se hizo en la última sesión</span></li>
     <li><b>Ahora</b><span>Linux y el VPS ↔ Redes</span></li>
-    <li><b>Diario</b><span>Scripting (30 min) y terminal (15 min), fuera del carril</span></li>
+    <li><b>Diario</b><span>Scripting y terminal, fuera del carril</span></li>
     <li><b>Después</b><span>Al terminar el SQL de Boot.dev entra PostgreSQL: rotación de tres</span></li>
     <li><b>Jueves y viernes</b><span>Días de carril hasta que un hito los pase a proyectos</span></li>
   </ul>
 
-  <p class="note">No hay repaso aparte: cada bloque se construye sobre el anterior, así que se repasa haciendo. Cada sesión termina con un ritual corto de preguntas y tus dudas. Pasada la 1 h 45 no se empieza nada nuevo en el carril. La franja de scripting tiene su propio límite: a los 25 min no se empieza nada nuevo.</p>
+  <p class="note">No hay repaso aparte: cada bloque se construye sobre el anterior, así que se repasa haciendo. Cada sesión de carril termina con un ritual corto de preguntas y tus dudas.</p>
 </section>
 
 <section>
@@ -191,7 +191,7 @@ footer ul{padding-left:18px}
     <li>Usa la IA para preguntar, no para responder. «Critica mi diseño», «hazme preguntas hasta que falle», «explícame por qué esto no funciona». Nunca «escríbeme el código».</li>
     <li>Si no lo puedes explicar sin notas a alguien que no sabe del tema, no lo sabes. Ese es el criterio, no el porcentaje de curso completado.</li>
     <li>Lo que construyas tiene que estar corriendo en internet. Lo que vive en localhost no cuenta como experiencia.</li>
-    <li>Cuando suena el temporizador, se cierra en un punto limpio. El entusiasmo no es motivo para alargar: lo que queda pasa a la siguiente sesión.</li>
+    <li>Cuando decides parar, se cierra en un punto limpio. El entusiasmo no es motivo para alargar: lo que queda pasa a la siguiente sesión.</li>
   </ol>
   <p class="note">Estudiar con IA es como ver a alguien levantar pesas: lo entiendes todo y no ganas un gramo de músculo. Genera una sensación de comprensión que va muy por delante de la comprensión real, y no lo notas hasta una entrevista técnica o un incidente en producción.</p>
 </section>
@@ -237,9 +237,9 @@ const QUARTERS = [
           ["Bloque 5 · Romperlo","Llena el disco, mata el servicio, corrompe la config de nginx, borra un índice de Postgres. Diagnostica con logs, no reinstalando. Se cierra cuando tienes un documento con cinco incidentes: síntoma, diagnóstico y solución.","How Linux Works: caps. 8 (monitorizar procesos y recursos) y 4 (cuando el problema es el disco). El UNIX and Linux System Administration Handbook aquí sí gana, porque está escrito desde el incidente."]
         ],
         books:"How Linux Works (Brian Ward) como columna vertebral y The Linux Command Line (Shotts, gratis online) para la shell. De referencia, el UNIX and Linux System Administration Handbook. man systemd.service y man systemd.unit son mejores que cualquier tutorial. Los capítulos citados por bloque son de How Linux Works 3.ª ed. y de The Linux Command Line 3.ª ed. (febrero de 2026); la numeración de capítulos no cambió respecto a la 2.ª, así que sirve igual si tienes la anterior o la edición gratuita de linuxcommand.org. Ubuntu trae snap y netplan preconfigurados: entiende qué hacen en vez de dejarlos como magia."},
-      {t:"Scripting", body:"30 min diarios en franja propia, independiente del carril. Objetivo del trimestre: llegar al Q2 escribiendo bash base con soltura y sacando datos de logs y JSON desde la terminal. Es la base de «bash serio» (Q2), de Docker y de CI. Python para operaciones no entra aquí: lo cubre Boot.dev y se usa cuando un script lo pida.",
+      {t:"Scripting", body:"Una sesión diaria, independiente del carril. Objetivo del trimestre: llegar al Q2 escribiendo bash base con soltura y sacando datos de logs y JSON desde la terminal. Es la base de «bash serio» (Q2), de Docker y de CI. Python para operaciones no entra aquí: lo cubre Boot.dev y se usa cuando un script lo pida.",
         plan:[
-          ["Bloque 1 · Bash base (15/10 – 5/11, unas 15 sesiones)","Fase 1, sesiones 1 a 7: del comando al script, variables y argumentos, códigos de salida e if, bucles, modo estricto (set -euo pipefail), funciones y trap; la sesión 7 es un mini-backup con rotación, versión pequeña del Artefacto 1. Fase 2: un ejercicio diario de 10 a 20 min sobre tu entorno. Se cierra cuando un script con argumentos, errores, función y limpieza pasa ShellCheck sin avisos y explicas por qué usas set -euo pipefail.","The Linux Command Line (Shotts), 3.ª ed., Parte IV «Writing Shell Scripts»: caps. 24 (primer script), 25 (variables y constantes), 26 (funciones y variables locales), 27 (if y códigos de salida), 29 (while/until y leer ficheros), 30 (depuración), 32 (parámetros posicionales) y 33 (for); cap. 36 (Exotica) para trap y ficheros temporales. Fuera del libro: manual de bash, sección The Set Builtin (set -euo pipefail), y wiki de ShellCheck."],
+          ["Bloque 1 · Bash base (15/10 – 5/11, unas 15 sesiones)","Fase 1, sesiones 1 a 7: del comando al script, variables y argumentos, códigos de salida e if, bucles, modo estricto (set -euo pipefail), funciones y trap; la sesión 7 es un mini-backup con rotación, versión pequeña del Artefacto 1. Fase 2: un ejercicio diario sobre tu entorno. Se cierra cuando un script con argumentos, errores, función y limpieza pasa ShellCheck sin avisos y explicas por qué usas set -euo pipefail.","The Linux Command Line (Shotts), 3.ª ed., Parte IV «Writing Shell Scripts»: caps. 24 (primer script), 25 (variables y constantes), 26 (funciones y variables locales), 27 (if y códigos de salida), 29 (while/until y leer ficheros), 30 (depuración), 32 (parámetros posicionales) y 33 (for); cap. 36 (Exotica) para trap y ficheros temporales. Fuera del libro: manual de bash, sección The Set Builtin (set -euo pipefail), y wiki de ShellCheck."],
           ["Bloque 2 · Texto y JSON en la terminal (6/11 – 23/11, unas 15 sesiones)","Tuberías y redirecciones a fondo, expresiones regulares con grep -E, cut, sort y uniq, sed para sustituir y extraer, awk para columnas y sumas, jq para JSON. Siempre sobre datos reales: journal de Odoo, logs de nginx, salida de ss y la API de GitHub. Se cierra cuando, sin chuleta, sacas los errores por hora del journal de Odoo, las IP con más peticiones del log de nginx y un campo concreto de una respuesta JSON, y lo metes en un script que pasa ShellCheck.","The Linux Command Line (Shotts), 3.ª ed.: cap. 6 (redirecciones y tuberías), cap. 19 (expresiones regulares y grep), cap. 20 (procesado de texto: sort, uniq, cut, tr y sed) y cap. 21 (formatear la salida, printf). El libro no cubre awk ni jq: para awk, man awk en manpages.ubuntu.com, sección noble (el awk por defecto de Ubuntu es mawk, no gawk); para jq, su manual oficial en la versión instalada (jqlang.org)."],
           ["Margen (24/11 – 30/11)","Días perdidos o criterio de cierre pendiente. Si sobra, más ejercicios diarios del Bloque 2.",""]
         ],
