@@ -237,12 +237,13 @@ const QUARTERS = [
           ["Bloque 5 · Romperlo","Llena el disco, mata el servicio, corrompe la config de nginx, borra un índice de Postgres. Diagnostica con logs, no reinstalando. Se cierra cuando tienes un documento con cinco incidentes: síntoma, diagnóstico y solución.","How Linux Works: caps. 8 (monitorizar procesos y recursos) y 4 (cuando el problema es el disco). El UNIX and Linux System Administration Handbook aquí sí gana, porque está escrito desde el incidente."]
         ],
         books:"How Linux Works (Brian Ward) como columna vertebral y The Linux Command Line (Shotts, gratis online) para la shell. De referencia, el UNIX and Linux System Administration Handbook. man systemd.service y man systemd.unit son mejores que cualquier tutorial. Los capítulos citados por bloque son de How Linux Works 3.ª ed. y de The Linux Command Line 3.ª ed. (febrero de 2026); la numeración de capítulos no cambió respecto a la 2.ª, así que sirve igual si tienes la anterior o la edición gratuita de linuxcommand.org. Ubuntu trae snap y netplan preconfigurados: entiende qué hacen en vez de dejarlos como magia."},
-      {t:"Scripting", body:"Bash desde cero, 30 min diarios en franja propia: primero las bases, después un ejercicio corto cada día sobre escenarios de tu entorno.",
+      {t:"Scripting", body:"30 min diarios en franja propia, independiente del carril. Objetivo del trimestre: llegar al Q2 escribiendo bash base con soltura y sacando datos de logs y JSON desde la terminal. Es la base de «bash serio» (Q2), de Docker y de CI. Python para operaciones no entra aquí: lo cubre Boot.dev y se usa cuando un script lo pida.",
         plan:[
-          ["Fase 1 · Bases (sesiones 1 a 7)","Del comando al script, variables y argumentos, códigos de salida e if, bucles, modo estricto (set -euo pipefail), funciones y trap. La sesión 7 es un mini-backup con rotación, versión pequeña del Artefacto 1.","Shotts, The Linux Command Line, 3.ª ed., Parte IV «Writing Shell Scripts» (cap. 24 confirmado; el resto, en el índice de tu edición). Manual de bash, sección The Set Builtin."],
-          ["Fase 2 · Ejercicio diario (desde la sesión 8)","Un escenario de 10 a 20 min cada día, con criterio de éxito escrito antes. Se cierra cuando un script con argumentos, errores, función y limpieza pasa ShellCheck sin avisos y explicas por qué usas set -euo pipefail.","Wiki de ShellCheck. man bash en manpages.ubuntu.com, sección noble."]
+          ["Bloque 1 · Bash base (15/10 – 5/11, unas 15 sesiones)","Fase 1, sesiones 1 a 7: del comando al script, variables y argumentos, códigos de salida e if, bucles, modo estricto (set -euo pipefail), funciones y trap; la sesión 7 es un mini-backup con rotación, versión pequeña del Artefacto 1. Fase 2: un ejercicio diario de 10 a 20 min sobre tu entorno. Se cierra cuando un script con argumentos, errores, función y limpieza pasa ShellCheck sin avisos y explicas por qué usas set -euo pipefail.","The Linux Command Line (Shotts), 3.ª ed., Parte IV «Writing Shell Scripts»: caps. 24 (primer script), 25 (variables y constantes), 26 (funciones y variables locales), 27 (if y códigos de salida), 29 (while/until y leer ficheros), 30 (depuración), 32 (parámetros posicionales) y 33 (for); cap. 36 (Exotica) para trap y ficheros temporales. Fuera del libro: manual de bash, sección The Set Builtin (set -euo pipefail), y wiki de ShellCheck."],
+          ["Bloque 2 · Texto y JSON en la terminal (6/11 – 23/11, unas 15 sesiones)","Tuberías y redirecciones a fondo, expresiones regulares con grep -E, cut, sort y uniq, sed para sustituir y extraer, awk para columnas y sumas, jq para JSON. Siempre sobre datos reales: journal de Odoo, logs de nginx, salida de ss y la API de GitHub. Se cierra cuando, sin chuleta, sacas los errores por hora del journal de Odoo, las IP con más peticiones del log de nginx y un campo concreto de una respuesta JSON, y lo metes en un script que pasa ShellCheck.","The Linux Command Line (Shotts), 3.ª ed.: cap. 6 (redirecciones y tuberías), cap. 19 (expresiones regulares y grep), cap. 20 (procesado de texto: sort, uniq, cut, tr y sed) y cap. 21 (formatear la salida, printf). El libro no cubre awk ni jq: para awk, man awk en manpages.ubuntu.com, sección noble (el awk por defecto de Ubuntu es mawk, no gawk); para jq, su manual oficial en la versión instalada (jqlang.org)."],
+          ["Margen (24/11 – 30/11)","Días perdidos o criterio de cierre pendiente. Si sobra, más ejercicios diarios del Bloque 2.",""]
         ],
-        books:"Plan detallado en linux/linux-scripting-bloque-1-plan.md. Decisión: bash; Python entra cuando la lógica no quepa bien en bash."},
+        books:"El plan detallado de cada bloque se genera al arrancarlo (linux/linux-scripting-bloque-N-plan.md). Lo que queda para el Q2, en «bash serio»: getopts, idempotencia, logging al journal y tests."},
       {t:"Redes", body:"De la capa de transporte al reverse proxy que tienes delante de Odoo.",
         plan:[
           ["Bloque 1 · El modelo y las capas","TCP/IP, direccionamiento, subredes, puertos, NAT. TCP frente a UDP y por qué existe el handshake.","Computer Networking (Kurose y Ross): cap. 1 (capas y encapsulación), cap. 4 (direccionamiento IPv4, CIDR, subredes y NAT) y cap. 3 (multiplexación y puertos, UDP, establecimiento de conexión). Control de congestión, no: ese es otro bloque."],
@@ -279,7 +280,8 @@ const QUARTERS = [
       "Capaz de explicar en voz alta qué ocurre entre teclear una URL y ver la página",
       "Dos o tres scripts propios en GitHub con README decente",
       "Al menos una query de cliente optimizada con evidencia de antes y después",
-      "Script de backup con rotación, argumentos, errores y limpieza, sin avisos de ShellCheck"
+      "Script de backup con rotación, argumentos, errores y limpieza, sin avisos de ShellCheck",
+      "Sacar datos de logs y de JSON desde la terminal con grep, sed, awk y jq"
     ]
   },
   {
@@ -288,7 +290,7 @@ const QUARTERS = [
     goal:"Es el trimestre donde la mayoría abandona. Si llegas entero a marzo de 2027, llegas a 2031.",
     tracks:[
       {t:"Boot.dev", body:"Estructuras de datos y algoritmos completos: listas enlazadas, árboles, hash maps, grafos y complejidad. Después, inicio de Go: sintaxis, punteros, structs, interfaces y manejo de errores."},
-      {t:"Linux", body:"Bash serio (funciones, trap, manejo de errores), rotación de logs, cron frente a timers de systemd. Primer contacto con Docker: qué problema resuelve, no solo qué comandos tiene."},
+      {t:"Linux", body:"Bash serio sobre la base del Q1: getopts, scripts idempotentes, logging al journal con logger, scripts lanzados por timers de systemd y tests con bats. Rotación de logs, cron frente a timers de systemd. Primer contacto con Docker: qué problema resuelve, no solo qué comandos tiene."},
       {t:"Redes", body:"Cadenas de certificados, CORS, cookies y sesiones, autenticación por sesión frente a JWT, rate limiting y cabeceras de seguridad."},
       {t:"PostgreSQL", body:"Transacciones y niveles de aislamiento, locks y deadlocks (Odoo te dará ejemplos reales), índices GIN y GiST, vacuum y bloat, y por qué existe pgbouncer."},
       {t:"Proyecto propio", body:"Arranca aquí. Una idea tuya, pequeña pero real, algo que tú usarías. No un clon de Twitter.", items:[

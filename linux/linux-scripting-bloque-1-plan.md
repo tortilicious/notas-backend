@@ -5,6 +5,22 @@
 **Entorno:** `backend-lab` (Ubuntu 24.04, bash 5.2) y portátil (CachyOS). Los scripts llevan `#!/usr/bin/env bash`: aunque tu shell de uso sea `fish`, los scripts se ejecutan con bash.
 
 **Límite de la franja:** a los 25 min no se empieza nada nuevo; a los 30 se cierra en el punto limpio más cercano.
+**Dónde viven los scripts:** repositorio público `scripts-backend-lab` (solo código, con README). El plan y el estado siguen en `notas-backend`.
+
+---
+
+## Formato de sesión
+
+| Momento | Paso | Qué se hace |
+|---|---|---|
+| Antes del temporizador | 1 · Presentación | Tabla con la sintaxis nueva de la sesión: elemento, qué hace, un ejemplo mínimo que no resuelve el ejercicio y el capítulo y apartado exactos donde se explica (Shotts, 3.ª ed., o manual de bash) |
+| Antes del temporizador | 2 · Lectura | Los apartados de la tabla, sin límite de tiempo. No cuenta para la franja |
+| Con temporizador (30 min) | 3 · Escenario (~2 min) | Un problema real de `backend-lab` (Odoo, nginx, PostgreSQL, journal, disco, certificados) con el criterio de éxito escrito antes de empezar |
+| Con temporizador | 4 · Intento propio (~15 min) | El script se escribe con la tabla y el libro delante. Correcciones de una en una |
+| Con temporizador | 5 · Revisión (~5 min) | Comprobar el criterio de éxito en la máquina. Desde la sesión 8, `shellcheck` |
+| Con temporizador | 6 · Cierre (~3 min) | Commit en `scripts-backend-lab` y sesión anotada en `progreso.md` |
+
+En la Fase 2, si el escenario solo reutiliza sintaxis ya vista, la presentación se reduce a indicar en qué sesión se vio y se pasa directamente al temporizador.
 
 ---
 
@@ -29,7 +45,7 @@ Cada sesión sigue el método del plan: problema real, bibliografía, objetivos 
 
 **El problema.** Quieres `./estado.sh odoo` para consultar un servicio concreto, sin editar el script cada vez.
 
-**Bibliografía.** Shotts, 3.ª ed., Parte IV, apartado de variables y parámetros posicionales (consultar el índice detallado de la edición instalada; el capítulo 32 de la 2.ª ed. es el equivalente).
+**Bibliografía.** Shotts, 3.ª ed., cap. 25 «Starting a Project» (variables y comillas) y cap. 32 «Positional Parameters» (`$1`, `$#`). Para `>&2`, cap. 6 «Redirection».
 
 **Objetivos.**
 1. Leer el primer argumento con `$1` y guardarlo en una variable.
@@ -42,7 +58,7 @@ Cada sesión sigue el método del plan: problema real, bibliografía, objetivos 
 
 **El problema.** Quieres saber si Odoo responde, no solo ver su salida. Un script que avisa necesita una respuesta sí o no.
 
-**Bibliografía.** Shotts, 3.ª ed., Parte IV, apartado de condicionales (`if`); en la 2.ª ed., cap. 27. Conecta con lo visto en Redes · Bloque 3 (`curl` y su código de salida).
+**Bibliografía.** Shotts, 3.ª ed., cap. 27 «Flow Control: Branching with if» (códigos de salida, `test` y `[[ ]]`). Conecta con lo visto en Redes · Bloque 3 (`curl` y su código de salida).
 
 **Objetivos.**
 1. Crear `odoo-ok.sh` que consulte `http://localhost:8069` con `curl -s -o /dev/null -w '%{http_code}'`.
@@ -55,7 +71,7 @@ Cada sesión sigue el método del plan: problema real, bibliografía, objetivos 
 
 **El problema.** Tienes una lista de servicios o dominios y quieres revisarlos todos con un solo comando.
 
-**Bibliografía.** Shotts, 3.ª ed., Parte IV, apartados de bucles `for` y `while`; en la 2.ª ed., caps. 29 y 33.
+**Bibliografía.** Shotts, 3.ª ed., cap. 29 «Flow Control: Looping with while/until» (incluye leer un fichero con `while read`) y cap. 33 «Flow Control: Looping with for».
 
 **Objetivos.**
 1. Crear `servicios.txt` con tres nombres de servicio, uno por línea.
@@ -68,7 +84,7 @@ Cada sesión sigue el método del plan: problema real, bibliografía, objetivos 
 
 **El problema.** Un script de backup falla a mitad, pero sigue y deja un fichero vacío con nombre correcto. Nadie se entera hasta que lo necesitas.
 
-**Bibliografía.** Shotts, 3.ª ed., Parte IV, apartado de depuración (*troubleshooting*); en la 2.ª ed., cap. 30. Manual de bash, apartado «The Set Builtin» (gnu.org/software/bash/manual, sección 4.3.1).
+**Bibliografía.** Shotts, 3.ª ed., cap. 30 «Troubleshooting» (`bash -x`). El libro no trata `set -euo pipefail`: manual de bash, apartado «The Set Builtin» (gnu.org/software/bash/manual, sección 4.3.1).
 
 **Objetivos.**
 1. Escribir un script con un `false` en medio y comprobar que sin modo estricto sigue ejecutándose.
@@ -81,7 +97,7 @@ Cada sesión sigue el método del plan: problema real, bibliografía, objetivos 
 
 **El problema.** Los mensajes salen sin fecha ni origen, y el script deja ficheros temporales si falla a mitad.
 
-**Bibliografía.** Shotts, 3.ª ed., Parte IV, apartado de funciones (consultar el índice detallado). Página de `logger`: manpages.ubuntu.com, sección *noble*.
+**Bibliografía.** Shotts, 3.ª ed., cap. 26 «Top-Down Design» (funciones y `local`) y cap. 36 «Exotica» (`trap` y ficheros temporales). Página de `logger`: manpages.ubuntu.com, sección *noble*.
 
 **Objetivos.**
 1. Escribir una función `log()` que muestre fecha y mensaje por la salida de error.
@@ -94,7 +110,7 @@ Cada sesión sigue el método del plan: problema real, bibliografía, objetivos 
 
 **El problema.** Quieres copiar un directorio cada día, conservar solo las últimas tres copias y no dejar nunca una copia incompleta.
 
-**Bibliografía.** Repaso de las sesiones 1 a 6. Shotts, 3.ª ed., Parte IV, ejemplos del final de la parte (escribir scripts útiles).
+**Bibliografía.** Repaso de las sesiones 1 a 6. Shotts, 3.ª ed., cap. 18 «Archiving and Backup» (`tar` y `gzip`).
 
 **Objetivos.**
 1. Script que reciba un directorio de origen, cree un `tar.gz` con fecha en el nombre y lo guarde en un directorio de destino.
@@ -107,7 +123,7 @@ Cada sesión sigue el método del plan: problema real, bibliografía, objetivos 
 
 ## Fase 2 · Ejercicio diario (sesiones 8 en adelante)
 
-Desde la sesión 8, cada día es un ejercicio de 10 a 20 minutos sobre un escenario de tu entorno, con un criterio de éxito escrito antes de empezar. Los últimos 10 minutos de la franja son para repasar el ejercicio y, a partir de la sesión 8, para pasar el script por `shellcheck` (instalación y uso se verán en esa sesión).
+Desde la sesión 8, cada día es un escenario de tu entorno con el mismo formato de sesión. La revisión incluye pasar el script por `shellcheck` (instalación y uso se ven en la sesión 8).
 
 Escenarios de partida, por orden aproximado (se generan uno a uno, no todos de golpe):
 
@@ -133,6 +149,6 @@ Escenarios de partida, por orden aproximado (se generan uno a uno, no todos de g
 | Manual de bash (versión instalada: 5.2) | gnu.org/software/bash/manual, sección *The Set Builtin* (4.3.1) para `set -euo pipefail` |
 | Páginas de `man` del VPS | manpages.ubuntu.com, sección *noble*: `man bash`, `man logger`, `man mktemp` |
 | Herramienta de revisión | Wiki de ShellCheck (github.com/koalaman/shellcheck/wiki), entrada del código de aviso que salga |
-| Libro | Shotts, *The Linux Command Line*, 3.ª ed., Parte IV, «Writing Shell Scripts» (cap. 24 «Writing Your First Script», confirmado en la edición 3) |
+| Libro | Shotts, *The Linux Command Line*, 3.ª ed. (febrero de 2026): Parte IV «Writing Shell Scripts», caps. 24 a 36; además, cap. 6 (redirecciones) y cap. 18 (archivado) |
 
-Los números de capítulo de la 2.ª edición citados arriba corresponden a la numeración del roadmap. Antes de cada sesión se comprueban en el índice detallado de la edición que tengas.
+Capítulos comprobados el 14/10/2026 en el índice de la 3.ª edición (nostarch.com/linux-command-line-3e).

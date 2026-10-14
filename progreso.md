@@ -18,7 +18,7 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⏸ en pausa · ⬜ sin empezar · ❓ 
 | Boot.dev | Ruta backend (Python), capítulo 9: Learn Data Structures and Algorithms (86/127). Siguiente: capítulo 16, Learn SQL (95 lecciones), adelantado; después se retoma el orden en el capítulo 10 |
 | Viernes | Código fuente de Odoo (H3 cumplido) |
 | Jornada | 4 h 45: Boot.dev 2 h, carril 2 h, scripting 30 min, terminal 15 min |
-| Scripting (franja de 30 min) | Bloque 1 · Sin empezar. Plan en `linux/linux-scripting-bloque-1-plan.md` |
+| Scripting (franja de 30 min) | Bloque 1 · Sin empezar. Plan en `linux/linux-scripting-bloque-1-plan.md`. Fin previsto del carril: 30/11/2026 (fin del Q1) |
 
 ## Hitos para jueves y viernes
 
@@ -63,11 +63,19 @@ Entregable del trimestre «VPS con Odoo desplegado a mano y HTTPS»: cumplido. F
 
 ## Scripting
 
-| Bloque | Estado | Cierre | Apuntes |
-|---|---|---|---|
-| 1 · Scripting en bash | ⬜ | | |
+Objetivo del Q1 (acordado el 14/10/2026): llegar al Q2 con bash base y procesado de texto y JSON desde la terminal, como base de «bash serio» (Q2 · Linux), Docker y CI. Python para operaciones queda fuera: lo cubre Boot.dev y se usa cuando un script lo pida. Franja de 30 min diarios, con temporizador propio, independiente del carril. Los escenarios de terminal (15 min diarios) se generan cada día, sin plan previo.
 
-**Sin empezar.** Franja de 30 min diarios, con temporizador propio, independiente del carril. Fase 1: sesiones 1 a 7. Fase 2: ejercicio diario desde la sesión 8. Los escenarios de terminal (15 min diarios) se generan cada día, sin plan previo.
+| Bloque | Fechas previstas | Estado | Cierre | Apuntes |
+|---|---|---|---|---|
+| 1 · Bash base | 15/10 – 5/11 (unas 15 sesiones) | ⬜ | | |
+| 2 · Texto y JSON en la terminal | 6/11 – 23/11 (unas 15 sesiones) | ⬜ Plan al arrancar el bloque | | |
+| Margen | 24/11 – 30/11 | | | |
+
+**Scripts:** repositorio público `scripts-backend-lab` (acordado el 14/10/2026). **Formato de sesión:** presentación de la sintaxis nueva y lectura antes del temporizador (no cuentan para la franja); después escenario de `backend-lab`, intento propio, revisión y cierre. Detalle en el plan del bloque.
+
+**Bloque 1 · Sin empezar.** Plan en `linux/linux-scripting-bloque-1-plan.md`. Fase 1: sesiones 1 a 7. Fase 2: ejercicio diario desde la sesión 8 hasta cumplir el criterio de cierre.
+
+**Bloque 2 (resumen del roadmap):** tuberías y redirecciones, `grep -E`, `cut`/`sort`/`uniq`, `sed`, `awk` y `jq`, sobre el journal de Odoo, logs de nginx, `ss` y la API de GitHub. Cierre: errores por hora del journal de Odoo, IP con más peticiones en el log de nginx y un campo de una respuesta JSON, en un script sin avisos de ShellCheck.
 
 ---
 
@@ -127,9 +135,15 @@ Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 
 ### Scripting · Bloque 1
 
+- Antes de la sesión 1: crear `scripts-backend-lab` en GitHub (público, con README) y añadirlo a la tabla de repos de las instrucciones del proyecto.
+- Sesión 1: decidir dónde se escriben los scripts (en el portátil con `git pull` en el VPS, o directamente en el VPS). Escribir en el VPS obliga a tener una credencial de GitHub en el servidor.
 - Confirmar la franja: supuesto que a los 25 min no se empieza nada nuevo y a los 30 se cierra. Ajustar si no encaja.
-- Verificar en el índice de tu edición de Shotts los capítulos de la Fase 1 (solo el cap. 24 está confirmado en la 3.ª ed.).
 - Nombre del plan `linux-scripting-bloque-1-plan.md` en `linux/`: renombrar si no encaja con la convención.
+- Si el Bloque 1 se alarga más allá del 5/11, recortar ejercicios de la Fase 2 antes que mover el Bloque 2.
+
+### Scripting · Bloque 2
+
+- Al generar el plan: comprobar la versión de `jq` instalada en `backend-lab` y que `awk` es `mawk` (lo que no exista en `mawk`, avisarlo).
 
 ### Linux · Bloque 3
 
