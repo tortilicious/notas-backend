@@ -17,6 +17,8 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⏸ en pausa · ⬜ sin empezar · ❓ 
 | Rotación | Linux y VPS ↔ Redes. PostgreSQL entra al terminar Learn SQL de Boot.dev |
 | Boot.dev | Ruta backend (Python), capítulo 9: Learn Data Structures and Algorithms (86/127). Siguiente: capítulo 16, Learn SQL (95 lecciones), adelantado; después se retoma el orden en el capítulo 10 |
 | Viernes | Código fuente de Odoo (H3 cumplido) |
+| Jornada | 4 h 45: Boot.dev 2 h, carril 2 h, scripting 30 min, terminal 15 min |
+| Scripting (franja de 30 min) | Bloque 1 · Sin empezar. Plan en `linux/linux-scripting-bloque-1-plan.md` |
 
 ## Hitos para jueves y viernes
 
@@ -56,6 +58,16 @@ El Artefacto 3 (algo del trabajo que dé rabia hacer a mano) queda libre desde H
 **Criterio de `vps-setup` (acordado el 14/10/2026):** guion genérico para levantar Odoo on premise en cualquier servidor. Un solo guion (`manual.md`), un fichero por configuración, sin enlaces a otros repositorios, sin comprobaciones ni teoría (una línea de porqué como mucho) y nada personal (shell, editor, scripts propios).
 
 Entregable del trimestre «VPS con Odoo desplegado a mano y HTTPS»: cumplido. Faltan los backups (Bloque 4).
+
+---
+
+## Scripting
+
+| Bloque | Estado | Cierre | Apuntes |
+|---|---|---|---|
+| 1 · Scripting en bash | ⬜ | | |
+
+**Sin empezar.** Franja de 30 min diarios, con temporizador propio, independiente del carril. Fase 1: sesiones 1 a 7. Fase 2: ejercicio diario desde la sesión 8. Los escenarios de terminal (15 min diarios) se generan cada día, sin plan previo.
 
 ---
 
@@ -112,6 +124,12 @@ Del roadmap: en `api.py`, cómo están implementados `@api.depends` y `@api.mode
 ## Pendientes
 
 Lista única. Cada pendiente lleva su destino; se borra al resolverse.
+
+### Scripting · Bloque 1
+
+- Confirmar la franja: supuesto que a los 25 min no se empieza nada nuevo y a los 30 se cierra. Ajustar si no encaja.
+- Verificar en el índice de tu edición de Shotts los capítulos de la Fase 1 (solo el cap. 24 está confirmado en la 3.ª ed.).
+- Nombre del plan `linux-scripting-bloque-1-plan.md` en `linux/`: renombrar si no encaja con la convención.
 
 ### Linux · Bloque 3
 
