@@ -1,6 +1,6 @@
 # Inventario de `backend-lab`
 
-**Estado a:** 13/10/2026
+**Estado a:** 14/10/2026
 
 > Solo el estado actual de la máquina. Cuando algo cambia, se sobrescribe la línea; sin historial. Cómo se monta está en `vps-setup`; por qué, en los apuntes. Sin secretos: solo dónde viven.
 
@@ -23,7 +23,7 @@
 | Pieza | Valor |
 |---|---|
 | Usuario | `miguel`, en los grupos `sudo` y `systemd-journal`. Tiene contraseña (para `sudo`), guardada en el gestor |
-| Shell | `fish` (código de salida en `$status`). `ls` es un alias con iconos: para la salida estándar, `command ls`; con `sudo`, `ls` a secas. Umask `0002` |
+| Shell | `fish` con prompt de starship (tema Gruvbox Rainbow, `~/.config/starship.toml`). `ls` es un alias de `eza` con iconos: para la salida estándar, `command ls`; con `sudo`, `ls` a secas. Umask `0002` |
 | Root | Sin acceso por SSH. Contraseña original de Netcup, válida solo por VNC |
 | SSH | `PermitRootLogin no`, `PasswordAuthentication no`, `KbdInteractiveAuthentication no`. Puerto 22 abierto por `ssh.socket` |
 | Clave | ed25519, alias `vps` en `~/.ssh/config` del portátil (`IdentityFile` e `IdentitiesOnly`) |
@@ -85,7 +85,7 @@ Sin drop-ins. Sin tareas en el crontab de `miguel`.
 | Código | `/opt/odoo/src`, rama `18.0`, commit `6b45949f`, clon superficial, propiedad de root |
 | Entorno | `/opt/odoo/venv`, creado con `uv` sobre el Python del sistema, propiedad de root. `psycopg2` y `python-ldap` compilados; `phonenumbers` añadida a mano (dependencia de `account_peppol`) |
 | `uv` | `0.12.24` en `/usr/local/bin` (no se actualiza con `apt`) |
-| Configuración | `/etc/odoo/odoo.conf`, `root:odoo 640` (directorio `root:root 755`). Claves: `http_interface=127.0.0.1`, `addons_path`, `data_dir=/var/lib/odoo`, `list_db = False`, `dbfilter = ^test-db$`, `proxy_mode = True`, `admin_passwd` (⚠️ en texto plano y comprometida: pendiente de cambio y hash) |
+| Configuración | `/etc/odoo/odoo.conf`, `root:odoo 640` (directorio `root:root 755`). Claves: `http_interface=127.0.0.1`, `addons_path`, `data_dir=/var/lib/odoo`, `list_db = False`, `dbfilter = ^test-db$`, `proxy_mode = True`, `admin_passwd` (hash `pbkdf2_sha512`) |
 | Datos | `/var/lib/odoo` (`addons/`, `filestore/test-db/`, `sessions/`), todo de `odoo`, sin escritura para el grupo ni acceso para otros |
 | Usuario de sistema | `odoo`, `nologin`, grupo propio, home `/var/lib/odoo` |
 | Aplicaciones en `test-db` | Ventas (arrastró `account_peppol`) |
@@ -120,7 +120,7 @@ Sin drop-ins. Sin tareas en el crontab de `miguel`.
 
 ## Paquetes instalados a mano (además de la base)
 
-`nginx`, `certbot`, `python3-certbot-nginx`, `apt-file`, `iputils-tracepath`, `bind9-dnsutils`, `gcc-x86-64-linux-gnu`, `libpython3.12-dev`, `libldap-dev`, `libpq-dev`, `binutils`, PostgreSQL 16. Fuera de `apt`: `wkhtmltox` y `uv`.
+`nginx`, `certbot`, `python3-certbot-nginx`, `git`, `nano`, `neovim`, `fish`, `eza`, `apt-file`, `iputils-tracepath`, `bind9-dnsutils`, `gcc-x86-64-linux-gnu`, `libpython3.12-dev`, `libldap-dev`, `libsasl2-dev`, `libpq-dev`, `binutils`, PostgreSQL 16. Repositorio añadido: `deb.gierens.de` (`/etc/apt/sources.list.d/gierens.list`, para `eza`). Fuera de `apt`: `wkhtmltox`, `uv` y `starship` (los tres en `/usr/local/bin`, junto con los scripts `lt`, `lta`, `lsx` y `lsa`).
 
 ## Copias previas en la home de `miguel`
 

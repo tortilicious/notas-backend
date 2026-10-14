@@ -161,12 +161,14 @@ footer ul{padding-left:18px}
 
 <section>
   <h2>La jornada</h2>
-  <p style="font-size:.95rem;color:var(--ink-soft);margin:0">Cuatro horas al día, todos los días que estés en casa. Sin día fijo de descanso: un día fuera no se recupera, y saltarse uno por cansancio no es un retraso. Inglés, aplazado para más adelante.</p>
+  <p style="font-size:.95rem;color:var(--ink-soft);margin:0">Cuatro horas y cuarenta y cinco minutos al día, todos los días que estés en casa. Sin día fijo de descanso: un día fuera no se recupera, y saltarse uno por cansancio no es un retraso. Inglés, aplazado para más adelante.</p>
   <table>
     <thead><tr><th>Bloque</th><th>Tiempo</th><th>Contenido</th></tr></thead>
     <tbody>
       <tr><td>Fondo</td><td>2 h</td><td>Boot.dev, sin móvil delante</td></tr>
       <tr><td>Carril</td><td>2 h</td><td>Alterna por sesión</td></tr>
+      <tr><td>Scripting</td><td>30 min</td><td>Bash, cada día, en franja propia</td></tr>
+      <tr><td>Terminal</td><td>15 min</td><td>Escenarios de devops, cada día</td></tr>
     </tbody>
   </table>
 
@@ -174,11 +176,12 @@ footer ul{padding-left:18px}
   <ul class="rota">
     <li><b>Regla</b><span>El carril de hoy es el que no se hizo en la última sesión</span></li>
     <li><b>Ahora</b><span>Linux y el VPS ↔ Redes</span></li>
+    <li><b>Diario</b><span>Scripting (30 min) y terminal (15 min), fuera del carril</span></li>
     <li><b>Después</b><span>Al terminar el SQL de Boot.dev entra PostgreSQL: rotación de tres</span></li>
     <li><b>Jueves y viernes</b><span>Días de carril hasta que un hito los pase a proyectos</span></li>
   </ul>
 
-  <p class="note">No hay repaso aparte: cada bloque se construye sobre el anterior, así que se repasa haciendo. Cada sesión termina con un ritual corto de preguntas y tus dudas. Pasada la 1 h 45 no se empieza nada nuevo.</p>
+  <p class="note">No hay repaso aparte: cada bloque se construye sobre el anterior, así que se repasa haciendo. Cada sesión termina con un ritual corto de preguntas y tus dudas. Pasada la 1 h 45 no se empieza nada nuevo en el carril. La franja de scripting tiene su propio límite: a los 25 min no se empieza nada nuevo.</p>
 </section>
 
 <section>
@@ -234,6 +237,12 @@ const QUARTERS = [
           ["Bloque 5 · Romperlo","Llena el disco, mata el servicio, corrompe la config de nginx, borra un índice de Postgres. Diagnostica con logs, no reinstalando. Se cierra cuando tienes un documento con cinco incidentes: síntoma, diagnóstico y solución.","How Linux Works: caps. 8 (monitorizar procesos y recursos) y 4 (cuando el problema es el disco). El UNIX and Linux System Administration Handbook aquí sí gana, porque está escrito desde el incidente."]
         ],
         books:"How Linux Works (Brian Ward) como columna vertebral y The Linux Command Line (Shotts, gratis online) para la shell. De referencia, el UNIX and Linux System Administration Handbook. man systemd.service y man systemd.unit son mejores que cualquier tutorial. Los capítulos citados por bloque son de How Linux Works 3.ª ed. y de The Linux Command Line 3.ª ed. (febrero de 2026); la numeración de capítulos no cambió respecto a la 2.ª, así que sirve igual si tienes la anterior o la edición gratuita de linuxcommand.org. Ubuntu trae snap y netplan preconfigurados: entiende qué hacen en vez de dejarlos como magia."},
+      {t:"Scripting", body:"Bash desde cero, 30 min diarios en franja propia: primero las bases, después un ejercicio corto cada día sobre escenarios de tu entorno.",
+        plan:[
+          ["Fase 1 · Bases (sesiones 1 a 7)","Del comando al script, variables y argumentos, códigos de salida e if, bucles, modo estricto (set -euo pipefail), funciones y trap. La sesión 7 es un mini-backup con rotación, versión pequeña del Artefacto 1.","Shotts, The Linux Command Line, 3.ª ed., Parte IV «Writing Shell Scripts» (cap. 24 confirmado; el resto, en el índice de tu edición). Manual de bash, sección The Set Builtin."],
+          ["Fase 2 · Ejercicio diario (desde la sesión 8)","Un escenario de 10 a 20 min cada día, con criterio de éxito escrito antes. Se cierra cuando un script con argumentos, errores, función y limpieza pasa ShellCheck sin avisos y explicas por qué usas set -euo pipefail.","Wiki de ShellCheck. man bash en manpages.ubuntu.com, sección noble."]
+        ],
+        books:"Plan detallado en linux/linux-scripting-bloque-1-plan.md. Decisión: bash; Python entra cuando la lógica no quepa bien en bash."},
       {t:"Redes", body:"De la capa de transporte al reverse proxy que tienes delante de Odoo.",
         plan:[
           ["Bloque 1 · El modelo y las capas","TCP/IP, direccionamiento, subredes, puertos, NAT. TCP frente a UDP y por qué existe el handshake.","Computer Networking (Kurose y Ross): cap. 1 (capas y encapsulación), cap. 4 (direccionamiento IPv4, CIDR, subredes y NAT) y cap. 3 (multiplexación y puertos, UDP, establecimiento de conexión). Control de congestión, no: ese es otro bloque."],
@@ -269,7 +278,8 @@ const QUARTERS = [
       "VPS operativo con Odoo desplegado a mano, HTTPS y backups automatizados",
       "Capaz de explicar en voz alta qué ocurre entre teclear una URL y ver la página",
       "Dos o tres scripts propios en GitHub con README decente",
-      "Al menos una query de cliente optimizada con evidencia de antes y después"
+      "Al menos una query de cliente optimizada con evidencia de antes y después",
+      "Script de backup con rotación, argumentos, errores y limpieza, sin avisos de ShellCheck"
     ]
   },
   {

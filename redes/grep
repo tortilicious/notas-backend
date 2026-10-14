@@ -1,0 +1,100 @@
+*   Trying [2a03:4000:67:5e2:c456:77ff:fe3a:fc4c]:443...
+* Immediate connect fail for 2a03:4000:67:5e2:c456:77ff:fe3a:fc4c: Network is unreachable
+* connect to 2a03:4000:67:5e2:c456:77ff:fe3a:fc4c port 443 from :: port 0 failed: Network is unreachable
+* Host odoo.mlozano.dev:443 was resolved.
+* IPv6: 2a03:4000:67:5e2:c456:77ff:fe3a:fc4c
+* IPv4: 89.58.45.111
+*   Trying 89.58.45.111:443...
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [1571 bytes data]
+* SSL Trust Anchors:
+*   CAfile: /etc/ssl/certs/ca-certificates.crt
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [122 bytes data]
+* TLSv1.3 (IN), TLS change cipher, Change cipher spec (1):
+{ [1 bytes data]
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+{ [19 bytes data]
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+{ [3419 bytes data]
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+{ [80 bytes data]
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+{ [52 bytes data]
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / x25519 / id-ecPublicKey
+* ALPN: server accepted h2
+* Server certificate:
+*   subject: CN=odoo.mlozano.dev
+*   start date: Oct 11 20:56:42 2026 GMT
+*   expire date: Jan  9 20:56:41 2027 GMT
+*   issuer: C=US; O=Let's Encrypt; CN=YE2
+*   Certificate level 0: Public key type EC/prime256v1 (256/128 Bits/secBits), signed using ecdsa-with-SHA384
+*   Certificate level 1: Public key type EC/secp384r1 (384/192 Bits/secBits), signed using ecdsa-with-SHA384
+*   Certificate level 2: Public key type EC/secp384r1 (384/192 Bits/secBits), signed using ecdsa-with-SHA384
+*   Certificate level 3: Public key type EC/secp384r1 (384/192 Bits/secBits), signed using ecdsa-with-SHA384
+*   subjectAltName: "odoo.mlozano.dev" matches cert's "odoo.mlozano.dev"
+* OpenSSL verify result: 0
+* SSL certificate verified via OpenSSL.
+* Established connection to odoo.mlozano.dev (89.58.45.111 port 443) from 192.168.17.250 port 39660 
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://odoo.mlozano.dev/
+* [HTTP/2] [1] [:method: GET]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: odoo.mlozano.dev]
+* [HTTP/2] [1] [:path: /]
+* [HTTP/2] [1] [user-agent: curl/8.22.0]
+* [HTTP/2] [1] [accept: */*]
+} [5 bytes data]
+> GET / HTTP/2
+> Host: odoo.mlozano.dev
+> User-Agent: curl/8.22.0
+> Accept: */*
+> 
+* Request completely sent off
+} [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [57 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [57 bytes data]
+< HTTP/2 303 
+< server: nginx/1.24.0 (Ubuntu)
+< date: Tue, 13 Oct 2026 17:11:44 GMT
+< content-type: text/html; charset=utf-8
+< content-length: 197
+< location: /odoo
+< set-cookie: session_id=6_88YfjZ2BHzLnh6rZ1L_As2rSX5TJGmSJKs47d3BsvLeRFdyZO2CjAr4vw8lh0OUJGpRKY0axHSjt3cyHZv; Expires=Wed, 13 Oct 2027 17:11:44 GMT; Max-Age=604800; HttpOnly; Path=/; Secure; SameSite=Lax
+< x-content-type-options: nosniff
+< strict-transport-security: max-age=31536000; includeSubDomains
+< 
+{ [197 bytes data]
+100    197 100    197   0      0    931      0                              0100    197 100    197   0      0    930      0                              0100    197 100    197   0      0    930      0                              0
+* Connection #0 to host odoo.mlozano.dev:443 left intact
+HTTP/2 303 
+server: nginx/1.24.0 (Ubuntu)
+date: Tue, 13 Oct 2026 17:11:44 GMT
+content-type: text/html; charset=utf-8
+content-length: 197
+location: /odoo
+set-cookie: session_id=6_88YfjZ2BHzLnh6rZ1L_As2rSX5TJGmSJKs47d3BsvLeRFdyZO2CjAr4vw8lh0OUJGpRKY0axHSjt3cyHZv; Expires=Wed, 13 Oct 2027 17:11:44 GMT; Max-Age=604800; HttpOnly; Path=/; Secure; SameSite=Lax
+x-content-type-options: nosniff
+strict-transport-security: max-age=31536000; includeSubDomains
+
+<!doctype html>
+<html lang=en>
+<title>Redirecting...</title>
+<h1>Redirecting...</h1>
+<p>You should be redirected automatically to the target URL: <a href="/odoo">/odoo</a>. If not, click the link.
+* Could not resolve host: connect
+* Could not resolve host: connect
+* Could not resolve: connect:80
+* closing connection #1
+curl: (6) Could not resolve host: connect

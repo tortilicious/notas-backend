@@ -1,6 +1,6 @@
 # Progreso · Roadmap Backend + Infra · Año 1
 
-**Última actualización:** 13/10/2026
+**Última actualización:** 14/10/2026
 
 > **Para Claude:** este fichero es la única fuente de verdad sobre dónde estoy. Cómo se lee y cómo se actualiza está en las instrucciones del proyecto.
 
@@ -12,8 +12,8 @@ Leyenda: ✅ cerrado · 🟡 en curso · ⏸ en pausa · ⬜ sin empezar · ❓ 
 
 | | |
 |---|---|
-| Última sesión de carril | Redes · Bloque 4, Sesión 1 cerrada (HTTP/2 activado en nginx, 13/10/2026) |
-| Siguiente carril | Linux y VPS · Bloque 3, Sesión 11 (notas de reinstalación y `vps-setup`) |
+| Última sesión de carril | Linux y VPS · Bloque 3, Sesión 11 cerrada (`vps-setup` reescrito como manual único, 14/10/2026) |
+| Siguiente carril | Redes · Bloque 4, Sesión 2 (qué protege TLS y cuánto cuesta) |
 | Rotación | Linux y VPS ↔ Redes. PostgreSQL entra al terminar Learn SQL de Boot.dev |
 | Boot.dev | Ruta backend (Python), capítulo 9: Learn Data Structures and Algorithms (86/127). Siguiente: capítulo 16, Learn SQL (95 lecciones), adelantado; después se retoma el orden en el capítulo 10 |
 | Viernes | Código fuente de Odoo (H3 cumplido) |
@@ -50,8 +50,10 @@ El Artefacto 3 (algo del trabajo que dé rabia hacer a mano) queda libre desde H
 |---|---|
 | 1 a 9 | ✅ |
 | 10 · HTTPS con certbot | ✅ 12/10/2026, con endurecimiento: `admin_passwd` en hash, contraseñas cambiadas, HSTS y cookie `secure` |
-| 11 · Notas de reinstalación y `vps-setup` | ⬜ |
-| 12 · Reinstalación (criterio de cierre) | ⬜ |
+| 11 · Notas de reinstalación y `vps-setup` | ✅ 14/10/2026: `manual.md` (13 pasos, de la máquina recién instalada a HTTPS) y ficheros en `odoo/`, `systemd/` y `nginx/`; README como portada |
+| 12 · Reinstalación (criterio de cierre) | ⬜ Reinstalar la imagen de `backend-lab` (decidido el 14/10: ni VPS temporal ni desinstalación parcial) |
+
+**Criterio de `vps-setup` (acordado el 14/10/2026):** guion genérico para levantar Odoo on premise en cualquier servidor. Un solo guion (`manual.md`), un fichero por configuración, sin enlaces a otros repositorios, sin comprobaciones ni teoría (una línea de porqué como mucho) y nada personal (shell, editor, scripts propios).
 
 Entregable del trimestre «VPS con Odoo desplegado a mano y HTTPS»: cumplido. Faltan los backups (Bloque 4).
 
@@ -113,6 +115,9 @@ Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 
 ### Linux · Bloque 3
 
+- **Sesión 12, antes de reinstalar:** copiar al equipo local `odoo.conf` (sin la línea `admin_passwd`), `odoo.service` y el sitio `odoo` de nginx, para compararlos con `diff` después.
+- **Sesión 12, tras reinstalar:** SSH avisará de que la huella del servidor ha cambiado; quitar la antigua de `known_hosts` del equipo local. Después de los pasos 1 a 4, restaurar la terminal con `~/terminal-vps/terminal.sh` (en el equipo local, con `config.fish`, `starship.toml` y `ghostty.terminfo`).
+- **Sesión 12, partes del manual nunca ejecutadas:** crear la base con `odoo-bin -d … -i base --without-demo=all --load-language=… --stop-after-init` (¿el administrador queda en el idioma elegido o en inglés?); `certbot certonly --nginx` con solo el sitio de bienvenida (¿deja `options-ssl-nginx.conf` y `ssl-dhparams.pem`?, ¿funciona `renew --dry-run` con el sitio final?); la lista de paquetes de compilación en una máquina limpia. Corregir `manual.md` con lo que salga.
 - Para los apuntes: el nombre exacto del error de conexión durante el corte de PostgreSQL no se anotó (`journalctl -u odoo` con filtro de tiempo y `grep -i error`). Las cabeceras del gestor y el `303` del selector sin `dbfilter` constan como descripción, sin reproducir.
 - Para los apuntes (Parte 3): `grep` sin `-E` trata `|` como literal, así que `grep -i 'critical|error'` no encuentra nada aunque haya errores. Para la Parte 2: el `psycopg2.InterfaceError: connection already closed` que aparece al reiniciar `odoo` es del proceso antiguo al pararse (se distingue por el PID y la hora frente al `Main PID` y el `since` de `systemctl status`).
 - Opcional: notificaciones en vivo con dos usuarios en dos navegadores (el `101` ya prueba el websocket).
@@ -139,11 +144,13 @@ Lista única. Cada pendiente lleva su destino; se borra al resolverse.
 
 - Cuando se configuren *workers* en Odoo: `KillMode=mixed` en `odoo.service` y el `proxy_pass` de `location /websocket` al 8072.
 - Experimentos opcionales del Bloque 2: ver la activación por socket con `ssh.service` parado; comprobar un `reload` con un `Banner` en `/etc/ssh/sshd_config.d/99-lab.conf` y retirarlo.
-- Borrar `~/labweb.service.bak` en el VPS.
+- Borrar `~/labweb.service.bak` en el VPS (desaparece con la reinstalación).
+- `~/terminal-vps` solo existe en el equipo local: valorar guardarlo en un repositorio de *dotfiles*.
 - Al actualizar nginx a 1.25.1 o posterior: pasar el parámetro `http2` de los `listen` del 443 a la directiva `http2 on;` (el parámetro sigue funcionando, pero avisa de obsoleto). Actualizar también `vps-setup`.
 
 ### Redes · Bloque 4
 
+- *(Sesión 5)* Diferencia entre `certbot --nginx` (autenticador e instalador: edita el sitio) y `certbot certonly --nginx` (solo autenticador), y cómo renueva cada uno. El manual usa `certonly`.
 - Preguntas del `diff` de certbot: qué pasa al abrir una conexión TLS (`ssl`); qué hay en `fullchain.pem` frente a `cert.pem` y `chain.pem`; qué elige `options-ssl-nginx.conf`; para qué sirve `ssl_dhparam`; qué comprueba Let's Encrypt (reto HTTP-01); qué significan los campos de TLS que muestra el navegador (`TLS_AES_128_GCM_SHA256`, TLS 1.3, Certificate Transparency).
 - HSTS a fondo: por qué la primera visita sin HSTS es el punto débil, la lista de precarga (`.dev` entero) y el `307 Internal Redirect` del navegador (F12 → *Network*, con *Preserve log*, al cargar `http://odoo.mlozano.dev`). La parte práctica quedó hecha en Linux · Bloque 3.
 - *(Opcional, Sesión 4)* Caso pixeldrain por HTTPS: la conexión TCP se abre y el corte (`Connection reset by peer`, código 35 de `curl`) llega justo después del `Client hello`. Apunta a inspección del SNI y corrige la conclusión del Bloque 2.
